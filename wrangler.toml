@@ -12,10 +12,10 @@ main = "worker.ts"
 compatibility_date = "2024-09-23"
 
 # ── R2 bucket binding ────────────────────────────────────────────────────────
-# Create the bucket first: bunx wrangler r2 bucket create bndn-notes
+# Create the bucket first: bunx wrangler r2 bucket create bndnio-notes
 [[r2_buckets]]
 binding = "NOTES_BUCKET"
-bucket_name = "bndn-notes"
+bucket_name = "bndnio-notes"
 
 # ── Email routing ────────────────────────────────────────────────────────────
 # This tells Cloudflare this Worker handles inbound email.

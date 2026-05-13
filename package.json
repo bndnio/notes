@@ -7,7 +7,7 @@
     "secret-sender": "wrangler secret put ALLOWED_SENDER",
     "secret-notion-token": "wrangler secret put NOTION_TOKEN",
     "secret-notion-db": "wrangler secret put NOTION_DB_ID",
-    "bucket": "wrangler r2 bucket create bndn-notes"
+    "bucket": "wrangler r2 bucket create bndnio-notes"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",

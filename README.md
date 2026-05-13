@@ -35,7 +35,7 @@ bunx wrangler login
 ## Step 3 — Create the R2 bucket
 
 ```bash
-bunx wrangler r2 bucket create bndn-notes
+bunx wrangler r2 bucket create bndnio-notes
 ```
 
 ---
@@ -100,7 +100,7 @@ Send an email from your personal address to `notes@bndn.io`.
 
 Check:
 - **Cloudflare Dashboard → Workers → notes-capture → Logs** for real-time output
-- **R2 → bndn-notes bucket** for the saved files
+- **R2 → bndnio-notes bucket** for the saved files
 - **Notion** for the new page
 
 ---
@@ -110,10 +110,10 @@ Check:
 ### Download all notes from R2
 ```bash
 # List all notes
-bunx wrangler r2 object list bndn-notes --prefix notes/
+bunx wrangler r2 object list bndnio-notes --prefix notes/
 
 # Download a specific file
-bunx wrangler r2 object get bndn-notes notes/2026-05-13/2026-05-13T10-32-00Z-my-idea.json --file ./my-idea.json
+bunx wrangler r2 object get bndnio-notes notes/2026-05-13/2026-05-13T10-32-00Z-my-idea.json --file ./my-idea.json
 ```
 
 ### Bulk download with a script
@@ -136,7 +136,7 @@ const client = new S3Client({
 });
 
 const list = await client.send(new ListObjectsV2Command({
-  Bucket: "bndn-notes",
+  Bucket: "bndnio-notes",
   Prefix: "notes/",
 }));
 
@@ -144,7 +144,7 @@ mkdirSync("./downloaded-notes", { recursive: true });
 
 for (const obj of list.Contents ?? []) {
   if (!obj.Key.endsWith(".md")) continue;
-  const res = await client.send(new GetObjectCommand({ Bucket: "bndn-notes", Key: obj.Key }));
+  const res = await client.send(new GetObjectCommand({ Bucket: "bndnio-notes", Key: obj.Key }));
   const text = await res.Body.transformToString();
   const filename = obj.Key.replace(/\//g, "-");
   writeFileSync(`./downloaded-notes/${filename}`, text);
@@ -157,7 +157,7 @@ for (const obj of list.Contents ?? []) {
 ## File structure in R2
 
 ```
-bndn-notes/
+bndnio-notes/
 └── notes/
     └── 2026-05-13/
         ├── 2026-05-13T10-32-00Z-coffee-shop-idea.md    ← structured note
