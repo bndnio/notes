@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Wrangler
+.wrangler/
+
+# TypeScript
+*.js.map
+*.d.ts
+
+# Downloaded notes (bulk export script output)
+downloaded-notes/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# VSCode / Cursor
+.vscode/
+.cursor/
+*.code-workspace
+
+# Env / secrets
+.env
+.env.*
+.dev.vars
