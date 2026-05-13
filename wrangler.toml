@@ -7,7 +7,7 @@
 #   bunx wrangler secret put NOTION_TOKEN
 #   bunx wrangler secret put NOTION_DB_ID
 
-name = "notes-capture"
+name = "bndnio-notes"
 main = "worker.ts"
 compatibility_date = "2024-09-23"
 
