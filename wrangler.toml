@@ -1,0 +1,32 @@
+# wrangler.toml
+# Cloudflare Worker configuration for notes@bndn.io capture
+#
+# Deploy with: bunx wrangler deploy
+# Set secrets with:
+#   bunx wrangler secret put ALLOWED_SENDER
+#   bunx wrangler secret put NOTION_TOKEN
+#   bunx wrangler secret put NOTION_DB_ID
+
+name = "notes-capture"
+main = "worker.ts"
+compatibility_date = "2024-09-23"
+
+# ── R2 bucket binding ────────────────────────────────────────────────────────
+# Create the bucket first: bunx wrangler r2 bucket create bndn-notes
+[[r2_buckets]]
+binding = "NOTES_BUCKET"
+bucket_name = "bndn-notes"
+
+# ── Email routing ────────────────────────────────────────────────────────────
+# This tells Cloudflare this Worker handles inbound email.
+# You still need to configure the route in the Cloudflare dashboard:
+#   Email → Email Routing → Routing Rules → notes@bndn.io → this Worker
+[[send_email]]
+name = "SEND_EMAIL"
+
+# ── Environment variables (non-secret) ──────────────────────────────────────
+# Secrets (ALLOWED_SENDER, NOTION_TOKEN, NOTION_DB_ID) are set via
+# `wrangler secret put` and never stored in this file.
+[vars]
+# Add any non-sensitive config here if needed
+# ENVIRONMENT = "production"
