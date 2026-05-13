@@ -18,9 +18,8 @@ Emails sent to `notes@bndn.io` from your personal address are:
 ## Step 1 — Install dependencies
 
 ```bash
-bun install -g wrangler
-bun add -d @cloudflare/workers-types
-wrangler login
+bun install
+bunx wrangler login
 ```
 
 ---

@@ -10,6 +10,7 @@
     "bucket": "wrangler r2 bucket create bndn-notes"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260511.1"
+    "@cloudflare/workers-types": "^4.20260511.1",
+    "wrangler": "^4.90.1"
   }
 }
