@@ -50,8 +50,10 @@ export default {
     const parsed = parseEmail(rawEmail);
 
     const timestamp = new Date().toISOString();
+    const dateStamp = timestamp.slice(0, 10);
+    const timeStamp = timestamp.slice(11, 16).replace(":", "h");
     const slug = slugify(parsed.subject || "untitled");
-    const key = `notes/${timestamp.slice(0, 10)}/${timestamp}-${slug}.md`;
+    const key = `notes/${dateStamp}/${timeStamp}-${slug}.md`;
 
     const note: Note = {
       timestamp,
