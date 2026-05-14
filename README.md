@@ -64,14 +64,10 @@ bunx wrangler r2 bucket create bndnio-notes
 ## Step 5 — Set secrets
 
 ```bash
-bunx wrangler secret put ALLOWED_SENDER
-# Enter your personal email address when prompted
-
-bunx wrangler secret put NOTION_TOKEN
-# Enter your Notion integration secret (secret_...)
-
-bunx wrangler secret put NOTION_DB_ID
-# Enter your Notion database ID
+bun run secret-sender       # your personal email address
+bun run secret-notion-token # Notion integration secret (secret_...)
+bun run secret-notion-db    # Notion database ID
+bun run secret-mcp-token    # random token for MCP auth (see Step 9)
 ```
 
 ---
@@ -102,6 +98,39 @@ Check:
 - **Cloudflare Dashboard → Workers → notes-capture → Logs** for real-time output
 - **R2 → bndnio-notes bucket** for the saved files
 - **Notion** for the new page
+
+---
+
+## Step 9 — Set up MCP (optional, for AI agents)
+
+This worker exposes a Remote MCP server at `/mcp` so AI agents (Claude Code, etc.) can save notes directly without email.
+
+### Generate a token
+
+```bash
+openssl rand -hex 32
+```
+
+### Set the secret
+
+```bash
+bun run secret-mcp-token
+# Paste the token when prompted
+```
+
+### Register with Claude Code
+
+```bash
+claude mcp add --transport http notes \
+  https://bndnio-notes.brendonaearl.workers.dev/mcp \
+  --header "Authorization: Bearer <your-token>"
+```
+
+This writes to `~/.claude.json`. The `save_note` tool (accepts `subject` and `body`) will appear automatically in every Claude Code session.
+
+### Rotate the token
+
+Generate a new token, run `bun run secret-mcp-token`, and update the `Authorization` header in `~/.claude.json`.
 
 ---
 
@@ -160,8 +189,8 @@ for (const obj of list.Contents ?? []) {
 bndnio-notes/
 └── notes/
     └── 2026-05-13/
-        ├── 2026-05-13T10-32-00Z-coffee-shop-idea.md    ← structured note
-        └── 2026-05-13T10-32-00Z-coffee-shop-idea.eml   ← raw email backup
+        ├── 2026-05-13T10-32-00Z-coffee-shop-idea.md    ← structured note (email or MCP)
+        └── 2026-05-13T10-32-00Z-coffee-shop-idea.eml   ← raw email backup (email path only)
 ```
 
 Each `.md` looks like:
@@ -174,5 +203,5 @@ subject: Coffee shop idea
 raw_key: notes/2026-05-13/2026-05-13T10-32-00Z-coffee-shop-idea.eml
 ---
 
-The full email body text here...
+The full note body here...
 ```

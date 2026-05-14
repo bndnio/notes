@@ -1,11 +1,60 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { z } from "zod";
 import { streamToText, parseEmail } from "./lib/email";
-import { postToNotion } from "./lib/notion";
-import { toMarkdown, slugify } from "./lib/markdown";
-import type { Env, Note } from "./lib/types";
+import { computeKeys, saveNote } from "./lib/notes";
+import type { Env } from "./lib/types";
+
+function makeMcpServer(env: Env): McpServer {
+  const server = new McpServer({ name: "notes", version: "1.0.0" });
+
+  async function saveNoteTool(subject: string, body: string) {
+    const { mdKey } = computeKeys(subject);
+    const result = await saveNote({ mdKey, subject, body }, env);
+    return {
+      content: [{ type: "text" as const, text: `Saved: ${mdKey}. Notion: ${result.notionOk ? "ok" : "failed"}` }],
+    };
+  }
+
+  server.registerTool(
+    "save_note",
+    {
+      description: "Save a note to R2 and Notion",
+      inputSchema: {
+        subject: z.string().describe("Note title"),
+        body: z.string().describe("Note body (plain text or markdown)"),
+      },
+    },
+    ({ subject, body }) => saveNoteTool(subject, body),
+  );
+
+  return server;
+}
 
 export default {
-  async email(message: ForwardableEmailMessage, env: Env, ctx: ExecutionContext): Promise<void> {
-    // ── 1. Validate sender ───────────────────────────────────────────────────
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (url.pathname !== "/mcp") {
+      return new Response("Not found", { status: 404 });
+    }
+
+    const authHeader = request.headers.get("Authorization") ?? "";
+    if (authHeader !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const transport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
+
+    const server = makeMcpServer(env);
+    await server.connect(transport);
+    return transport.handleRequest(request);
+  },
+
+  async email(message: ForwardableEmailMessage, env: Env, _ctx: ExecutionContext): Promise<void> {
     const from = message.from?.toLowerCase().trim();
     const allowed = env.ALLOWED_SENDER?.toLowerCase().trim();
 
@@ -15,55 +64,28 @@ export default {
       return;
     }
 
-    // ── 2. Parse the email ───────────────────────────────────────────────────
     const rawEmail = await streamToText(message.raw);
     const parsed = parseEmail(rawEmail);
 
-    const timestamp = new Date().toISOString();
-    const dateStamp = timestamp.slice(0, 10);
-    const timeStamp = timestamp.slice(11, 16).replace(":", "h");
-    const slug = slugify(parsed.subject || "untitled");
-    const key = `notes/${dateStamp}/${timeStamp}-${slug}.md`;
+    const { mdKey, emlKey } = computeKeys(parsed.subject);
 
-    const note: Note = {
-      timestamp,
-      from: message.from,
-      to: message.to,
-      subject: parsed.subject || "(no subject)",
-      body: parsed.body,
-      raw_key: key.replace(".md", ".eml"),
-    };
-
-    // ── 3. Save to R2 ────────────────────────────────────────────────────────
-    const saveMd = env.NOTES_BUCKET.put(key, toMarkdown(note), {
-      httpMetadata: { contentType: "text/markdown" },
-      customMetadata: { subject: note.subject, from: note.from },
+    const saveEml = env.NOTES_BUCKET.put(emlKey, rawEmail, {
+      httpMetadata: { contentType: "message/rfc822" },
     });
 
-    const saveRaw = env.NOTES_BUCKET.put(
-      note.raw_key,
-      rawEmail,
-      { httpMetadata: { contentType: "message/rfc822" } }
-    );
-
-    // ── 4. Save to Notion ────────────────────────────────────────────────────
-    const saveNotion = postToNotion(note, env);
-
-    const [r2Result, notionResult] = await Promise.allSettled([
-      Promise.all([saveMd, saveRaw]),
-      saveNotion,
+    const [emlResult, noteResult] = await Promise.allSettled([
+      saveEml,
+      saveNote({ mdKey, subject: parsed.subject, body: parsed.body, from: message.from, to: message.to, emlKey }, env),
     ]);
 
-    if (r2Result.status === "rejected") {
-      console.error("R2 write failed:", r2Result.reason);
-    } else {
-      console.log(`Saved to R2: ${key}`);
-    }
+    if (emlResult.status === "rejected") console.error(`R2 eml write failed: ${emlResult.reason}`);
+    else console.log(`Saved eml: ${emlKey}`);
 
-    if (notionResult.status === "rejected") {
-      console.error("Notion write failed:", notionResult.reason);
-    } else {
-      console.log("Saved to Notion");
+    if (noteResult.status === "rejected") console.error(`R2 md write failed (Notion status unknown): ${noteResult.reason}`);
+    else {
+      console.log(`Saved md: ${mdKey}`);
+      if (!noteResult.value.notionOk) console.error("Notion write failed (md saved successfully)");
+      else console.log("Saved to Notion");
     }
   },
 };

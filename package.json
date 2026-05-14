@@ -5,6 +5,7 @@
     "typecheck": "tsc --noEmit",
     "logs": "wrangler tail",
     "secret-sender": "wrangler secret put ALLOWED_SENDER",
+    "secret-mcp-token": "wrangler secret put MCP_AUTH_TOKEN",
     "secret-notion-token": "wrangler secret put NOTION_TOKEN",
     "secret-notion-db": "wrangler secret put NOTION_DB_ID",
     "bucket": "wrangler r2 bucket create bndnio-notes"
@@ -12,5 +13,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",
     "wrangler": "^4.90.1"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
   }
 }

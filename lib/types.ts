@@ -3,6 +3,7 @@ export interface Env {
   ALLOWED_SENDER: string;
   NOTION_TOKEN: string;
   NOTION_DB_ID: string;
+  MCP_AUTH_TOKEN: string;
 }
 
 export interface ParsedEmail {
@@ -16,5 +17,5 @@ export interface Note {
   to: string;
   subject: string;
   body: string;
-  raw_key: string;
+  emlKey?: string;
 }

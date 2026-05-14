@@ -6,7 +6,7 @@ timestamp: ${note.timestamp}
 from: ${note.from}
 to: ${note.to}
 subject: ${note.subject}
-raw_key: ${note.raw_key}
+${note.emlKey ? `emlKey: ${note.emlKey}` : ""}
 ---
 
 ${note.body || "(empty)"}
