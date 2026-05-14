@@ -192,8 +192,11 @@ function parseEmail(raw: string): ParsedEmail {
   if (sep === -1) return { subject: "", body: "" };
 
   const headers = parseHeaders(raw.slice(0, sep));
-  const subject = decodeRfc2047(headers["subject"] || "").trim();
-  const body = extractPlainText(raw).replace(/\n{3,}/g, "\n\n").trim();
+  const rawSubject = headers["subject"] || "";
+  const subject = decodeRfc2047(rawSubject).trim();
+  const plainText = extractPlainText(raw);
+  const stripped = stripSignature(plainText);
+  const body = stripped.replace(/\n{3,}/g, "\n\n").trim();
 
   return { subject, body };
 }
@@ -308,6 +311,12 @@ function extractPlainText(raw: string): string {
   }
 
   return decodeBodyContent(bodyText, encoding).trim();
+}
+
+function stripSignature(text: string): string {
+  const lines = text.split("\n");
+  const sigIndex = lines.findIndex((l) => l === "-- " || l === "--");
+  return sigIndex === -1 ? text : lines.slice(0, sigIndex).join("\n");
 }
 
 function escapeRegex(s: string): string {
