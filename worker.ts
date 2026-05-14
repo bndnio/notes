@@ -188,35 +188,130 @@ async function streamToText(stream: ReadableStream<Uint8Array>): Promise<string>
 }
 
 function parseEmail(raw: string): ParsedEmail {
-  const lines = raw.split(/\r?\n/);
-  let subject = "";
-  let inHeaders = true;
-  const bodyLines: string[] = [];
+  const sep = raw.search(/\r?\n\r?\n/);
+  if (sep === -1) return { subject: "", body: "" };
 
-  for (const line of lines) {
-    if (inHeaders) {
-      if (line === "") {
-        inHeaders = false;
-        continue;
-      }
-      const subjectMatch = line.match(/^Subject:\s*(.+)/i);
-      if (subjectMatch) subject = subjectMatch[1].trim();
-    } else {
-      // Skip MIME boundaries and headers in multipart bodies
-      if (line.startsWith("--") || line.match(/^Content-Type:/i) ||
-          line.match(/^Content-Transfer-Encoding:/i)) continue;
-
-      // Decode quoted-printable soft line breaks
-      const decoded = line.replace(/=\r?\n/g, "").replace(/=([0-9A-F]{2})/gi,
-        (_, hex) => String.fromCharCode(parseInt(hex, 16)));
-
-      bodyLines.push(decoded);
-    }
-  }
-
-  const body = bodyLines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  const headers = parseHeaders(raw.slice(0, sep));
+  const subject = decodeRfc2047(headers["subject"] || "").trim();
+  const body = extractPlainText(raw).replace(/\n{3,}/g, "\n\n").trim();
 
   return { subject, body };
+}
+
+function parseHeaders(headerText: string): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const unfolded = headerText.replace(/\r?\n[ \t]+/g, " ");
+  for (const line of unfolded.split(/\r?\n/)) {
+    const m = line.match(/^([^:]+):\s*(.*)$/);
+    if (m) headers[m[1].toLowerCase()] = m[2].trim();
+  }
+  return headers;
+}
+
+function decodeRfc2047(str: string): string {
+  // Strip whitespace between adjacent encoded words before decoding
+  const joined = str.replace(/(=\?[^?]+\?[BbQq]\?[^?]*\?=)\s+(=\?[^?]+\?[BbQq]\?[^?]*\?=)/g, "$1$2");
+  return joined.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (original, charset, enc, text) => {
+    try {
+      if (enc.toUpperCase() === "Q") {
+        const withSpaces = text.replace(/_/g, " ");
+        return decodeURIComponent(withSpaces.replace(/=([0-9A-Fa-f]{2})/g, "%$1"));
+      }
+      const bytes = Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
+      return new TextDecoder(charset).decode(bytes);
+    } catch {
+      return original;
+    }
+  });
+}
+
+function decodeQP(text: string): string {
+  const soft = text.replace(/=\r?\n/g, "");
+  try {
+    return decodeURIComponent(soft.replace(/=([0-9A-Fa-f]{2})/g, "%$1"));
+  } catch {
+    return soft.replace(/=([0-9A-Fa-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+  }
+}
+
+function decodeBodyContent(body: string, encoding: string): string {
+  const enc = encoding.toLowerCase().trim();
+  if (enc === "quoted-printable") return decodeQP(body);
+  if (enc === "base64") {
+    const bytes = Uint8Array.from(atob(body.replace(/\s/g, "")), (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+  return body;
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .trim();
+}
+
+function extractPlainText(raw: string): string {
+  const sep = raw.search(/\r?\n\r?\n/);
+  if (sep === -1) return "";
+
+  const headers = parseHeaders(raw.slice(0, sep));
+  const bodyText = raw.slice(sep).replace(/^\r?\n\r?\n/, "");
+  const contentType = headers["content-type"] || "text/plain";
+  const encoding = headers["content-transfer-encoding"] || "7bit";
+
+  if (contentType.startsWith("multipart/")) {
+    const boundaryMatch = contentType.match(/boundary="?([^";]+)"?/i);
+    if (!boundaryMatch) return decodeBodyContent(bodyText, encoding);
+    const boundary = boundaryMatch[1].trim();
+
+    const parts = bodyText.split(new RegExp(`--${escapeRegex(boundary)}(?:--)?\\r?\\n?`));
+    let htmlFallback = "";
+
+    for (const part of parts) {
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+
+      const partSep = trimmed.search(/\r?\n\r?\n/);
+      if (partSep === -1) continue;
+
+      const partHeaders = parseHeaders(trimmed.slice(0, partSep));
+      const partBody = trimmed.slice(partSep).replace(/^\r?\n\r?\n/, "");
+      const partType = partHeaders["content-type"] || "";
+      const partEncoding = partHeaders["content-transfer-encoding"] || "7bit";
+
+      if (partType.startsWith("text/plain")) {
+        return decodeBodyContent(partBody, partEncoding).trim();
+      }
+      if (partType.startsWith("text/html") && !htmlFallback) {
+        htmlFallback = stripHtml(decodeBodyContent(partBody, partEncoding));
+      }
+      if (partType.startsWith("multipart/")) {
+        const nested = extractPlainText(trimmed);
+        if (nested) return nested;
+      }
+    }
+
+    return htmlFallback;
+  }
+
+  if (contentType.startsWith("text/html")) {
+    return stripHtml(decodeBodyContent(bodyText, encoding));
+  }
+
+  return decodeBodyContent(bodyText, encoding).trim();
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function slugify(text: string): string {
