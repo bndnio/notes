@@ -1,35 +1,30 @@
 import type { ParsedEmail } from "./types";
 
 export async function streamToText(stream: ReadableStream<Uint8Array>): Promise<string> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-  const merged = new Uint8Array(chunks.reduce((acc, c) => acc + c.length, 0));
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return new TextDecoder().decode(merged);
+  return new Response(stream).text();
 }
 
 export function parseEmail(raw: string): ParsedEmail {
-  const sep = raw.search(/\r?\n\r?\n/);
-  if (sep === -1) return { subject: "", body: "" };
+  const split = splitHeaderBody(raw);
+  if (!split) return { subject: "", body: "" };
 
-  const headers = parseHeaders(raw.slice(0, sep));
-  const rawSubject = headers["subject"] || "";
+  const rawSubject = split.headers["subject"] || "";
   const subject = decodeRfc2047(rawSubject).trim();
-  const plainText = extractPlainText(raw);
+  const plainText = extractPlainText(split.headers, split.bodyText);
   const stripped = stripSignature(plainText);
   const reflowed = reflow(stripped);
   const body = reflowed.replace(/\n{3,}/g, "\n\n").trim();
 
   return { subject, body };
+}
+
+function splitHeaderBody(raw: string): { headers: Record<string, string>; bodyText: string } | null {
+  const sep = raw.search(/\r?\n\r?\n/);
+  if (sep === -1) return null;
+  return {
+    headers: parseHeaders(raw.slice(0, sep)),
+    bodyText: raw.slice(sep).replace(/^\r?\n\r?\n/, ""),
+  };
 }
 
 function parseHeaders(headerText: string): Record<string, string> {
@@ -92,12 +87,7 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function extractPlainText(raw: string): string {
-  const sep = raw.search(/\r?\n\r?\n/);
-  if (sep === -1) return "";
-
-  const headers = parseHeaders(raw.slice(0, sep));
-  const bodyText = raw.slice(sep).replace(/^\r?\n\r?\n/, "");
+function extractPlainText(headers: Record<string, string>, bodyText: string): string {
   const contentType = headers["content-type"] || "text/plain";
   const encoding = headers["content-transfer-encoding"] || "7bit";
 
@@ -113,22 +103,20 @@ function extractPlainText(raw: string): string {
       const trimmed = part.trim();
       if (!trimmed) continue;
 
-      const partSep = trimmed.search(/\r?\n\r?\n/);
-      if (partSep === -1) continue;
+      const partSplit = splitHeaderBody(trimmed);
+      if (!partSplit) continue;
 
-      const partHeaders = parseHeaders(trimmed.slice(0, partSep));
-      const partBody = trimmed.slice(partSep).replace(/^\r?\n\r?\n/, "");
-      const partType = partHeaders["content-type"] || "";
-      const partEncoding = partHeaders["content-transfer-encoding"] || "7bit";
+      const partType = partSplit.headers["content-type"] || "";
+      const partEncoding = partSplit.headers["content-transfer-encoding"] || "7bit";
 
       if (partType.startsWith("text/plain")) {
-        return decodeBodyContent(partBody, partEncoding).trim();
+        return decodeBodyContent(partSplit.bodyText, partEncoding).trim();
       }
       if (partType.startsWith("text/html") && !htmlFallback) {
-        htmlFallback = stripHtml(decodeBodyContent(partBody, partEncoding));
+        htmlFallback = stripHtml(decodeBodyContent(partSplit.bodyText, partEncoding));
       }
       if (partType.startsWith("multipart/")) {
-        const nested = extractPlainText(trimmed);
+        const nested = extractPlainText(partSplit.headers, partSplit.bodyText);
         if (nested) return nested;
       }
     }
@@ -158,7 +146,6 @@ function reflow(text: string): string {
     const next = lines[i + 1] ?? "";
 
     const shouldJoin =
-      i < lines.length - 1 &&
       cur !== "" &&
       next !== "" &&
       !cur.startsWith(">") &&
