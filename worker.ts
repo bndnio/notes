@@ -196,7 +196,8 @@ function parseEmail(raw: string): ParsedEmail {
   const subject = decodeRfc2047(rawSubject).trim();
   const plainText = extractPlainText(raw);
   const stripped = stripSignature(plainText);
-  const body = stripped.replace(/\n{3,}/g, "\n\n").trim();
+  const reflowed = reflow(stripped);
+  const body = reflowed.replace(/\n{3,}/g, "\n\n").trim();
 
   return { subject, body };
 }
@@ -317,6 +318,28 @@ function stripSignature(text: string): string {
   const lines = text.split("\n");
   const sigIndex = lines.findIndex((l) => l === "-- " || l === "--");
   return sigIndex === -1 ? text : lines.slice(0, sigIndex).join("\n");
+}
+
+function reflow(text: string): string {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  let result = "";
+
+  for (let i = 0; i < lines.length; i++) {
+    const cur = lines[i];
+    const next = lines[i + 1] ?? "";
+
+    const shouldJoin =
+      i < lines.length - 1 &&
+      cur !== "" &&
+      next !== "" &&
+      !cur.startsWith(">") &&
+      !next.startsWith(">");
+
+    result += cur;
+    result += shouldJoin ? " " : "\n";
+  }
+
+  return result.trimEnd();
 }
 
 function escapeRegex(s: string): string {
