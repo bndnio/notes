@@ -1,16 +1,17 @@
 # notes@bndn.io → R2 + Notion Setup Guide
 
 ## What this does
-Emails sent to `notes@bndn.io` from your personal address are:
-1. Validated (all other senders are silently rejected)
-2. Saved to R2 as structured JSON + raw `.eml`
-3. Posted as a page in a Notion database
+Notes can be captured two ways:
+- **Email** — send to `notes@bndn.io` from your personal address
+- **MCP** — AI agents (Claude Code) call the `save_note` tool directly
+
+All notes are saved to R2 as `.md` and posted to a Notion database. Email notes also keep a raw `.eml` backup.
 
 ---
 
 ## Prerequisites
 - Your domain `bndn.io` on Cloudflare (free plan is fine)
-- Node.js installed locally
+- Bun installed locally
 - A Notion account
 
 ---
@@ -35,7 +36,7 @@ bunx wrangler login
 ## Step 3 — Create the R2 bucket
 
 ```bash
-bunx wrangler r2 bucket create bndnio-notes
+bun run bucket
 ```
 
 ---
@@ -67,7 +68,6 @@ bunx wrangler r2 bucket create bndnio-notes
 bun run secret-sender       # your personal email address
 bun run secret-notion-token # Notion integration secret (secret_...)
 bun run secret-notion-db    # Notion database ID
-bun run secret-mcp-token    # random token for MCP auth (see Step 9)
 ```
 
 ---
@@ -75,7 +75,7 @@ bun run secret-mcp-token    # random token for MCP auth (see Step 9)
 ## Step 6 — Deploy
 
 ```bash
-bunx wrangler deploy
+bun run deploy
 ```
 
 ---
@@ -85,7 +85,7 @@ bunx wrangler deploy
 1. Cloudflare Dashboard → **Email** → **Email Routing** → **Routing Rules**
 2. Add a rule:
    - **From:** `notes@bndn.io`
-   - **Action:** Send to Worker → select `notes-capture`
+   - **Action:** Send to Worker → select `bndnio-notes`
 3. Save
 
 ---
@@ -95,7 +95,7 @@ bunx wrangler deploy
 Send an email from your personal address to `notes@bndn.io`.
 
 Check:
-- **Cloudflare Dashboard → Workers → notes-capture → Logs** for real-time output
+- **Cloudflare Dashboard → Workers → bndnio-notes → Logs** for real-time output
 - **R2 → bndnio-notes bucket** for the saved files
 - **Notion** for the new page
 
@@ -142,7 +142,7 @@ Generate a new token, run `bun run secret-mcp-token`, and update the `Authorizat
 bunx wrangler r2 object list bndnio-notes --prefix notes/
 
 # Download a specific file
-bunx wrangler r2 object get bndnio-notes notes/2026-05-13/2026-05-13T10-32-00Z-my-idea.json --file ./my-idea.json
+bunx wrangler r2 object get bndnio-notes notes/2026-05-13/20h32-my-idea.md --file ./my-idea.md
 ```
 
 ### Bulk download with a script
@@ -189,18 +189,30 @@ for (const obj of list.Contents ?? []) {
 bndnio-notes/
 └── notes/
     └── 2026-05-13/
-        ├── 2026-05-13T10-32-00Z-coffee-shop-idea.md    ← structured note (email or MCP)
-        └── 2026-05-13T10-32-00Z-coffee-shop-idea.eml   ← raw email backup (email path only)
+        ├── 20h32-coffee-shop-idea.md    ← structured note (email or MCP)
+        └── 20h32-coffee-shop-idea.eml   ← raw email backup (email path only)
 ```
 
-Each `.md` looks like:
+Email note `.md`:
 ```markdown
 ---
 timestamp: 2026-05-13T10:32:00.000Z
 from: you@youremail.com
 to: notes@bndn.io
 subject: Coffee shop idea
-raw_key: notes/2026-05-13/2026-05-13T10-32-00Z-coffee-shop-idea.eml
+emlKey: notes/2026-05-13/20h32-coffee-shop-idea.eml
+---
+
+The full note body here...
+```
+
+MCP note `.md`:
+```markdown
+---
+timestamp: 2026-05-13T10:32:00.000Z
+from: mcp
+to: 
+subject: Coffee shop idea
 ---
 
 The full note body here...
