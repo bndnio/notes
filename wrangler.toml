@@ -11,6 +11,9 @@ name = "bndnio-notes"
 main = "worker.ts"
 compatibility_date = "2024-09-23"
 
+[observability]
+enabled = true
+
 # ── R2 bucket binding ────────────────────────────────────────────────────────
 # Create the bucket first: bunx wrangler r2 bucket create bndnio-notes
 [[r2_buckets]]
