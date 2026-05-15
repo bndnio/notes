@@ -35,7 +35,7 @@ id = "3bc2721c49b44e21bc5e028c7cef54c3"
 
 # ── KV: user profiles (notionDbId), keyed by username ────────────────────────
 [[kv_namespaces]]
-binding = "NOTION_DB_KV"
+binding = "PROFILE_KV"
 id = "6efa814a66e041008f334fd9b83ca30f"
 
 # ── KV: AES-GCM encrypted Notion tokens, keyed by username ───────────────────

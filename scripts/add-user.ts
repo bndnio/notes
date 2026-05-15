@@ -5,7 +5,7 @@ import { encrypt } from "../lib/crypto";
 import { execSync } from "child_process";
 
 const USER_INDEX_KV_ID = "3bc2721c49b44e21bc5e028c7cef54c3";
-const NOTION_DB_KV_ID = "6efa814a66e041008f334fd9b83ca30f";
+const PROFILE_KV_ID = "6efa814a66e041008f334fd9b83ca30f";
 const NOTION_TOKEN_KV_ID = "9bb4ca36b284453b8899d8068f30837d";
 
 function generateUserId(): string {
@@ -18,7 +18,7 @@ async function generateUniqueUserId(): Promise<string> {
   for (let i = 0; i < 5; i++) {
     const id = generateUserId();
     const existing = execSync(
-      `bunx wrangler kv key get --namespace-id=${NOTION_DB_KV_ID} "${id}" --remote 2>/dev/null || true`
+      `bunx wrangler kv key get --namespace-id=${PROFILE_KV_ID} "${id}" --remote 2>/dev/null || true`
     ).toString().trim();
     if (!existing) return id;
   }
@@ -50,7 +50,7 @@ console.log(`Mapped email: ${email} → ${userId}`);
 kv(USER_INDEX_KV_ID, username, userId);
 console.log(`Mapped username: ${username} → ${userId}`);
 
-kv(NOTION_DB_KV_ID, userId, JSON.stringify({ userId, username, notionDbId }));
+kv(PROFILE_KV_ID, userId, JSON.stringify({ userId, username, notionDbId }));
 console.log(`Stored profile for ${username} (${userId})`);
 
 const encrypted = await encrypt(notionToken, encryptionKey);

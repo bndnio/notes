@@ -13,7 +13,7 @@ function makeMcpServer(env: Env): McpServer {
   async function saveNoteTool(subject: string, body: string) {
     const userId = await lookupUserId(env.USER_INDEX_KV, env.MCP_DEFAULT_USERNAME);
     if (!userId) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in USER_INDEX_KV`);
-    const profile = await lookupProfile(env.NOTION_DB_KV, userId);
+    const profile = await lookupProfile(env.PROFILE_KV, userId);
     if (!profile) throw new Error(`No profile found for userId: ${userId}`);
 
     const { mdKey } = computeKeys(subject, profile.userId);
@@ -71,7 +71,7 @@ export default {
       return;
     }
 
-    const profile = await lookupProfile(env.NOTION_DB_KV, userId);
+    const profile = await lookupProfile(env.PROFILE_KV, userId);
     if (!profile) {
       console.warn(`No profile for userId: ${userId}`);
       message.setReject("Address not allowed");
