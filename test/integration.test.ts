@@ -50,7 +50,7 @@ describe("MCP server", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as any;
     const text: string = body.result?.content?.[0]?.text ?? "";
-    expect(text).toMatch(/^Saved: brendon\//);
+    expect(text).toMatch(/^Saved: [0-9a-f]{8}\//);
     expect(text).toContain("Notion: ok");
   });
 });

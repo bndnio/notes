@@ -3,7 +3,7 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { z } from "zod";
 import { streamToText, parseEmail } from "./lib/email";
 import { computeKeys, saveNote } from "./lib/notes";
-import { lookupUsername } from "./lib/senders";
+import { lookupUserId } from "./lib/senders";
 import { lookupProfile } from "./lib/profiles";
 import type { Env } from "./lib/types";
 
@@ -11,11 +11,12 @@ function makeMcpServer(env: Env): McpServer {
   const server = new McpServer({ name: "notes", version: "1.0.0" });
 
   async function saveNoteTool(subject: string, body: string) {
-    // TODO: use lookupUsername to get the username from the id passed in from tool call
-    const profile = await lookupProfile(env.NOTION_DB_KV, env.MCP_DEFAULT_USERNAME);
-    if (!profile) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in NOTION_DB_KV`);
+    const userId = await lookupUserId(env.USER_INDEX_KV, env.MCP_DEFAULT_USERNAME);
+    if (!userId) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in USER_INDEX_KV`);
+    const profile = await lookupProfile(env.NOTION_DB_KV, userId);
+    if (!profile) throw new Error(`No profile found for userId: ${userId}`);
 
-    const { mdKey } = computeKeys(subject, profile.username);
+    const { mdKey } = computeKeys(subject, profile.userId);
 
     const result = await saveNote({ mdKey, subject, body }, env, profile);
     return {
@@ -62,17 +63,17 @@ export default {
   },
 
   async email(message: ForwardableEmailMessage, env: Env, _ctx: ExecutionContext): Promise<void> {
-    const username = await lookupUsername(env.SENDER_KV, message.from ?? "");
+    const userId = await lookupUserId(env.USER_INDEX_KV, message.from ?? "");
 
-    if (!username) {
+    if (!userId) {
       console.warn(`Rejected email from: ${message.from}`);
       message.setReject("Address not allowed");
       return;
     }
 
-    const profile = await lookupProfile(env.NOTION_DB_KV, username);
+    const profile = await lookupProfile(env.NOTION_DB_KV, userId);
     if (!profile) {
-      console.warn(`No profile for username: ${username}`);
+      console.warn(`No profile for userId: ${userId}`);
       message.setReject("Address not allowed");
       return;
     }
@@ -80,7 +81,7 @@ export default {
     const rawEmail = await streamToText(message.raw);
     const parsed = parseEmail(rawEmail);
 
-    const { mdKey, emlKey } = computeKeys(parsed.subject, profile.username);
+    const { mdKey, emlKey } = computeKeys(parsed.subject, profile.userId);
 
     const saveEml = env.NOTES_BUCKET.put(emlKey, rawEmail, {
       httpMetadata: { contentType: "message/rfc822" },

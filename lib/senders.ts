@@ -1,3 +1,3 @@
-export async function lookupUsername(kv: KVNamespace, email: string): Promise<string | null> {
-  return kv.get(email.toLowerCase().trim());
+export async function lookupUserId(kv: KVNamespace, identifier: string): Promise<string | null> {
+  return kv.get(identifier.toLowerCase().trim());
 }

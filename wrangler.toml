@@ -28,9 +28,9 @@ bucket_name = "bndnio-notes"
 [[send_email]]
 name = "SEND_EMAIL"
 
-# ── KV: email → username ──────────────────────────────────────────────────────
+# ── KV: email or username → userId ───────────────────────────────────────────
 [[kv_namespaces]]
-binding = "SENDER_KV"
+binding = "USER_INDEX_KV"
 id = "3bc2721c49b44e21bc5e028c7cef54c3"
 
 # ── KV: user profiles (notionDbId), keyed by username ────────────────────────
