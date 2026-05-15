@@ -1,12 +1,15 @@
 # wrangler.toml
 # Cloudflare Worker configuration for notes@bndn.io capture
 #
-# Deploy with: bunx wrangler deploy
-# Set secrets with:
-#   bunx wrangler secret put NOTION_TOKEN_<USERNAME>
-#   bunx wrangler secret put MCP_AUTH_TOKEN
-# Add email→username entries with:
-#   bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username"
+# Deploy:
+#   bunx wrangler deploy
+#
+# First-time setup:
+#   1. Generate an encryption key:       bun run gen-key
+#   2. Store it in the Secrets Store:    bun run secret-encryption-key
+#   3. Encrypt and store a Notion token: ENCRYPTION_KEY=<key> bun run store-token <username> <token>
+#   4. Add an email → username mapping:  bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username" --remote
+#   5. Add a profile entry in profiles.ts and redeploy
 
 name = "bndnio-notes"
 main = "worker.ts"
@@ -15,27 +18,33 @@ compatibility_date = "2024-09-23"
 [observability]
 enabled = true
 
-# ── R2 bucket binding ────────────────────────────────────────────────────────
-# Create the bucket first: bunx wrangler r2 bucket create bndnio-notes
+# ── R2: note storage ──────────────────────────────────────────────────────────
 [[r2_buckets]]
 binding = "NOTES_BUCKET"
 bucket_name = "bndnio-notes"
 
-# ── Email routing ────────────────────────────────────────────────────────────
-# This tells Cloudflare this Worker handles inbound email.
-# You still need to configure the route in the Cloudflare dashboard:
+# ── Email routing ─────────────────────────────────────────────────────────────
+# Route configured in Cloudflare dashboard:
 #   Email → Email Routing → Routing Rules → notes@bndn.io → this Worker
 [[send_email]]
 name = "SEND_EMAIL"
 
-# ── KV: email → username mapping ─────────────────────────────────────────────
-# Manage entries with: bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username"
+# ── KV: email → username ──────────────────────────────────────────────────────
 [[kv_namespaces]]
 binding = "SENDER_KV"
 id = "3bc2721c49b44e21bc5e028c7cef54c3"
 
-# ── Environment variables (non-secret) ──────────────────────────────────────
-# Sender routes (username → config) are defined in sender-routes.ts and bundled at deploy time.
-# Notion tokens are set via: bunx wrangler secret put NOTION_TOKEN_<USERNAME>
+# ── KV: AES-GCM encrypted Notion tokens, keyed by username ───────────────────
+[[kv_namespaces]]
+binding = "NOTION_TOKEN_KV"
+id = "9bb4ca36b284453b8899d8068f30837d"
+
+# ── Secrets Store: AES-256 encryption key for NOTION_TOKEN_KV ────────────────
+[[secrets_store_secrets]]
+binding = "ENCRYPTION_KEY"
+store_id = "065d291326ea4a1d8181859d83f313be"
+secret_name = "ENCRYPTION_KEY"
+
+# ── Vars ──────────────────────────────────────────────────────────────────────
 [vars]
 MCP_DEFAULT_USERNAME = "brendon"

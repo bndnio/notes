@@ -1,7 +1,6 @@
 export interface Profile {
   username: string;
   notionDbId: string;
-  notionToken: (env: Env) => string;
 }
 
 export interface Env {
@@ -9,7 +8,8 @@ export interface Env {
   MCP_AUTH_TOKEN: string;
   MCP_DEFAULT_USERNAME: string;
   SENDER_KV: KVNamespace;
-  NOTION_TOKEN_BRENDON: string;
+  NOTION_TOKEN_KV: KVNamespace;
+  ENCRYPTION_KEY: SecretsStoreSecret;
 }
 
 export interface ParsedEmail {

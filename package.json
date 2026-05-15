@@ -5,13 +5,15 @@
     "test": "bun test --env-file .env.test test/integration.test.ts",
     "typecheck": "tsc --noEmit",
     "logs": "wrangler tail",
-    "secret-notion-token": "wrangler secret put NOTION_TOKEN_BRENDON",
     "secret-mcp-token": "wrangler secret put MCP_AUTH_TOKEN",
+    "secret-encryption-key": "wrangler secrets-store secret create 065d291326ea4a1d8181859d83f313be --name ENCRYPTION_KEY --scopes workers --remote",
+    "gen-key": "bun run scripts/gen-key.ts",
+    "store-token": "bun run scripts/store-token.ts",
     "bucket": "wrangler r2 bucket create bndnio-notes"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",
-    "wrangler": "^4.90.1"
+    "wrangler": "^4.91.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0"

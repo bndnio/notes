@@ -1,5 +1,6 @@
 import { postToNotion } from "./notion";
 import { toMarkdown, slugify } from "./markdown";
+import { resolveNotionToken } from "./tokens";
 import type { Env, Note, Profile } from "./types";
 
 interface SaveNoteInput {
@@ -35,7 +36,7 @@ export async function saveNote(input: SaveNoteInput, env: Env, profile: Profile)
     ...(input.emlKey && { emlKey: input.emlKey }),
   };
 
-  const notionToken = profile.notionToken(env);
+  const notionToken = await resolveNotionToken(profile.username, env);
 
   const saveMd = env.NOTES_BUCKET.put(input.mdKey, toMarkdown(note), {
     httpMetadata: { contentType: "text/markdown" },
