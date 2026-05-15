@@ -2,6 +2,7 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
+    "test": "bun test --env-file .env.test test/integration.test.ts",
     "typecheck": "tsc --noEmit",
     "logs": "wrangler tail",
     "secret-notion-token": "wrangler secret put NOTION_TOKEN_BRENDON",
