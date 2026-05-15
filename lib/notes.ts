@@ -1,6 +1,6 @@
 import { postToNotion } from "./notion";
 import { toMarkdown, slugify } from "./markdown";
-import type { Env, Note } from "./types";
+import type { Env, Note, Profile } from "./types";
 
 interface SaveNoteInput {
   mdKey: string;
@@ -15,17 +15,17 @@ interface SaveNoteResult {
   notionOk: boolean;
 }
 
-export function computeKeys(subject: string): { mdKey: string; emlKey: string } {
+export function computeKeys(subject: string, username: string): { mdKey: string; emlKey: string } {
   const timestamp = new Date().toISOString();
   const dateStamp = timestamp.slice(0, 10);
   const timeStamp = timestamp.slice(11, 16).replace(":", "h");
   const slug = slugify(subject || "untitled");
-  const mdKey = `notes/${dateStamp}/${timeStamp}-${slug}.md`;
+  const mdKey = `${username}/${dateStamp}/${timeStamp}-${slug}.md`;
   const emlKey = mdKey.replace(".md", ".eml");
   return { mdKey, emlKey };
 }
 
-export async function saveNote(input: SaveNoteInput, env: Env): Promise<SaveNoteResult> {
+export async function saveNote(input: SaveNoteInput, env: Env, profile: Profile): Promise<SaveNoteResult> {
   const note: Note = {
     timestamp: new Date().toISOString(),
     from: input.from ?? "mcp",
@@ -35,12 +35,14 @@ export async function saveNote(input: SaveNoteInput, env: Env): Promise<SaveNote
     ...(input.emlKey && { emlKey: input.emlKey }),
   };
 
+  const notionToken = profile.notionToken(env);
+
   const saveMd = env.NOTES_BUCKET.put(input.mdKey, toMarkdown(note), {
     httpMetadata: { contentType: "text/markdown" },
     customMetadata: { subject: note.subject, from: note.from },
   });
 
-  const [r2Result, notionResult] = await Promise.allSettled([saveMd, postToNotion(note, env)]);
+  const [r2Result, notionResult] = await Promise.allSettled([saveMd, postToNotion(note, notionToken, profile.notionDbId)]);
 
   if (r2Result.status === "rejected") {
     throw new Error(`R2 write failed: ${r2Result.reason}`);

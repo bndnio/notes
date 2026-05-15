@@ -3,9 +3,10 @@
 #
 # Deploy with: bunx wrangler deploy
 # Set secrets with:
-#   bunx wrangler secret put ALLOWED_SENDER
-#   bunx wrangler secret put NOTION_TOKEN
-#   bunx wrangler secret put NOTION_DB_ID
+#   bunx wrangler secret put NOTION_TOKEN_<USERNAME>
+#   bunx wrangler secret put MCP_AUTH_TOKEN
+# Add email→username entries with:
+#   bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username"
 
 name = "bndnio-notes"
 main = "worker.ts"
@@ -27,9 +28,14 @@ bucket_name = "bndnio-notes"
 [[send_email]]
 name = "SEND_EMAIL"
 
+# ── KV: email → username mapping ─────────────────────────────────────────────
+# Manage entries with: bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username"
+[[kv_namespaces]]
+binding = "SENDER_KV"
+id = "3bc2721c49b44e21bc5e028c7cef54c3"
+
 # ── Environment variables (non-secret) ──────────────────────────────────────
-# Secrets (ALLOWED_SENDER, NOTION_TOKEN, NOTION_DB_ID) are set via
-# `wrangler secret put` and never stored in this file.
+# Sender routes (username → config) are defined in sender-routes.ts and bundled at deploy time.
+# Notion tokens are set via: bunx wrangler secret put NOTION_TOKEN_<USERNAME>
 [vars]
-# Add any non-sensitive config here if needed
-# ENVIRONMENT = "production"
+MCP_DEFAULT_USERNAME = "brendon"

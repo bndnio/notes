@@ -1,8 +1,8 @@
-import type { Env, Note } from "./types";
+import type { Note } from "./types";
 
-export async function postToNotion(note: Note, env: Env): Promise<void> {
+export async function postToNotion(note: Note, notionToken: string, notionDbId: string): Promise<void> {
   const body = {
-    parent: { database_id: env.NOTION_DB_ID },
+    parent: { database_id: notionDbId },
     properties: {
       Name: {
         title: [{ text: { content: note.subject } }],
@@ -26,7 +26,7 @@ export async function postToNotion(note: Note, env: Env): Promise<void> {
   const res = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${env.NOTION_TOKEN}`,
+      Authorization: `Bearer ${notionToken}`,
       "Content-Type": "application/json",
       "Notion-Version": "2022-06-28",
     },

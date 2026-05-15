@@ -1,9 +1,15 @@
+export interface Profile {
+  username: string;
+  notionDbId: string;
+  notionToken: (env: Env) => string;
+}
+
 export interface Env {
   NOTES_BUCKET: R2Bucket;
-  ALLOWED_SENDER: string;
-  NOTION_TOKEN: string;
-  NOTION_DB_ID: string;
   MCP_AUTH_TOKEN: string;
+  MCP_DEFAULT_USERNAME: string;
+  SENDER_KV: KVNamespace;
+  NOTION_TOKEN_BRENDON: string;
 }
 
 export interface ParsedEmail {

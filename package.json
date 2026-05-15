@@ -4,10 +4,8 @@
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit",
     "logs": "wrangler tail",
-    "secret-sender": "wrangler secret put ALLOWED_SENDER",
+    "secret-notion-token": "wrangler secret put NOTION_TOKEN_BRENDON",
     "secret-mcp-token": "wrangler secret put MCP_AUTH_TOKEN",
-    "secret-notion-token": "wrangler secret put NOTION_TOKEN",
-    "secret-notion-db": "wrangler secret put NOTION_DB_ID",
     "bucket": "wrangler r2 bucket create bndnio-notes"
   },
   "devDependencies": {

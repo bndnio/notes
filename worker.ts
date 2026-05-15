@@ -3,14 +3,21 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { z } from "zod";
 import { streamToText, parseEmail } from "./lib/email";
 import { computeKeys, saveNote } from "./lib/notes";
+import { lookupUsername } from "./lib/senders";
+import profiles from "./profiles";
 import type { Env } from "./lib/types";
 
 function makeMcpServer(env: Env): McpServer {
   const server = new McpServer({ name: "notes", version: "1.0.0" });
 
   async function saveNoteTool(subject: string, body: string) {
-    const { mdKey } = computeKeys(subject);
-    const result = await saveNote({ mdKey, subject, body }, env);
+    // TODO: use lookupUsername to get the username from the id passed in from tool call
+    const profile = profiles[env.MCP_DEFAULT_USERNAME];
+    if (!profile) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in profiles`);
+
+    const { mdKey } = computeKeys(subject, profile.username);
+
+    const result = await saveNote({ mdKey, subject, body }, env, profile);
     return {
       content: [{ type: "text" as const, text: `Saved: ${mdKey}. Notion: ${result.notionOk ? "ok" : "failed"}` }],
     };
@@ -55,11 +62,17 @@ export default {
   },
 
   async email(message: ForwardableEmailMessage, env: Env, _ctx: ExecutionContext): Promise<void> {
-    const from = message.from?.toLowerCase().trim();
-    const allowed = env.ALLOWED_SENDER?.toLowerCase().trim();
+    const username = await lookupUsername(env.SENDER_KV, message.from ?? "");
 
-    if (!from || from !== allowed) {
-      console.warn(`Rejected email from: ${from}`);
+    if (!username) {
+      console.warn(`Rejected email from: ${message.from}`);
+      message.setReject("Address not allowed");
+      return;
+    }
+
+    const profile = profiles[username];
+    if (!profile) {
+      console.warn(`No profile for username: ${username}`);
       message.setReject("Address not allowed");
       return;
     }
@@ -67,7 +80,7 @@ export default {
     const rawEmail = await streamToText(message.raw);
     const parsed = parseEmail(rawEmail);
 
-    const { mdKey, emlKey } = computeKeys(parsed.subject);
+    const { mdKey, emlKey } = computeKeys(parsed.subject, profile.username);
 
     const saveEml = env.NOTES_BUCKET.put(emlKey, rawEmail, {
       httpMetadata: { contentType: "message/rfc822" },
@@ -75,7 +88,7 @@ export default {
 
     const [emlResult, noteResult] = await Promise.allSettled([
       saveEml,
-      saveNote({ mdKey, subject: parsed.subject, body: parsed.body, from: message.from, to: message.to, emlKey }, env),
+      saveNote({ mdKey, subject: parsed.subject, body: parsed.body, from: message.from, to: message.to, emlKey }, env, profile),
     ]);
 
     if (emlResult.status === "rejected") console.error(`R2 eml write failed: ${emlResult.reason}`);
