@@ -4,7 +4,7 @@ import { z } from "zod";
 import { streamToText, parseEmail } from "./lib/email";
 import { computeKeys, saveNote } from "./lib/notes";
 import { lookupUsername } from "./lib/senders";
-import profiles from "./profiles";
+import { lookupProfile } from "./lib/profiles";
 import type { Env } from "./lib/types";
 
 function makeMcpServer(env: Env): McpServer {
@@ -12,8 +12,8 @@ function makeMcpServer(env: Env): McpServer {
 
   async function saveNoteTool(subject: string, body: string) {
     // TODO: use lookupUsername to get the username from the id passed in from tool call
-    const profile = profiles[env.MCP_DEFAULT_USERNAME];
-    if (!profile) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in profiles`);
+    const profile = await lookupProfile(env.NOTION_DB_KV, env.MCP_DEFAULT_USERNAME);
+    if (!profile) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in NOTION_DB_KV`);
 
     const { mdKey } = computeKeys(subject, profile.username);
 
@@ -70,7 +70,7 @@ export default {
       return;
     }
 
-    const profile = profiles[username];
+    const profile = await lookupProfile(env.NOTION_DB_KV, username);
     if (!profile) {
       console.warn(`No profile for username: ${username}`);
       message.setReject("Address not allowed");

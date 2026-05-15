@@ -8,6 +8,7 @@ export interface Env {
   MCP_AUTH_TOKEN: string;
   MCP_DEFAULT_USERNAME: string;
   SENDER_KV: KVNamespace;
+  NOTION_DB_KV: KVNamespace;
   NOTION_TOKEN_KV: KVNamespace;
   ENCRYPTION_KEY: SecretsStoreSecret;
 }

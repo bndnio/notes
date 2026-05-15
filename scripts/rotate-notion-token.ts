@@ -1,5 +1,5 @@
-// Encrypt a Notion token and store it in NOTION_TOKEN_KV.
-// Usage: ENCRYPTION_KEY=<key> bun run scripts/store-token.ts <username> <notion-token>
+// Rotate a Notion token: re-encrypts and overwrites the token in NOTION_TOKEN_KV.
+// Usage: ENCRYPTION_KEY=<key> bun run rotate-notion-token <username> <notion-token>
 
 import { encrypt } from "../lib/crypto";
 import { execSync } from "child_process";
@@ -9,7 +9,7 @@ const NOTION_TOKEN_KV_ID = "9bb4ca36b284453b8899d8068f30837d";
 const [, , username, notionToken] = process.argv;
 
 if (!username || !notionToken) {
-  console.error("Usage: ENCRYPTION_KEY=<key> bun run scripts/store-token.ts <username> <notion-token>");
+  console.error("Usage: ENCRYPTION_KEY=<key> bun run rotate-notion-token <username> <notion-token>");
   process.exit(1);
 }
 

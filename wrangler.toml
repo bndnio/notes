@@ -5,11 +5,10 @@
 #   bunx wrangler deploy
 #
 # First-time setup:
-#   1. Generate an encryption key:       bun run gen-key
-#   2. Store it in the Secrets Store:    bun run secret-encryption-key  (stored as ENCRYPTION_KEY in notes-secrets store, bound as ENCRYPTION_KEY)
-#   3. Encrypt and store a Notion token: ENCRYPTION_KEY=<key> bun run store-token <username> <token>
-#   4. Add an email → username mapping:  bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username" --remote
-#   5. Add a profile entry in profiles.ts and redeploy
+#   1. Generate an encryption key:    bun run gen-key
+#   2. Store it in Secrets Store:     bun run secret-encryption-key
+#   3. Add a user (all-in-one):       ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
+#   4. Add more emails to a user:     bun run add-email <email> <username>
 
 name = "bndnio-notes"
 main = "worker.ts"
@@ -33,6 +32,11 @@ name = "SEND_EMAIL"
 [[kv_namespaces]]
 binding = "SENDER_KV"
 id = "3bc2721c49b44e21bc5e028c7cef54c3"
+
+# ── KV: user profiles (notionDbId), keyed by username ────────────────────────
+[[kv_namespaces]]
+binding = "NOTION_DB_KV"
+id = "6efa814a66e041008f334fd9b83ca30f"
 
 # ── KV: AES-GCM encrypted Notion tokens, keyed by username ───────────────────
 [[kv_namespaces]]
