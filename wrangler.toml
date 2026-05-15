@@ -6,7 +6,7 @@
 #
 # First-time setup:
 #   1. Generate an encryption key:       bun run gen-key
-#   2. Store it in the Secrets Store:    bun run secret-encryption-key
+#   2. Store it in the Secrets Store:    bun run secret-encryption-key  (stored as ENCRYPTION_KEY in notes-secrets store, bound as ENCRYPTION_KEY)
 #   3. Encrypt and store a Notion token: ENCRYPTION_KEY=<key> bun run store-token <username> <token>
 #   4. Add an email → username mapping:  bunx wrangler kv key put --namespace-id=3bc2721c49b44e21bc5e028c7cef54c3 "email@example.com" "username" --remote
 #   5. Add a profile entry in profiles.ts and redeploy

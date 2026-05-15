@@ -2,9 +2,6 @@ import { describe, test, expect } from "bun:test";
 
 const WORKER_URL = process.env.WORKER_URL!;
 const MCP_AUTH_TOKEN = process.env.MCP_AUTH_TOKEN!;
-const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID!;
-const CF_API_TOKEN = process.env.CF_API_TOKEN!;
-const KV_NAMESPACE_ID = "3bc2721c49b44e21bc5e028c7cef54c3";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -57,7 +54,3 @@ describe("MCP server", () => {
     expect(text).toContain("Notion: ok");
   });
 });
-
-// ── Email routing (KV) ────────────────────────────────────────────────────────
-
-// No tests for now
