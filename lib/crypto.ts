@@ -20,11 +20,21 @@ function prependIv(iv: Uint8Array, ciphertext: ArrayBuffer): Uint8Array {
   return combined;
 }
 
+export function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+export function generateRandomHex(byteLength: number): string {
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  return bytesToHex(bytes);
+}
+
 export async function hmacToken(token: string, base64Key: string): Promise<string> {
   const keyBytes = base64ToBytes(base64Key);
   const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(token));
-  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+  return bytesToHex(new Uint8Array(sig));
 }
 
 export async function encrypt(plaintext: string, base64Key: string): Promise<string> {

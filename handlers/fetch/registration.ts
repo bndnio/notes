@@ -1,11 +1,8 @@
 import registerHtml from "../../templates/register.html";
 import successHtml from "../../templates/success.html";
 import { register } from "../../lib/registration";
+import { html } from "../../lib/responses";
 import type { Env } from "../../lib/types";
-
-function html(content: string): Response {
-  return new Response(content, { headers: { "Content-Type": "text/html; charset=utf-8" } });
-}
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
   if (request.method === "GET") {

@@ -1,4 +1,4 @@
-import { encrypt, hmacToken } from "./crypto";
+import { encrypt, hmacToken, generateRandomHex } from "./crypto";
 import type { Env } from "./types";
 
 async function validateNotionAccess(notionDbId: string, notionToken: string): Promise<boolean> {
@@ -10,9 +10,7 @@ async function validateNotionAccess(notionDbId: string, notionToken: string): Pr
 
 async function generateUniqueUserId(profileKv: KVNamespace): Promise<string> {
   for (let i = 0; i < 5; i++) {
-    const bytes = new Uint8Array(4);
-    crypto.getRandomValues(bytes);
-    const id = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+    const id = generateRandomHex(4);
     if (!(await profileKv.get(id))) return id;
   }
   throw new Error("Failed to generate unique userId after 5 attempts");
@@ -41,9 +39,7 @@ export async function register(
     env.NOTION_TOKEN_KV.put(userId, encryptedToken),
   ]);
 
-  const tokenBytes = new Uint8Array(32);
-  crypto.getRandomValues(tokenBytes);
-  const mcpToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+  const mcpToken = generateRandomHex(32);
   const mcpTokenHash = await hmacToken(mcpToken, encryptionKey);
   await env.MCP_TOKEN_KV.put(mcpTokenHash, userId);
 

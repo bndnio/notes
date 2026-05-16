@@ -1,0 +1,7 @@
+body { font-family: system-ui, sans-serif; padding: 0 1rem; color: #111; }
+h1 { margin-bottom: 0.25rem; }
+p.subtitle { color: #555; margin-top: 0; margin-bottom: 2rem; }
+code { background: #f4f4f4; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.9em; }
+a { color: #111; }
+.btn { display: inline-block; padding: 0.6rem 1.2rem; background: #111; color: #fff; text-decoration: none; border-radius: 4px; font-size: 1rem; border: none; cursor: pointer; }
+.btn:hover { background: #333; }
