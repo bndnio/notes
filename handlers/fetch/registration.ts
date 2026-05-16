@@ -4,6 +4,11 @@ import { register } from "../../lib/registration";
 import { html } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
+function formField(form: FormData, name: string): string {
+  const value = ((form.get(name) as string) ?? "").trim();
+  return value;
+}
+
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
   if (request.method === "GET") {
     return html(registerHtml.replace("{{error}}", ""));
@@ -11,10 +16,10 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
 
   if (request.method === "POST") {
     const form = await request.formData();
-    const email = ((form.get("email") as string) ?? "").trim().toLowerCase();
-    const username = ((form.get("username") as string) ?? "").trim().toLowerCase();
-    const notionDbId = ((form.get("notionDbId") as string) ?? "").trim();
-    const notionToken = ((form.get("notionToken") as string) ?? "").trim();
+    const email = formField(form, "email").toLowerCase();
+    const username = formField(form, "username").toLowerCase();
+    const notionDbId = formField(form, "notionDbId");
+    const notionToken = formField(form, "notionToken");
 
     if (!email || !username || !notionDbId || !notionToken) {
       return html(registerHtml.replace("{{error}}", "All fields are required."));

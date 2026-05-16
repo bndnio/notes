@@ -1,5 +1,23 @@
 import type { Note } from "./types";
 
+function notionHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "Notion-Version": "2022-06-28",
+  };
+}
+
+export async function fetchNotion(path: string, token: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(`https://api.notion.com/v1${path}`, {
+    ...options,
+    headers: {
+      ...notionHeaders(token),
+      ...(options.headers as Record<string, string> | undefined)
+    },
+  });
+}
+
 export async function postToNotion(note: Note, notionToken: string, notionDbId: string): Promise<void> {
   const body = {
     parent: { database_id: notionDbId },
@@ -23,15 +41,7 @@ export async function postToNotion(note: Note, notionToken: string, notionDbId: 
     })),
   };
 
-  const res = await fetch("https://api.notion.com/v1/pages", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${notionToken}`,
-      "Content-Type": "application/json",
-      "Notion-Version": "2022-06-28",
-    },
-    body: JSON.stringify(body),
-  });
+  const res = await fetchNotion("/pages", notionToken, { method: "POST", body: JSON.stringify(body) });
 
   if (!res.ok) {
     const err = await res.text();

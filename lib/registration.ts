@@ -1,10 +1,9 @@
 import { encrypt, hmacToken, generateRandomHex } from "./crypto";
+import { fetchNotion } from "./notion";
 import type { Env } from "./types";
 
 async function validateNotionAccess(notionDbId: string, notionToken: string): Promise<boolean> {
-  const res = await fetch(`https://api.notion.com/v1/databases/${notionDbId}`, {
-    headers: { Authorization: `Bearer ${notionToken}`, "Notion-Version": "2022-06-28" },
-  });
+  const res = await fetchNotion(`/databases/${notionDbId}`, notionToken);
   return res.ok;
 }
 
@@ -25,11 +24,15 @@ export async function register(
   const notionOk = await validateNotionAccess(notionDbId, notionToken);
   if (!notionOk) return { error: "Could not access Notion database. Check your Database ID and token." };
 
-  if (await env.USER_INDEX_KV.get(email)) return { error: "Email already registered." };
-  if (await env.USER_INDEX_KV.get(username)) return { error: "Username already taken." };
+  const [emailExists, usernameExists, encryptionKey] = await Promise.all([
+    env.USER_INDEX_KV.get(email),
+    env.USER_INDEX_KV.get(username),
+    env.ENCRYPTION_KEY.get(),
+  ]);
+  if (emailExists) return { error: "Email already registered." };
+  if (usernameExists) return { error: "Username already taken." };
 
   const userId = await generateUniqueUserId(env.PROFILE_KV);
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
   const encryptedToken = await encrypt(notionToken, encryptionKey);
 
   await Promise.all([

@@ -23,7 +23,8 @@ export async function handleEmail(message: ForwardableEmailMessage, env: Env): P
   const rawEmail = await streamToText(message.raw);
   const parsed = parseEmail(rawEmail);
 
-  const { mdKey, emlKey } = computeKeys(parsed.subject, profile.userId);
+  const timestamp = new Date().toISOString();
+  const { mdKey, emlKey } = computeKeys(parsed.subject, profile.userId, timestamp);
 
   const saveEml = env.NOTES_BUCKET.put(emlKey, rawEmail, {
     httpMetadata: { contentType: "message/rfc822" },
@@ -31,7 +32,7 @@ export async function handleEmail(message: ForwardableEmailMessage, env: Env): P
 
   const [emlResult, noteResult] = await Promise.allSettled([
     saveEml,
-    saveNote({ mdKey, subject: parsed.subject, body: parsed.body, from: message.from, to: message.to, emlKey }, env, profile),
+    saveNote({ mdKey, timestamp, subject: parsed.subject, body: parsed.body, from: message.from, to: message.to, emlKey }, env, profile),
   ]);
 
   if (emlResult.status === "rejected") console.error(`R2 eml write failed: ${emlResult.reason}`);

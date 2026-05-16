@@ -5,6 +5,7 @@ import type { Env, Note, Profile } from "./types";
 
 interface SaveNoteInput {
   mdKey: string;
+  timestamp: string;
   subject: string;
   body: string;
   from?: string;
@@ -16,8 +17,7 @@ interface SaveNoteResult {
   notionOk: boolean;
 }
 
-export function computeKeys(subject: string, userId: string): { mdKey: string; emlKey: string } {
-  const timestamp = new Date().toISOString();
+export function computeKeys(subject: string, userId: string, timestamp: string): { mdKey: string; emlKey: string } {
   const dateStamp = timestamp.slice(0, 10);
   const timeStamp = timestamp.slice(11, 16).replace(":", "h");
   const slug = slugify(subject || "untitled");
@@ -28,7 +28,7 @@ export function computeKeys(subject: string, userId: string): { mdKey: string; e
 
 export async function saveNote(input: SaveNoteInput, env: Env, profile: Profile): Promise<SaveNoteResult> {
   const note: Note = {
-    timestamp: new Date().toISOString(),
+    timestamp: input.timestamp,
     from: input.from ?? "mcp",
     to: input.to ?? "",
     subject: input.subject || "(no subject)",
