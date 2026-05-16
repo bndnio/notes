@@ -9,6 +9,7 @@
     "secret-encryption-key": "wrangler secrets-store secret create 065d291326ea4a1d8181859d83f313be --name ENCRYPTION_KEY --scopes workers --remote",
     "gen-key": "bun run scripts/gen-key.ts",
     "add-user": "bun run scripts/add-user.ts",
+    "generate-mcp-token": "bun run scripts/generate-mcp-token.ts",
     "add-email": "bun run scripts/add-email.ts",
     "rotate-notion-token": "bun run scripts/rotate-notion-token.ts",
     "bucket": "wrangler r2 bucket create bndnio-notes"

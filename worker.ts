@@ -5,16 +5,13 @@ import { streamToText, parseEmail } from "./lib/email";
 import { computeKeys, saveNote } from "./lib/notes";
 import { lookupUserId } from "./lib/senders";
 import { lookupProfile } from "./lib/profiles";
-import type { Env } from "./lib/types";
+import { hmacToken } from "./lib/crypto";
+import type { Env, Profile } from "./lib/types";
 
-function makeMcpServer(env: Env): McpServer {
+function makeMcpServer(env: Env, profile: Profile): McpServer {
   const server = new McpServer({ name: "notes", version: "1.0.0" });
 
   async function saveNoteTool(subject: string, body: string) {
-    const userId = await lookupUserId(env.USER_INDEX_KV, env.MCP_DEFAULT_USERNAME);
-    if (!userId) throw new Error(`MCP_DEFAULT_USERNAME "${env.MCP_DEFAULT_USERNAME}" not found in USER_INDEX_KV`);
-    const profile = await lookupProfile(env.PROFILE_KV, userId);
-    if (!profile) throw new Error(`No profile found for userId: ${userId}`);
 
     const { mdKey } = computeKeys(subject, profile.userId);
 
@@ -47,8 +44,16 @@ export default {
       return new Response("Not found", { status: 404 });
     }
 
-    const authHeader = request.headers.get("Authorization") ?? "";
-    if (authHeader !== `Bearer ${env.MCP_AUTH_TOKEN}`) {
+    const token = (request.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
+    const encryptionKey = await env.ENCRYPTION_KEY.get();
+    const hash = await hmacToken(token, encryptionKey);
+    const userId = await env.MCP_TOKEN_KV.get(hash);
+    if (!userId) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    const profile = await lookupProfile(env.PROFILE_KV, userId);
+    if (!profile) {
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -57,7 +62,7 @@ export default {
       enableJsonResponse: true,
     });
 
-    const server = makeMcpServer(env);
+    const server = makeMcpServer(env, profile);
     await server.connect(transport);
     return transport.handleRequest(request);
   },

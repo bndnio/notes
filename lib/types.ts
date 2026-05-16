@@ -6,8 +6,7 @@ export interface Profile {
 
 export interface Env {
   NOTES_BUCKET: R2Bucket;
-  MCP_AUTH_TOKEN: string;
-  MCP_DEFAULT_USERNAME: string;
+  MCP_TOKEN_KV: KVNamespace;
   USER_INDEX_KV: KVNamespace;
   PROFILE_KV: KVNamespace;
   NOTION_TOKEN_KV: KVNamespace;

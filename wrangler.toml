@@ -28,6 +28,11 @@ bucket_name = "bndnio-notes"
 [[send_email]]
 name = "SEND_EMAIL"
 
+# ── KV: hmac(mcpToken) → userId ──────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "MCP_TOKEN_KV"
+id = "dfae73f4893d406095ebb95b26e30563"
+
 # ── KV: email or username → userId ───────────────────────────────────────────
 [[kv_namespaces]]
 binding = "USER_INDEX_KV"
@@ -51,4 +56,3 @@ secret_name = "ENCRYPTION_KEY"
 
 # ── Vars ──────────────────────────────────────────────────────────────────────
 [vars]
-MCP_DEFAULT_USERNAME = "brendon"

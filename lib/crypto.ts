@@ -20,6 +20,13 @@ function prependIv(iv: Uint8Array, ciphertext: ArrayBuffer): Uint8Array {
   return combined;
 }
 
+export async function hmacToken(token: string, base64Key: string): Promise<string> {
+  const keyBytes = base64ToBytes(base64Key);
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function encrypt(plaintext: string, base64Key: string): Promise<string> {
   const key = await importKey(base64Key);
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));

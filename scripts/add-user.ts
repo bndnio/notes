@@ -1,12 +1,13 @@
-// Add a new user: registers email → userId, stores profile, and encrypts + stores Notion token.
+// Add a new user: registers email → userId, stores profile, encrypts + stores Notion token, and generates an MCP token.
 // Usage: ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
 
-import { encrypt } from "../lib/crypto";
+import { encrypt, hmacToken } from "../lib/crypto";
 import { execSync } from "child_process";
 
 const USER_INDEX_KV_ID = "3bc2721c49b44e21bc5e028c7cef54c3";
 const PROFILE_KV_ID = "6efa814a66e041008f334fd9b83ca30f";
 const NOTION_TOKEN_KV_ID = "9bb4ca36b284453b8899d8068f30837d";
+const MCP_TOKEN_KV_ID = "dfae73f4893d406095ebb95b26e30563";
 
 function generateUserId(): string {
   const bytes = new Uint8Array(4);
@@ -56,3 +57,12 @@ console.log(`Stored profile for ${username} (${userId})`);
 const encrypted = await encrypt(notionToken, encryptionKey);
 kv(NOTION_TOKEN_KV_ID, userId, encrypted);
 console.log(`Stored encrypted Notion token for ${username} (${userId})`);
+
+const tokenBytes = new Uint8Array(32);
+crypto.getRandomValues(tokenBytes);
+const mcpToken = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+const mcpTokenHash = await hmacToken(mcpToken, encryptionKey);
+kv(MCP_TOKEN_KV_ID, mcpTokenHash, userId);
+console.log(`\nMCP token for ${username}:`);
+console.log(mcpToken);
+console.log(`\nThis is the only time this token will be shown. Store it securely.`);
