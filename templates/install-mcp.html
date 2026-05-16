@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install MCP Server — Notes</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 3rem auto; padding: 0 1rem; color: #111; }
+    h1 { margin-bottom: 0.25rem; }
+    p.subtitle { color: #555; margin-top: 0; margin-bottom: 2.5rem; }
+    .steps { display: flex; flex-direction: column; gap: 2rem; }
+    .step { display: grid; grid-template-columns: 2rem 1fr; gap: 0 1rem; }
+    .step-num { width: 2rem; height: 2rem; background: #111; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0; margin-top: 0.15rem; }
+    h2 { font-size: 1rem; margin: 0 0 0.6rem; }
+    h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin: 1rem 0 0.4rem; }
+    p { color: #555; margin: 0 0 0.5rem; font-size: 0.9rem; }
+    pre { background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; padding: 0.65rem 0.75rem; font-size: 0.82rem; overflow-x: auto; margin: 0 0 0.75rem; white-space: pre-wrap; word-break: break-all; }
+    code { background: #f4f4f4; padding: 0.1em 0.35em; border-radius: 3px; font-size: 0.88em; }
+    ul { color: #555; font-size: 0.9rem; margin: 0.25rem 0 0.75rem; padding-left: 1.25rem; }
+    li { margin-bottom: 0.3rem; }
+    a { color: #111; }
+    .note { color: #888; font-size: 0.82rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Install MCP Server</h1>
+  <p class="subtitle">Three steps to connect Notes to Claude.</p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h2>Save your token</h2>
+        <p>Add <code>NOTES_MCP_TOKEN</code> to your shell profile so Claude can read it:</p>
+        <h3>zsh (macOS default)</h3>
+        <pre>echo 'export NOTES_MCP_TOKEN=your_token_here' >> ~/.zshrc && source ~/.zshrc</pre>
+        <h3>bash</h3>
+        <pre>echo 'export NOTES_MCP_TOKEN=your_token_here' >> ~/.bashrc && source ~/.bashrc</pre>
+        <p class="note">Claude Code reads <code>${NOTES_MCP_TOKEN}</code> from your shell environment — there's no built-in secrets store for HTTP MCP servers.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h2>Install the MCP server</h2>
+
+        <h3>Claude Code — one-liner</h3>
+        <p>After setting your token above, run:</p>
+        <pre>curl -s https://notes.bndn.io/install-mcp/script | sh</pre>
+
+        <h3>Claude Code — manual options</h3>
+        <p>Via CLI:</p>
+        <pre>claude mcp add --transport http notes https://notes.bndn.io/mcp \
+  -H "Authorization: Bearer ${NOTES_MCP_TOKEN}"</pre>
+        <p>Or add to your project's <code>.mcp.json</code>:</p>
+        <pre>{
+  "mcpServers": {
+    "notes": {
+      "type": "http",
+      "url": "https://notes.bndn.io/mcp",
+      "headers": { "Authorization": "Bearer ${NOTES_MCP_TOKEN}" }
+    }
+  }
+}</pre>
+
+        <h3>Claude Cowork / claude.ai</h3>
+        <p>Go to <a href="https://claude.ai/settings/connectors" target="_blank">Settings → Connectors</a> → Add connection, then enter:</p>
+        <ul>
+          <li>URL: <code>https://notes.bndn.io/mcp</code></li>
+          <li>Authorization header: <code>Bearer &lt;your token&gt;</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h2>Verify</h2>
+        <p>Restart Claude Code or reload the page. Ask Claude to save a note — the <code>save_note</code> tool should appear and confirm it saved.</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
