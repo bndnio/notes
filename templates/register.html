@@ -9,10 +9,15 @@
     h1 { margin-bottom: 0.25rem; }
     p.subtitle { color: #555; margin-top: 0; margin-bottom: 2rem; }
     label { display: block; margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 500; }
-    input { display: block; width: 100%; margin-top: 0.25rem; padding: 0.5rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { padding: 0.6rem 1.2rem; font-size: 1rem; background: #111; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #333; }
+    .label-row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; }
+    input { display: block; width: 100%; padding: 0.5rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button[type="submit"] { padding: 0.6rem 1.2rem; font-size: 1rem; background: #111; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button[type="submit"]:hover { background: #333; }
     .error { color: #c00; margin-bottom: 1.25rem; min-height: 1.25rem; }
+    .info-btn { background: none; border: 1px solid #bbb; border-radius: 50%; width: 1.1rem; height: 1.1rem; font-size: 0.7rem; color: #888; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .info-btn:hover { border-color: #555; color: #555; }
+    [popover] { border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem 1rem; max-width: 280px; font-size: 0.85rem; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); line-height: 1.5; }
+    [popover] a { color: #111; }
   </style>
 </head>
 <body>
@@ -20,11 +25,41 @@
   <p class="subtitle">Create an account to start saving notes to your Notion database.</p>
   <p class="error">{{error}}</p>
   <form method="POST" action="/register">
-    <label>Email <input type="email" name="email" required autocomplete="email"></label>
-    <label>Username <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]+" title="Lowercase letters, numbers, hyphens and underscores only"></label>
-    <label>Notion Database ID <input type="text" name="notionDbId" required placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"></label>
-    <label>Notion Integration Token <input type="password" name="notionToken" required placeholder="secret_…"></label>
+    <label>
+      Email
+      <input type="email" name="email" required autocomplete="email">
+    </label>
+    <label>
+      Username
+      <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]+" title="Lowercase letters, numbers, hyphens and underscores only">
+    </label>
+    <label>
+      <span class="label-row">
+        Database ID
+        <button type="button" class="info-btn" popovertarget="db-info">i</button>
+      </span>
+      <input type="text" name="notionDbId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+    </label>
+    <label>
+      <span class="label-row">
+        API Connection Access Token
+        <button type="button" class="info-btn" popovertarget="token-info">i</button>
+      </span>
+      <input type="password" name="notionToken" required placeholder="secret_…">
+    </label>
     <button type="submit">Register</button>
   </form>
+
+  <div id="db-info" popover>
+    Open your database as a full page in Notion. The 36-character ID is the segment of the URL before the <code>?v=</code> parameter.
+    <br><br>
+    <a href="https://developers.notion.com/docs/working-with-databases" target="_blank">Notion docs ↗</a>
+  </div>
+
+  <div id="token-info" popover>
+    In the Notion developer portal, click New connection. Your access token is on the connection's Configuration tab.
+    <br><br>
+    <a href="https://www.notion.so/developers/connections" target="_blank">Open Notion connections ↗</a>
+  </div>
 </body>
 </html>
