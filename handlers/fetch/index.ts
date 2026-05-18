@@ -16,6 +16,6 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname.startsWith("/register")) return handleRegistration(request, env);
   if (pathname.startsWith("/integration")) return handleIntegration(request, env);
   if (pathname === "/install-mcp") return html(installMcpHtml.replaceAll("{{appUrl}}", env.APP_URL));
-  if (pathname === "/install-mcp/script") return text(installMcpScript);
+  if (pathname === "/install-mcp/claude-code") return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
   return new Response("Not found", { status: 404 });
 }

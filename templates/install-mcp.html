@@ -15,14 +15,12 @@
     h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin: 1rem 0 0.4rem; }
     p { color: #555; margin: 0 0 0.5rem; font-size: 0.9rem; }
     pre { background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; padding: 0.65rem 0.75rem; font-size: 0.82rem; overflow-x: auto; margin: 0 0 0.75rem; white-space: pre-wrap; word-break: break-all; }
-    ul { color: #555; font-size: 0.9rem; margin: 0.25rem 0 0.75rem; padding-left: 1.25rem; }
-    li { margin-bottom: 0.3rem; }
     .note { color: #888; font-size: 0.82rem; margin-top: 0.5rem; }
   </style>
 </head>
 <body>
   <h1>Install MCP Server</h1>
-  <p class="subtitle">Three steps to connect Notes to Claude.</p>
+  <p class="subtitle">Three steps to connect Notes to Claude Code.</p>
 
   <div class="steps">
 
@@ -30,12 +28,12 @@
       <div class="step-num">1</div>
       <div>
         <h2>Save your token</h2>
-        <p>Add <code>NOTES_MCP_TOKEN</code> to your shell profile so Claude can read it:</p>
+        <p>Add <code>NOTES_MCP_TOKEN</code> to your shell profile so Claude Code can read it:</p>
         <h3>zsh (macOS default)</h3>
         <pre>echo 'export NOTES_MCP_TOKEN=your_token_here' >> ~/.zshrc && source ~/.zshrc</pre>
         <h3>bash</h3>
         <pre>echo 'export NOTES_MCP_TOKEN=your_token_here' >> ~/.bashrc && source ~/.bashrc</pre>
-        <p class="note">Claude Code reads <code>${NOTES_MCP_TOKEN}</code> from your shell environment — there's no built-in secrets store for HTTP MCP servers.</p>
+        <p class="note">Claude Code reads <code>${NOTES_MCP_TOKEN}</code> from your shell environment.</p>
       </div>
     </div>
 
@@ -43,16 +41,13 @@
       <div class="step-num">2</div>
       <div>
         <h2>Install the MCP server</h2>
-
-        <h3>Claude Code — one-liner</h3>
-        <p>After setting your token above, run:</p>
-        <pre>curl -s {{appUrl}}/install-mcp/script | sh</pre>
-
-        <h3>Claude Code — manual options</h3>
-        <p>Via CLI:</p>
+        <h3>One-liner</h3>
+        <p>After setting your token above, run this in your terminal:</p>
+        <pre>curl -s {{appUrl}}/install-mcp/claude-code | sh</pre>
+        <h3>Manual — CLI</h3>
         <pre>claude mcp add --transport http notes {{appUrl}}/mcp \
   -H "Authorization: Bearer ${NOTES_MCP_TOKEN}"</pre>
-        <p>Or add to your project's <code>.mcp.json</code>:</p>
+        <h3>Manual — .mcp.json</h3>
         <pre>{
   "mcpServers": {
     "notes": {
@@ -62,13 +57,6 @@
     }
   }
 }</pre>
-
-        <h3>Claude Cowork / claude.ai</h3>
-        <p>Go to <a href="https://claude.ai/settings/connectors" target="_blank">Settings → Connectors</a> → Add connection, then enter:</p>
-        <ul>
-          <li>URL: <code>{{appUrl}}/mcp</code></li>
-          <li>Authorization header: <code>Bearer &lt;your token&gt;</code></li>
-        </ul>
       </div>
     </div>
 
@@ -76,7 +64,7 @@
       <div class="step-num">3</div>
       <div>
         <h2>Verify</h2>
-        <p>Restart Claude Code or reload the page. Ask Claude to save a note — the <code>save_note</code> tool should appear and confirm it saved.</p>
+        <p>Restart Claude Code and ask Claude to save a note — the <code>save_note</code> tool should appear and confirm it saved.</p>
       </div>
     </div>
 
