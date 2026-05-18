@@ -30,7 +30,8 @@ bucket_name = "bndnio-notes"
 
 # ── Email routing ─────────────────────────────────────────────────────────────
 # Route configured in Cloudflare dashboard:
-#   Email → Email Routing → Routing Rules → catch-all (*@bndn.io) → this Worker
+#   notes.bndn.io: specific address routing (u_<username>@notes.bndn.io → this Worker)
+#   bndn.io: catch-all (*@bndn.io → this Worker) for backwards compatibility
 [[send_email]]
 name = "SEND_EMAIL"
 
@@ -68,5 +69,5 @@ secret_name = "ENCRYPTION_KEY"
 
 # ── Vars ──────────────────────────────────────────────────────────────────────
 [vars]
-EMAIL_DOMAIN = "bndn.io"
+EMAIL_DOMAIN = "notes.bndn.io"
 APP_URL = "https://notes.bndn.io"
