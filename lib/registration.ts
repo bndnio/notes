@@ -26,7 +26,7 @@ async function generateUniqueUserId(profileKv: KVNamespace): Promise<string> {
 export async function register(
   env: Env,
   input: { email: string; username: string; requireSenderMatch: boolean },
-): Promise<{ error: string } | { mcpToken: string; state: string }> {
+): Promise<{ error: string } | { mcpToken: string; sessionToken: string }> {
   const { email, username, requireSenderMatch } = input;
 
   const usernameError = validateUsername(username);
@@ -49,13 +49,16 @@ export async function register(
   ]);
 
   const mcpToken = generateRandomHex(32);
-  const mcpTokenHash = await hmacToken(mcpToken, encryptionKey);
-  const state = generateRandomHex(32);
+  const sessionToken = generateRandomHex(32);
+  const [mcpTokenHash, sessionHash] = await Promise.all([
+    hmacToken(mcpToken, encryptionKey),
+    hmacToken(sessionToken, encryptionKey),
+  ]);
 
   await Promise.all([
     env.MCP_TOKEN_KV.put(mcpTokenHash, userId),
-    env.EPHEMERAL_KV.put(`notion_state:${state}`, userId, { expirationTtl: 900 }),
+    env.EPHEMERAL_KV.put(`session:${sessionHash}`, userId, { expirationTtl: 604800 }),
   ]);
 
-  return { mcpToken, state };
+  return { mcpToken, sessionToken };
 }

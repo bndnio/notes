@@ -33,13 +33,17 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
       return renderRegister(result.error);
     }
 
-    return html(
+    const successResponse = html(
       renderTemplate(successHtml, {
         mcpToken: result.mcpToken,
         emailAddress: `u_${username}@${env.EMAIL_DOMAIN}`,
-        state: result.state,
       }),
     );
+    successResponse.headers.set(
+      "Set-Cookie",
+      `session=${result.sessionToken}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`,
+    );
+    return successResponse;
   }
 
   return new Response("Method not allowed", { status: 405 });
