@@ -1,10 +1,7 @@
-import notionSetupHtml from "../../../templates/notion-setup.html";
 import { fetchNotion } from "../../../lib/destinations/notion";
 import { encrypt } from "../../../lib/crypto";
 import { lookupProfile } from "../../../lib/profiles";
-import { resolveNotionSecrets } from "../../../lib/tokens";
-import { html, renderTemplate } from "../../../lib/responses";
-import type { Env, NotionSecrets } from "../../../lib/types";
+import type { Env } from "../../../lib/types";
 
 export interface NotionDatabase {
   id: string;
@@ -24,19 +21,11 @@ export async function completeNotionSetup(userId: string, accessToken: string, d
     lookupProfile(env.PROFILE_KV, userId),
   ]);
   if (!profile) throw new Error(`No profile for userId: ${userId}`);
-
-  const existing = await resolveNotionSecrets(userId, env);
-  const updated: NotionSecrets = { clientSecret: existing?.clientSecret ?? "", accessToken };
-  const encrypted = await encrypt(JSON.stringify(updated), encryptionKey);
-
+  const encrypted = await encrypt(accessToken, encryptionKey);
   await Promise.all([
     env.NOTION_TOKEN_KV.put(userId, encrypted),
     env.PROFILE_KV.put(userId, JSON.stringify({ ...profile, notionDbId: dbId })),
   ]);
-}
-
-export function renderNotionSetup(state: string, env: Env, error = ""): Response {
-  return html(renderTemplate(notionSetupHtml, { state, appUrl: env.APP_URL, error }));
 }
 
 export async function listDatabases(accessToken: string): Promise<NotionDatabase[]> {

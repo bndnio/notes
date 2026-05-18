@@ -1,20 +1,16 @@
 import notionSelectHtml from "../../../templates/notion-select.html";
 import notionConnectedHtml from "../../../templates/notion-connected.html";
 import { encrypt, generateRandomHex, hmacToken } from "../../../lib/crypto";
-import { lookupProfile } from "../../../lib/profiles";
-import { resolveNotionSecrets } from "../../../lib/tokens";
+import { resolveNotionToken } from "../../../lib/tokens";
 import { getCookie } from "../../../lib/cookies";
 import { html, renderTemplate } from "../../../lib/responses";
-import type { Env, NotionSecrets } from "../../../lib/types";
+import type { Env } from "../../../lib/types";
 import {
   completeNotionSetup,
   escHtml,
   listDatabases,
-  renderNotionSetup,
   type NotionDatabase,
 } from "./notion-helpers";
-
-// TODO: review this page after the notion connection is moved to a single OAuth app
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
   const sessionToken = getCookie(request, "session");
@@ -28,51 +24,13 @@ async function handleConnect(request: Request, env: Env): Promise<Response> {
   const state = generateRandomHex(32);
   await env.EPHEMERAL_KV.put(`notion_state:${state}`, userId, { expirationTtl: 900 });
 
-  const profile = await lookupProfile(env.PROFILE_KV, userId);
-  if (!profile?.notionClientId) {
-    return Response.redirect(`${env.APP_URL}/integration/notion/setup?state=${state}`, 302);
-  }
-
   const oauthUrl = new URL("https://api.notion.com/v1/oauth/authorize");
-  oauthUrl.searchParams.set("client_id", profile.notionClientId);
+  oauthUrl.searchParams.set("client_id", env.NOTION_CLIENT_ID);
   oauthUrl.searchParams.set("redirect_uri", `${env.APP_URL}/integration/notion/callback`);
   oauthUrl.searchParams.set("response_type", "code");
   oauthUrl.searchParams.set("state", state);
   oauthUrl.searchParams.set("owner", "user");
   return Response.redirect(oauthUrl.toString(), 302);
-}
-
-async function handleSetupGet(searchParams: URLSearchParams, env: Env): Promise<Response> {
-  return renderNotionSetup(searchParams.get("state") ?? "", env);
-}
-
-async function handleSetupPost(request: Request, env: Env): Promise<Response> {
-  const form = await request.formData();
-  const state = ((form.get("state") as string) ?? "").trim();
-  const notionClientId = ((form.get("notionClientId") as string) ?? "").trim();
-  const notionClientSecret = ((form.get("notionClientSecret") as string) ?? "").trim();
-
-  if (!state || !notionClientId || !notionClientSecret) {
-    return renderNotionSetup(state, env, "All fields are required.");
-  }
-
-  const userId = await env.EPHEMERAL_KV.get(`notion_state:${state}`);
-  if (!userId) return new Response("Link expired or invalid.", { status: 404 });
-
-  const profile = await lookupProfile(env.PROFILE_KV, userId);
-  if (!profile) return new Response("Account not found.", { status: 404 });
-
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const existing = await resolveNotionSecrets(userId, env);
-  const secrets: NotionSecrets = { clientSecret: notionClientSecret, accessToken: existing?.accessToken };
-  const encrypted = await encrypt(JSON.stringify(secrets), encryptionKey);
-
-  await Promise.all([
-    env.NOTION_TOKEN_KV.put(userId, encrypted),
-    env.PROFILE_KV.put(userId, JSON.stringify({ ...profile, notionClientId })),
-  ]);
-
-  return Response.redirect(`${env.APP_URL}/integration/notion/connect?state=${state}`, 302);
 }
 
 async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<Response> {
@@ -84,13 +42,12 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
 
   await env.EPHEMERAL_KV.delete(`notion_state:${state}`);
 
-  const profile = await lookupProfile(env.PROFILE_KV, userId);
-  if (!profile?.notionClientId) return new Response("Notion app not configured.", { status: 400 });
+  const [clientSecret, encryptionKey] = await Promise.all([
+    env.NOTION_CLIENT_SECRET.get(),
+    env.ENCRYPTION_KEY.get(),
+  ]);
 
-  const secrets = await resolveNotionSecrets(userId, env);
-  if (!secrets?.clientSecret) return new Response("Notion credentials not found.", { status: 400 });
-
-  const credentials = btoa(`${profile.notionClientId}:${secrets.clientSecret}`);
+  const credentials = btoa(`${env.NOTION_CLIENT_ID}:${clientSecret}`);
   const tokenRes = await fetch("https://api.notion.com/v1/oauth/token", {
     method: "POST",
     headers: {
@@ -109,7 +66,7 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
     return new Response(`Notion token exchange failed: ${err}`, { status: 502 });
   }
 
-  const tokenData = await tokenRes.json() as { access_token: string };
+  const tokenData = (await tokenRes.json()) as { access_token: string };
   const accessToken = tokenData.access_token;
 
   const databases = await listDatabases(accessToken);
@@ -124,9 +81,7 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
   }
 
   const pickerToken = generateRandomHex(32);
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const updatedSecrets: NotionSecrets = { clientSecret: secrets.clientSecret, accessToken };
-  const encrypted = await encrypt(JSON.stringify(updatedSecrets), encryptionKey);
+  const encrypted = await encrypt(accessToken, encryptionKey);
 
   await Promise.all([
     env.NOTION_TOKEN_KV.put(userId, encrypted),
@@ -161,11 +116,11 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   const databases = JSON.parse(dbsJson) as NotionDatabase[];
   if (!databases.some((db) => db.id === dbId)) return new Response("Invalid database selection.", { status: 400 });
 
-  const secrets = await resolveNotionSecrets(userId, env);
-  if (!secrets?.accessToken) return new Response("Access token not found.", { status: 400 });
+  const accessToken = await resolveNotionToken(userId, env);
+  if (!accessToken) return new Response("Access token not found.", { status: 400 });
 
   await Promise.all([
-    completeNotionSetup(userId, secrets.accessToken, dbId, env),
+    completeNotionSetup(userId, accessToken, dbId, env),
     env.EPHEMERAL_KV.delete(`notion_pick:${pickerToken}`),
     env.EPHEMERAL_KV.delete(`notion_dbs:${pickerToken}`),
   ]);
@@ -178,12 +133,6 @@ export async function handleNotionIntegration(request: Request, env: Env): Promi
 
   if (pathname === "/integration/notion/connect" && request.method === "GET") {
     return handleConnect(request, env);
-  }
-  if (pathname === "/integration/notion/setup" && request.method === "GET") {
-    return handleSetupGet(searchParams, env);
-  }
-  if (pathname === "/integration/notion/setup" && request.method === "POST") {
-    return handleSetupPost(request, env);
   }
   if (pathname === "/integration/notion/callback" && request.method === "GET") {
     return handleCallback(searchParams, env);
