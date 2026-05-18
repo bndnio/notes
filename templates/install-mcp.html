@@ -46,18 +46,18 @@
 
         <h3>Claude Code — one-liner</h3>
         <p>After setting your token above, run:</p>
-        <pre>curl -s https://notes.bndn.io/install-mcp/script | sh</pre>
+        <pre>curl -s {{appUrl}}/install-mcp/script | sh</pre>
 
         <h3>Claude Code — manual options</h3>
         <p>Via CLI:</p>
-        <pre>claude mcp add --transport http notes https://notes.bndn.io/mcp \
+        <pre>claude mcp add --transport http notes {{appUrl}}/mcp \
   -H "Authorization: Bearer ${NOTES_MCP_TOKEN}"</pre>
         <p>Or add to your project's <code>.mcp.json</code>:</p>
         <pre>{
   "mcpServers": {
     "notes": {
       "type": "http",
-      "url": "https://notes.bndn.io/mcp",
+      "url": "{{appUrl}}/mcp",
       "headers": { "Authorization": "Bearer ${NOTES_MCP_TOKEN}" }
     }
   }
@@ -66,7 +66,7 @@
         <h3>Claude Cowork / claude.ai</h3>
         <p>Go to <a href="https://claude.ai/settings/connectors" target="_blank">Settings → Connectors</a> → Add connection, then enter:</p>
         <ul>
-          <li>URL: <code>https://notes.bndn.io/mcp</code></li>
+          <li>URL: <code>{{appUrl}}/mcp</code></li>
           <li>Authorization header: <code>Bearer &lt;your token&gt;</code></li>
         </ul>
       </div>

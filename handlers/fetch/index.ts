@@ -13,7 +13,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname === "/styles.css") return css(baseCss);
   if (pathname === "/mcp") return handleMcp(request, env);
   if (pathname.startsWith("/register")) return handleRegistration(request, env);
-  if (pathname === "/install-mcp") return html(installMcpHtml);
+  if (pathname === "/install-mcp") return html(installMcpHtml.replaceAll("{{appUrl}}", env.APP_URL));
   if (pathname === "/install-mcp/script") return text(installMcpScript);
   return new Response("Not found", { status: 404 });
 }

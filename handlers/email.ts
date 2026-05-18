@@ -5,19 +5,35 @@ import { lookupProfile } from "../lib/profiles";
 import type { Env } from "../lib/types";
 
 export async function handleEmail(message: ForwardableEmailMessage, env: Env): Promise<void> {
-  const userId = await lookupUserId(env.USER_INDEX_KV, message.from ?? "");
+  const localPart = (message.to ?? "").split("@")[0];
+  if (!localPart.startsWith("u_")) {
+    console.warn(`Rejected email to unknown address: ${message.to}`);
+    message.setReject("Address not found");
+    return;
+  }
+  const username = localPart.slice(2);
 
+  const userId = await lookupUserId(env.USER_INDEX_KV, username);
   if (!userId) {
-    console.warn(`Rejected email from: ${message.from}`);
-    message.setReject("Address not allowed");
+    console.warn(`Rejected email to unknown username: ${username}`);
+    message.setReject("Address not found");
     return;
   }
 
   const profile = await lookupProfile(env.PROFILE_KV, userId);
   if (!profile) {
     console.warn(`No profile for userId: ${userId}`);
-    message.setReject("Address not allowed");
+    message.setReject("Address not found");
     return;
+  }
+
+  if (profile.requireSenderMatch) {
+    const senderUserId = await lookupUserId(env.USER_INDEX_KV, message.from ?? "");
+    if (senderUserId !== userId) {
+      console.warn(`Rejected email from unregistered sender: ${message.from} → ${username}`);
+      message.setReject("Sender not authorised");
+      return;
+    }
   }
 
   const rawEmail = await streamToText(message.raw);

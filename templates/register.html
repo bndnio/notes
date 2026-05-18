@@ -27,7 +27,7 @@
     </label>
     <label>
       Username
-      <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]+" title="Lowercase letters, numbers, hyphens and underscores only">
+      <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]{6,}" minlength="6" title="Lowercase letters, numbers, hyphens and underscores only (minimum 6 characters)">
     </label>
     <label>
       <span class="label-row">
@@ -42,6 +42,10 @@
         <button type="button" class="info-btn" popovertarget="token-info">i</button>
       </span>
       <input type="password" name="notionToken" required placeholder="secret_…">
+    </label>
+    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin-bottom: 1.25rem;">
+      <input type="checkbox" name="requireSenderMatch" value="true" checked>
+      Only accept emails from my registered address
     </label>
     <button type="submit" class="btn">Register</button>
   </form>

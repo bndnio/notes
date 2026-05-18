@@ -7,6 +7,20 @@ async function validateNotionAccess(notionDbId: string, notionToken: string): Pr
   return res.ok;
 }
 
+const RESERVED_USERNAMES = new Set([
+  "abuse", "admin", "administrator", "api", "auth", "billing", "bounce", "bounces",
+  "contact", "email", "help", "hello", "hostmaster", "info", "legal", "login",
+  "mail", "mailer", "marketing", "noc", "no-reply", "noreply", "notes", "oauth",
+  "owner", "postmaster", "privacy", "register", "root", "sales", "security",
+  "signup", "support", "terms", "webmaster",
+]);
+
+function validateUsername(username: string): string | null {
+  if (username.length < 6) return "Username must be at least 6 characters.";
+  if (RESERVED_USERNAMES.has(username)) return "That username is reserved.";
+  return null;
+}
+
 async function generateUniqueUserId(profileKv: KVNamespace): Promise<string> {
   for (let i = 0; i < 5; i++) {
     const id = generateRandomHex(4);
@@ -17,9 +31,12 @@ async function generateUniqueUserId(profileKv: KVNamespace): Promise<string> {
 
 export async function register(
   env: Env,
-  input: { email: string; username: string; notionDbId: string; notionToken: string },
+  input: { email: string; username: string; notionDbId: string; notionToken: string; requireSenderMatch: boolean },
 ): Promise<{ error: string } | { mcpToken: string }> {
-  const { email, username, notionDbId, notionToken } = input;
+  const { email, username, notionDbId, notionToken, requireSenderMatch } = input;
+
+  const usernameError = validateUsername(username);
+  if (usernameError) return { error: usernameError };
 
   const notionOk = await validateNotionAccess(notionDbId, notionToken);
   if (!notionOk) return { error: "Could not access Notion database. Check your Database ID and token." };
@@ -38,7 +55,7 @@ export async function register(
   await Promise.all([
     env.USER_INDEX_KV.put(email, userId),
     env.USER_INDEX_KV.put(username, userId),
-    env.PROFILE_KV.put(userId, JSON.stringify({ userId, username, notionDbId })),
+    env.PROFILE_KV.put(userId, JSON.stringify({ userId, username, notionDbId, requireSenderMatch })),
     env.NOTION_TOKEN_KV.put(userId, encryptedToken),
   ]);
 
