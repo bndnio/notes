@@ -10,8 +10,11 @@ function formField(form: FormData, name: string): string {
 }
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
+  const renderRegister = (error: string) =>
+    html(registerHtml.replace("{{error}}", error).replace("{{emailDomain}}", env.EMAIL_DOMAIN));
+
   if (request.method === "GET") {
-    return html(registerHtml.replace("{{error}}", ""));
+    return renderRegister("");
   }
 
   if (request.method === "POST") {
@@ -22,14 +25,14 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
     const notionToken = formField(form, "notionToken");
 
     if (!email || !username || !notionDbId || !notionToken) {
-      return html(registerHtml.replace("{{error}}", "All fields are required."));
+      return renderRegister("All fields are required.");
     }
 
     const requireSenderMatch = form.get("requireSenderMatch") === "true";
     const result = await register(env, { email, username, notionDbId, notionToken, requireSenderMatch });
 
     if ("error" in result) {
-      return html(registerHtml.replace("{{error}}", result.error));
+      return renderRegister(result.error);
     }
 
     const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;

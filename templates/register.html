@@ -14,6 +14,8 @@
     .info-btn { background: none; border: 1px solid #bbb; border-radius: 50%; width: 1.1rem; height: 1.1rem; font-size: 0.7rem; color: #888; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .info-btn:hover { border-color: #555; color: #555; }
     [popover] { border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem 1rem; max-width: 280px; font-size: 0.85rem; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); line-height: 1.5; }
+    input[type="checkbox"] { display: inline-block; width: auto; padding: 0; border: none; border-radius: 0; }
+    .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-weight: 400; }
   </style>
 </head>
 <body>
@@ -28,6 +30,7 @@
     <label>
       Username
       <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]{6,}" minlength="6" title="Lowercase letters, numbers, hyphens and underscores only (minimum 6 characters)">
+      <p style="color: #888; font-size: 0.82rem; margin: 0.3rem 0 0;">Your notes address will be <code>u_username@{{emailDomain}}</code></p>
     </label>
     <label>
       <span class="label-row">
@@ -43,7 +46,7 @@
       </span>
       <input type="password" name="notionToken" required placeholder="secret_…">
     </label>
-    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin-bottom: 1.25rem;">
+    <label class="checkbox-label">
       <input type="checkbox" name="requireSenderMatch" value="true" checked>
       Only accept emails from my registered address
     </label>
