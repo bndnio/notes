@@ -8,19 +8,15 @@
   <style>
     body { max-width: 480px; margin: 3rem auto; }
     label { display: block; margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 500; }
-    .label-row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; }
     input { display: block; width: 100%; padding: 0.5rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .error { color: #c00; margin-bottom: 1.25rem; min-height: 1.25rem; }
-    .info-btn { background: none; border: 1px solid #bbb; border-radius: 50%; width: 1.1rem; height: 1.1rem; font-size: 0.7rem; color: #888; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .info-btn:hover { border-color: #555; color: #555; }
-    [popover] { border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem 1rem; max-width: 280px; font-size: 0.85rem; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.1); line-height: 1.5; }
     input[type="checkbox"] { display: inline-block; width: auto; padding: 0; border: none; border-radius: 0; }
+    .error { color: #c00; margin-bottom: 1.25rem; min-height: 1.25rem; }
     .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-weight: 400; }
   </style>
 </head>
 <body>
   <h1>Register</h1>
-  <p class="subtitle">Create an account to start saving notes to your Notion database.</p>
+  <p class="subtitle">Create an account to start capturing notes.</p>
   <p class="error">{{error}}</p>
   <form method="POST" action="/register">
     <label>
@@ -32,37 +28,11 @@
       <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]{6,}" minlength="6" title="Lowercase letters, numbers, hyphens and underscores only (minimum 6 characters)">
       <p style="color: #888; font-size: 0.82rem; margin: 0.3rem 0 0;">Your notes address will be <code>u_username@{{emailDomain}}</code></p>
     </label>
-    <label>
-      <span class="label-row">
-        Database ID
-        <button type="button" class="info-btn" popovertarget="db-info">i</button>
-      </span>
-      <input type="text" name="notionDbId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-    </label>
-    <label>
-      <span class="label-row">
-        API Connection Access Token
-        <button type="button" class="info-btn" popovertarget="token-info">i</button>
-      </span>
-      <input type="password" name="notionToken" required placeholder="secret_…">
-    </label>
     <label class="checkbox-label">
       <input type="checkbox" name="requireSenderMatch" value="true" checked>
       Only accept emails from my registered address
     </label>
     <button type="submit" class="btn">Register</button>
   </form>
-
-  <div id="db-info" popover>
-    Open your database as a full page in Notion. The 36-character ID is the segment of the URL before the <code>?v=</code> parameter.
-    <br><br>
-    <a href="https://developers.notion.com/docs/working-with-databases" target="_blank">Notion docs ↗</a>
-  </div>
-
-  <div id="token-info" popover>
-    In the Notion developer portal, click New connection. Your access token is on the connection's Configuration tab.
-    <br><br>
-    <a href="https://www.notion.so/developers/connections" target="_blank">Open Notion connections ↗</a>
-  </div>
 </body>
 </html>

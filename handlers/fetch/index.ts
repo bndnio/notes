@@ -1,5 +1,6 @@
 import { handleMcp } from "./mcp";
 import { handleRegistration } from "./registration";
+import { handleIntegration } from "./integration/index";
 import { html, text, css } from "../../lib/responses";
 import indexHtml from "../../templates/index.html";
 import installMcpHtml from "../../templates/install-mcp.html";
@@ -13,6 +14,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname === "/styles.css") return css(baseCss);
   if (pathname === "/mcp") return handleMcp(request, env);
   if (pathname.startsWith("/register")) return handleRegistration(request, env);
+  if (pathname.startsWith("/integration")) return handleIntegration(request, env);
   if (pathname === "/install-mcp") return html(installMcpHtml.replaceAll("{{appUrl}}", env.APP_URL));
   if (pathname === "/install-mcp/script") return text(installMcpScript);
   return new Response("Not found", { status: 404 });

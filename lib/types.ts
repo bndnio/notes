@@ -1,8 +1,14 @@
 export interface Profile {
   userId: string;
   username: string;
-  notionDbId: string;
+  notionDbId?: string;
+  notionClientId?: string;
   requireSenderMatch?: boolean;
+}
+
+export interface NotionSecrets {
+  clientSecret: string;
+  accessToken?: string;
 }
 
 export interface Env {
@@ -11,6 +17,7 @@ export interface Env {
   USER_INDEX_KV: KVNamespace;
   PROFILE_KV: KVNamespace;
   NOTION_TOKEN_KV: KVNamespace;
+  EPHEMERAL_KV: KVNamespace;
   ENCRYPTION_KEY: SecretsStoreSecret;
   EMAIL_DOMAIN: string;
   APP_URL: string;

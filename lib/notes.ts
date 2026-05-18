@@ -1,4 +1,4 @@
-import { postToNotion } from "./notion";
+import { postToNotion } from "./destinations/notion";
 import { toMarkdown, slugify } from "./markdown";
 import { resolveNotionToken } from "./tokens";
 import type { Env, Note, Profile } from "./types";
@@ -36,14 +36,17 @@ export async function saveNote(input: SaveNoteInput, env: Env, profile: Profile)
     ...(input.emlKey && { emlKey: input.emlKey }),
   };
 
-  const notionToken = await resolveNotionToken(profile.userId, env);
-
   const saveMd = env.NOTES_BUCKET.put(input.mdKey, toMarkdown(note), {
     httpMetadata: { contentType: "text/markdown" },
     customMetadata: { subject: note.subject, from: note.from },
   });
 
-  const [r2Result, notionResult] = await Promise.allSettled([saveMd, postToNotion(note, notionToken, profile.notionDbId)]);
+  const notionToken = profile.notionDbId ? await resolveNotionToken(profile.userId, env) : null;
+  const notionWrite = notionToken
+    ? postToNotion(note, notionToken, profile.notionDbId!)
+    : Promise.reject("not configured");
+
+  const [r2Result, notionResult] = await Promise.allSettled([saveMd, notionWrite]);
 
   if (r2Result.status === "rejected") {
     throw new Error(`R2 write failed: ${r2Result.reason}`);

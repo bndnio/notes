@@ -1,3 +1,11 @@
+export function renderTemplate(template: string, vars: Record<string, string>): string {
+  let result = template;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replaceAll(`{{${key}}}`, value);
+  }
+  return result;
+}
+
 export const html = (content: string) =>
   new Response(content, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect Notion — Notes</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body { max-width: 540px; margin: 3rem auto; }
+    label { display: block; margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 500; }
+    input { display: block; width: 100%; padding: 0.5rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .error { color: #c00; margin-bottom: 1.25rem; min-height: 1.25rem; }
+    .steps { background: #f8f8f8; border: 1px solid #e8e8e8; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 2rem; font-size: 0.88rem; color: #444; line-height: 1.7; }
+    .steps ol { margin: 0.4rem 0 0; padding-left: 1.4rem; }
+  </style>
+</head>
+<body>
+  <h1>Connect Notion</h1>
+  <p class="subtitle">Create a Notion OAuth integration, then enter your credentials below.</p>
+
+  <div class="steps">
+    <strong>Setup steps</strong>
+    <ol>
+      <li>Go to <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a> → New integration</li>
+      <li>Set type to <strong>Public</strong> and enable OAuth</li>
+      <li>Add this redirect URI: <code>{{appUrl}}/integration/notion/callback</code></li>
+      <li>Copy the <strong>OAuth client ID</strong> and <strong>OAuth client secret</strong> below</li>
+    </ol>
+  </div>
+
+  <p class="error">{{error}}</p>
+  <form method="POST" action="/integration/notion/setup">
+    <input type="hidden" name="state" value="{{state}}">
+    <label>
+      OAuth client ID
+      <input type="text" name="notionClientId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+    </label>
+    <label>
+      OAuth client secret
+      <input type="password" name="notionClientSecret" required placeholder="secret_…">
+    </label>
+    <button type="submit" class="btn">Continue →</button>
+  </form>
+</body>
+</html>

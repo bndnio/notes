@@ -54,6 +54,12 @@ id = "6efa814a66e041008f334fd9b83ca30f"
 binding = "NOTION_TOKEN_KV"
 id = "9bb4ca36b284453b8899d8068f30837d"
 
+# ── KV: short-lived ephemeral tokens (OAuth state, OTP codes) ─────────────────
+# Create with: bunx wrangler kv namespace create EPHEMERAL_KV
+[[kv_namespaces]]
+binding = "EPHEMERAL_KV"
+id = "da30844449de47bbb874342583c9c485"
+
 # ── Secrets Store: AES-256 encryption key for NOTION_TOKEN_KV ────────────────
 [[secrets_store_secrets]]
 binding = "ENCRYPTION_KEY"

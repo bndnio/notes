@@ -12,8 +12,13 @@ function makeMcpServer(env: Env, profile: Profile): McpServer {
     const timestamp = new Date().toISOString();
     const { mdKey } = computeKeys(subject, profile.userId, timestamp);
     const result = await saveNote({ mdKey, timestamp, subject, body }, env, profile);
+    const notionStatus = result.notionOk
+      ? "ok"
+      : profile.notionDbId
+        ? "failed"
+        : `not connected — visit ${env.APP_URL}/auth/connect to link Notion`;
     return {
-      content: [{ type: "text" as const, text: `Saved: ${mdKey}. Notion: ${result.notionOk ? "ok" : "failed"}` }],
+      content: [{ type: "text" as const, text: `Saved: ${mdKey}. Notion: ${notionStatus}` }],
     };
   }
 

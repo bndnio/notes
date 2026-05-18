@@ -1,7 +1,7 @@
 import registerHtml from "../../templates/register.html";
 import successHtml from "../../templates/success.html";
 import { register } from "../../lib/registration";
-import { html } from "../../lib/responses";
+import { html, renderTemplate } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
 function formField(form: FormData, name: string): string {
@@ -11,7 +11,7 @@ function formField(form: FormData, name: string): string {
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
   const renderRegister = (error: string) =>
-    html(registerHtml.replace("{{error}}", error).replace("{{emailDomain}}", env.EMAIL_DOMAIN));
+    html(renderTemplate(registerHtml, { error, emailDomain: env.EMAIL_DOMAIN }));
 
   if (request.method === "GET") {
     return renderRegister("");
@@ -21,23 +21,24 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
     const form = await request.formData();
     const email = formField(form, "email").toLowerCase();
     const username = formField(form, "username").toLowerCase();
-    const notionDbId = formField(form, "notionDbId");
-    const notionToken = formField(form, "notionToken");
 
-    if (!email || !username || !notionDbId || !notionToken) {
+    if (!email || !username) {
       return renderRegister("All fields are required.");
     }
 
     const requireSenderMatch = form.get("requireSenderMatch") === "true";
-    const result = await register(env, { email, username, notionDbId, notionToken, requireSenderMatch });
+    const result = await register(env, { email, username, requireSenderMatch });
 
     if ("error" in result) {
       return renderRegister(result.error);
     }
 
-    const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
     return html(
-      successHtml.replace("{{mcpToken}}", result.mcpToken).replace("{{emailAddress}}", emailAddress),
+      renderTemplate(successHtml, {
+        mcpToken: result.mcpToken,
+        emailAddress: `u_${username}@${env.EMAIL_DOMAIN}`,
+        state: result.state,
+      }),
     );
   }
 
