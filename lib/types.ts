@@ -12,7 +12,7 @@ export interface Env {
   PROFILE_KV: KVNamespace;
   NOTION_TOKEN_KV: KVNamespace;
   EPHEMERAL_KV: KVNamespace;
-  RESEND_API_KEY: string;
+  RESEND_API_KEY: SecretsStoreSecret;
   ENCRYPTION_KEY: SecretsStoreSecret;
   NOTION_CLIENT_SECRET: SecretsStoreSecret;
   NOTION_CLIENT_ID: string;

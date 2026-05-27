@@ -61,6 +61,11 @@ id = "da30844449de47bbb874342583c9c485"
 
 # ── Secrets Store ─────────────────────────────────────────────────────────────
 [[secrets_store_secrets]]
+binding = "RESEND_API_KEY"
+store_id = "065d291326ea4a1d8181859d83f313be"
+secret_name = "RESEND_API_KEY"
+
+[[secrets_store_secrets]]
 binding = "ENCRYPTION_KEY"
 store_id = "065d291326ea4a1d8181859d83f313be"
 secret_name = "ENCRYPTION_KEY"
