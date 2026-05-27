@@ -1,4 +1,5 @@
 import { hmacToken, generateRandomHex } from "./crypto";
+import { generatePin, storePin } from "./pin";
 import type { Env } from "./types";
 
 const RESERVED_USERNAMES = new Set([
@@ -23,29 +24,39 @@ async function generateUniqueUserId(profileKv: KVNamespace): Promise<string> {
   throw new Error("Failed to generate unique userId after 5 attempts");
 }
 
-export async function register(
+export async function stageRegistration(
   env: Env,
   input: { email: string; username: string; requireSenderMatch: boolean },
-): Promise<{ error: string } | { mcpToken: string; sessionToken: string }> {
+): Promise<{ pin: string } | { error: string }> {
   const { email, username, requireSenderMatch } = input;
 
   const usernameError = validateUsername(username);
   if (usernameError) return { error: usernameError };
 
-  const [emailExists, usernameExists, encryptionKey] = await Promise.all([
+  const [emailExists, usernameExists] = await Promise.all([
     env.USER_INDEX_KV.get(email),
     env.USER_INDEX_KV.get(username),
-    env.ENCRYPTION_KEY.get(),
   ]);
   if (emailExists) return { error: "Email already registered." };
   if (usernameExists) return { error: "Username already taken." };
 
-  const userId = await generateUniqueUserId(env.PROFILE_KV);
+  const pin = generatePin();
+  const stagedData = { type: "register", username, requireSenderMatch };
+  await storePin(email, pin, stagedData, env);
 
-  await Promise.all([
-    env.USER_INDEX_KV.put(email, userId),
-    env.USER_INDEX_KV.put(username, userId),
-    env.PROFILE_KV.put(userId, JSON.stringify({ userId, username, requireSenderMatch })),
+  return { pin };
+}
+
+export async function completeRegistration(
+  env: Env,
+  email: string,
+  pending: { username: string; requireSenderMatch: boolean },
+): Promise<{ mcpToken: string; sessionToken: string }> {
+  const { username, requireSenderMatch } = pending;
+
+  const [encryptionKey, userId] = await Promise.all([
+    env.ENCRYPTION_KEY.get(),
+    generateUniqueUserId(env.PROFILE_KV),
   ]);
 
   const mcpToken = generateRandomHex(32);
@@ -56,6 +67,9 @@ export async function register(
   ]);
 
   await Promise.all([
+    env.USER_INDEX_KV.put(email, userId),
+    env.USER_INDEX_KV.put(username, userId),
+    env.PROFILE_KV.put(userId, JSON.stringify({ userId, username, requireSenderMatch })),
     env.MCP_TOKEN_KV.put(mcpTokenHash, userId),
     env.EPHEMERAL_KV.put(`session:${sessionHash}`, userId, { expirationTtl: 604800 }),
   ]);

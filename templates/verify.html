@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify — Notes</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body { max-width: 480px; margin: 3rem auto; }
+    label { display: block; margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 500; }
+    input[type="text"] { display: block; width: 100%; padding: 0.5rem 0.6rem; font-size: 1.5rem; letter-spacing: 0.3em; text-align: center; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .error { color: #c00; margin-bottom: 1.25rem; min-height: 1.25rem; }
+  </style>
+</head>
+<body>
+  <h1>Check your email</h1>
+  <p class="subtitle">We sent a 6-digit PIN to <strong>{{email}}</strong>. Enter it below.</p>
+  <p class="error">{{error}}</p>
+  <form method="POST" action="/verify">
+    <input type="hidden" name="email" value="{{email}}">
+    <label>
+      PIN
+      <input type="text" name="pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" autofocus>
+    </label>
+    <button type="submit" class="btn">Verify</button>
+  </form>
+</body>
+</html>

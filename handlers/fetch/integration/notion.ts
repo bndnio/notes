@@ -14,12 +14,12 @@ import {
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
   const sessionToken = getCookie(request, "session");
-  if (!sessionToken) return Response.redirect(`${env.APP_URL}/auth/connect`, 302);
+  if (!sessionToken) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const encryptionKey = await env.ENCRYPTION_KEY.get();
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
   const userId = await env.EPHEMERAL_KV.get(`session:${sessionHash}`);
-  if (!userId) return Response.redirect(`${env.APP_URL}/auth/connect`, 302);
+  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const state = generateRandomHex(32);
   await env.EPHEMERAL_KV.put(`notion_state:${state}`, userId, { expirationTtl: 900 });

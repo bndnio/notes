@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Notes</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body { max-width: 480px; margin: 3rem auto; }
+    label { display: block; margin-bottom: 1.25rem; font-size: 0.9rem; font-weight: 500; }
+    input { display: block; width: 100%; padding: 0.5rem 0.6rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .error { color: #c00; margin-bottom: 1.25rem; min-height: 1.25rem; }
+  </style>
+</head>
+<body>
+  <h1>Login</h1>
+  <p class="subtitle">Enter your email to receive a login PIN.</p>
+  <p class="error">{{error}}</p>
+  <form method="POST" action="/login">
+    <label>
+      Email
+      <input type="email" name="email" required autocomplete="email">
+    </label>
+    <button type="submit" class="btn">Send PIN</button>
+  </form>
+  <p style="font-size:0.9rem;color:#666;margin-top:1.5rem;">Don't have an account? <a href="/register">Register</a></p>
+</body>
+</html>

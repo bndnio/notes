@@ -1,12 +1,11 @@
 import registerHtml from "../../templates/register.html";
-import successHtml from "../../templates/success.html";
-import { register } from "../../lib/registration";
+import { stageRegistration } from "../../lib/registration";
+import { sendPin } from "../../lib/pin";
 import { html, renderTemplate } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
 function formField(form: FormData, name: string): string {
-  const value = ((form.get(name) as string) ?? "").trim();
-  return value;
+  return ((form.get(name) as string) ?? "").trim();
 }
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
@@ -22,28 +21,16 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
     const email = formField(form, "email").toLowerCase();
     const username = formField(form, "username").toLowerCase();
 
-    if (!email || !username) {
-      return renderRegister("All fields are required.");
-    }
+    if (!email || !username) return renderRegister("All fields are required.");
 
     const requireSenderMatch = form.get("requireSenderMatch") === "true";
-    const result = await register(env, { email, username, requireSenderMatch });
+    const result = await stageRegistration(env, { email, username, requireSenderMatch });
 
-    if ("error" in result) {
-      return renderRegister(result.error);
-    }
+    if ("error" in result) return renderRegister(result.error);
 
-    const successResponse = html(
-      renderTemplate(successHtml, {
-        mcpToken: result.mcpToken,
-        emailAddress: `u_${username}@${env.EMAIL_DOMAIN}`,
-      }),
-    );
-    successResponse.headers.set(
-      "Set-Cookie",
-      `session=${result.sessionToken}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`,
-    );
-    return successResponse;
+    await sendPin(email, result.pin, env);
+
+    return Response.redirect(`${env.APP_URL}/verify?email=${encodeURIComponent(email)}`, 302);
   }
 
   return new Response("Method not allowed", { status: 405 });
