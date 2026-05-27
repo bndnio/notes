@@ -32,8 +32,6 @@ bucket_name = "bndnio-notes"
 # Route configured in Cloudflare dashboard:
 #   notes.bndn.io: specific address routing (u_<username>@notes.bndn.io → this Worker)
 #   bndn.io: catch-all (*@bndn.io → this Worker) for backwards compatibility
-[[send_email]]
-name = "SEND_EMAIL"
 
 # ── KV: hmac(mcpToken) → userId ──────────────────────────────────────────────
 [[kv_namespaces]]

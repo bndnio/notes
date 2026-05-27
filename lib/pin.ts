@@ -1,4 +1,4 @@
-import { EmailMessage } from "cloudflare:email";
+import { sendEmail } from "./resend";
 import type { Env } from "./types";
 
 const PIN_TTL = 600; // 10 minutes
@@ -32,19 +32,5 @@ export async function consumePin(
 }
 
 export async function sendPin(to: string, pin: string, env: Env): Promise<void> {
-  const from = `noreply@${env.EMAIL_DOMAIN}`;
-  const raw = [
-    `From: Notes <${from}>`,
-    `To: ${to}`,
-    `Subject: Your verification PIN`,
-    `MIME-Version: 1.0`,
-    `Content-Type: text/plain; charset=utf-8`,
-    ``,
-    `Your PIN is: ${pin}`,
-    ``,
-    `This PIN expires in 10 minutes.`,
-  ].join("\r\n");
-
-  const message = new EmailMessage(from, to, new Response(raw).body!);
-  await env.SEND_EMAIL.send(message);
+  await sendEmail(to, "Your verification PIN", `Your PIN is: ${pin}\n\nThis PIN expires in 10 minutes.`, env);
 }
