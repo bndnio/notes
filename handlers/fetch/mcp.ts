@@ -16,7 +16,7 @@ function makeMcpServer(env: Env, profile: Profile): McpServer {
       ? "ok"
       : profile.notionDbId
         ? "failed"
-        : `not connected — visit ${env.APP_URL}/auth/connect to link Notion`;
+        : `not connected — visit ${env.APP_URL}/integration/notion/connect to link Notion`;
     return {
       content: [{ type: "text" as const, text: `Saved: ${mdKey}. Notion: ${notionStatus}` }],
     };
@@ -38,6 +38,10 @@ function makeMcpServer(env: Env, profile: Profile): McpServer {
 }
 
 export async function handleMcp(request: Request, env: Env): Promise<Response> {
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+
   const token = (request.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
   const profile = await resolveProfile(token, env);
   if (!profile) {
