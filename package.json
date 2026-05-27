@@ -12,6 +12,7 @@
     "generate-mcp-token": "bun run scripts/generate-mcp-token.ts",
     "add-email": "bun run scripts/add-email.ts",
     "rotate-notion-token": "bun run scripts/rotate-notion-token.ts",
+    "clear-kv": "bun run scripts/clear-kv.ts",
     "bucket": "wrangler r2 bucket create bndnio-notes"
   },
   "devDependencies": {
