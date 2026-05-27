@@ -8,8 +8,8 @@ import type { Env } from "../../../lib/types";
 import {
   completeNotionSetup,
   escHtml,
-  listNotionItems,
-  type NotionItem,
+  listDatabases,
+  type NotionDatabase,
 } from "./notion-helpers";
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
@@ -69,14 +69,14 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
   const tokenData = (await tokenRes.json()) as { access_token: string };
   const accessToken = tokenData.access_token;
 
-  const items = await listNotionItems(accessToken);
+  const databases = await listDatabases(accessToken);
 
-  if (items.length === 0) {
-    return html("<p>No items were shared. Go back and share at least one Notion database with this integration.</p>");
+  if (databases.length === 0) {
+    return html("<p>No databases were shared. Go back and share at least one Notion database with this integration.</p>");
   }
 
-  if (items.length === 1) {
-    await completeNotionSetup(userId, accessToken, items[0].id, env);
+  if (databases.length === 1) {
+    await completeNotionSetup(userId, accessToken, databases[0].id, env);
     return html(notionConnectedHtml);
   }
 
@@ -86,10 +86,10 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
   await Promise.all([
     env.NOTION_TOKEN_KV.put(userId, encrypted),
     env.EPHEMERAL_KV.put(`notion_pick:${pickerToken}`, userId, { expirationTtl: 3600 }),
-    env.EPHEMERAL_KV.put(`notion_dbs:${pickerToken}`, JSON.stringify(items), { expirationTtl: 3600 }),
+    env.EPHEMERAL_KV.put(`notion_dbs:${pickerToken}`, JSON.stringify(databases), { expirationTtl: 3600 }),
   ]);
 
-  const itemsHtml = items
+  const itemsHtml = databases
     .map(
       (db) =>
         `<label style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;font-weight:400;">` +
@@ -98,7 +98,7 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
     )
     .join("\n");
 
-  return html(renderTemplate(notionSelectHtml, { pickerToken, items: itemsHtml }));
+  return html(renderTemplate(notionSelectHtml, { pickerToken, databases: itemsHtml }));
 }
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
@@ -113,8 +113,8 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
 
   if (!userId || !dbsJson) return Response.redirect(`${env.APP_URL}/integration/notion/connect`, 302);
 
-  const items = JSON.parse(dbsJson) as NotionItem[];
-  if (!items.some((db) => db.id === dbId)) return new Response("Invalid database selection.", { status: 400 });
+  const databases = JSON.parse(dbsJson) as NotionDatabase[];
+  if (!databases.some((db) => db.id === dbId)) return new Response("Invalid database selection.", { status: 400 });
 
   const accessToken = await resolveNotionToken(userId, env);
   if (!accessToken) return new Response("Access token not found.", { status: 400 });
