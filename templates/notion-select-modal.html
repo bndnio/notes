@@ -1,0 +1,13 @@
+<div class="modal-overlay" id="notion-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Choose a database</h2>
+      <button class="modal-close" onclick="closeNotionModal()">✕</button>
+    </div>
+    <p class="subtitle">Select which Notion database to save notes to.</p>
+    <form method="POST" action="/integration/notion/select">
+      {{databases}}
+      <button type="submit" class="btn">Save →</button>
+    </form>
+  </div>
+</div>

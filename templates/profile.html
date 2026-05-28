@@ -8,6 +8,8 @@
 </head>
 <body class="page">
   {{toast}}
+  {{notionModal}}
+
   <h1>{{username}}</h1>
   <p class="subtitle"><code>{{emailAddress}}</code></p>
 
@@ -34,10 +36,34 @@
   </div>
 
   <script>
+    // Toast
     const toast = document.getElementById('toast');
     if (toast) {
       setTimeout(() => toast.remove(), 5000);
       document.getElementById('toast-dismiss').addEventListener('click', () => toast.remove());
+    }
+
+    // Notion popup
+    function openNotionPopup() {
+      window.open('/integration/notion/connect', 'notion-oauth', 'width=600,height=700,menubar=no,toolbar=no,location=no');
+      window.addEventListener('message', function handler(e) {
+        if (e.origin !== window.location.origin || e.data !== 'notion-pending') return;
+        window.removeEventListener('message', handler);
+        window.location.href = '/profile?modal=notion-select';
+      });
+    }
+
+    // Notion database modal
+    function openNotionModal() {
+      document.getElementById('notion-modal-overlay').classList.add('modal-overlay--visible');
+    }
+    function closeNotionModal() {
+      document.getElementById('notion-modal-overlay').classList.remove('modal-overlay--visible');
+    }
+
+    // Auto-open modal when redirected back from popup
+    if (new URLSearchParams(window.location.search).get('modal') === 'notion-select') {
+      openNotionModal();
     }
   </script>
 </body>
