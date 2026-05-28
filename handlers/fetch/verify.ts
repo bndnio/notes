@@ -1,5 +1,4 @@
 import verifyHtml from "../../templates/verify.html";
-import successHtml from "../../templates/success.html";
 import { consumePin } from "../../lib/pin";
 import { completeRegistration } from "../../lib/registration";
 import { hmacToken, generateRandomHex } from "../../lib/crypto";
@@ -35,18 +34,17 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
     if (!data) return renderError("Invalid or expired PIN.");
 
     if (data.type === "register") {
-      const { mcpToken, sessionToken } = await completeRegistration(env, email, {
+      const { sessionToken } = await completeRegistration(env, email, {
         username: data.username as string,
         requireSenderMatch: data.requireSenderMatch as boolean,
       });
-      const res = html(
-        renderTemplate(successHtml, {
-          mcpToken,
-          emailAddress: `u_${data.username}@${env.EMAIL_DOMAIN}`,
-        }),
-      );
-      res.headers.set("Set-Cookie", sessionCookieHeader(sessionToken));
-      return res;
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: `${env.APP_URL}/profile?toast=Account+created`,
+          "Set-Cookie": sessionCookieHeader(sessionToken),
+        },
+      });
     }
 
     if (data.type === "login") {
@@ -59,7 +57,7 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
       return new Response(null, {
         status: 302,
         headers: {
-          Location: `${env.APP_URL}/`,
+          Location: `${env.APP_URL}/profile`,
           "Set-Cookie": sessionCookieHeader(sessionToken),
         },
       });

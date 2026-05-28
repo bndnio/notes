@@ -18,7 +18,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   const profile = await lookupProfile(env.PROFILE_KV, userId);
   if (!profile) return Response.redirect(`${env.APP_URL}/login`, 302);
 
-  const { username, notionDbId, notionPending } = profile;
+  const { username, notionDbId, notionPending, mcpConfigured } = profile;
   const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
 
   let notionBadgeClass: string;
@@ -43,6 +43,9 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     notionAction = `<a class="btn" href="/integration/notion/connect">Connect →</a>`;
   }
 
+  const mcpBadgeClass = mcpConfigured ? "status-badge--connected" : "status-badge--none";
+  const mcpBadgeText = mcpConfigured ? "Configured" : "Not set up";
+
   const toastParam = new URL(request.url).searchParams.get("toast");
   const toast = toastParam
     ? `<div class="toast" id="toast">${escHtml(toastParam)}<button class="toast-dismiss" id="toast-dismiss">✕</button></div>`
@@ -57,6 +60,8 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
       notionBadgeText,
       notionDescription,
       notionAction,
+      mcpBadgeClass,
+      mcpBadgeText,
     }),
   );
 }

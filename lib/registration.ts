@@ -51,7 +51,7 @@ export async function completeRegistration(
   env: Env,
   email: string,
   pending: { username: string; requireSenderMatch: boolean },
-): Promise<{ mcpToken: string; sessionToken: string }> {
+): Promise<{ sessionToken: string }> {
   const { username, requireSenderMatch } = pending;
 
   const [encryptionKey, userId] = await Promise.all([
@@ -59,20 +59,15 @@ export async function completeRegistration(
     generateUniqueUserId(env.PROFILE_KV),
   ]);
 
-  const mcpToken = generateRandomHex(32);
   const sessionToken = generateRandomHex(32);
-  const [mcpTokenHash, sessionHash] = await Promise.all([
-    hmacToken(mcpToken, encryptionKey),
-    hmacToken(sessionToken, encryptionKey),
-  ]);
+  const sessionHash = await hmacToken(sessionToken, encryptionKey);
 
   await Promise.all([
     env.USER_INDEX_KV.put(email, userId),
     env.USER_INDEX_KV.put(username, userId),
     env.PROFILE_KV.put(userId, JSON.stringify({ userId, username, requireSenderMatch })),
-    env.MCP_TOKEN_KV.put(mcpTokenHash, userId),
     env.EPHEMERAL_KV.put(`session:${sessionHash}`, userId, { expirationTtl: 604800 }),
   ]);
 
-  return { mcpToken, sessionToken };
+  return { sessionToken };
 }

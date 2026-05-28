@@ -3,6 +3,7 @@ export interface Profile {
   username: string;
   notionDbId?: string;
   notionPending?: boolean;
+  mcpConfigured?: boolean;
   requireSenderMatch?: boolean;
 }
 
