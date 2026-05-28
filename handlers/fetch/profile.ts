@@ -1,7 +1,8 @@
 import profileHtml from "../../templates/profile.html";
 import notionSelectModalHtml from "../../templates/notion-select-modal.html";
+import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
 import { getCookie } from "../../lib/cookies";
-import { hmacToken } from "../../lib/crypto";
+import { hmacToken, decrypt } from "../../lib/crypto";
 import { escHtml } from "../../lib/html";
 import { lookupProfile } from "../../lib/profiles";
 import { html, renderTemplate } from "../../lib/responses";
@@ -32,7 +33,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   const profile = await lookupProfile(env.PROFILE_KV, userId);
   if (!profile) return Response.redirect(`${env.APP_URL}/login`, 302);
 
-  const { username, notionDbId, mcpConfigured } = profile;
+  const { username, notionDbId, mcpTokenHash } = profile;
   const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
 
   let notionBadgeClass: string;
@@ -64,8 +65,27 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     }
   }
 
-  const mcpBadgeClass = mcpConfigured ? "status-badge--connected" : "status-badge--none";
-  const mcpBadgeText = mcpConfigured ? "Configured" : "Not set up";
+  const mcpBadgeClass = mcpTokenHash ? "status-badge--connected" : "status-badge--none";
+  const mcpBadgeText = mcpTokenHash ? "Configured" : "Not set up";
+
+  const pendingMcpToken = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
+  const mcpToken = pendingMcpToken ? await decrypt(pendingMcpToken, encryptionKey) : null;
+
+  const tokenSection = mcpToken
+    ? `<p class="warning">Save this token — it won't be shown after you click Done.</p><div class="token-box">${mcpToken}</div>`
+    : "";
+
+  const actionSection = mcpToken
+    ? `<a class="btn" href="/setup-mcp/done">Done →</a>`
+    : `<div class="btn-row">
+        <form class="form-inline" method="POST" action="/setup-mcp/generate">
+          <input type="hidden" name="regenerate" value="1">
+          <button type="submit" class="btn btn--muted">Regenerate token</button>
+        </form>
+        <a class="btn" href="/profile">Back →</a>
+       </div>`;
+
+  const mcpModal = renderTemplate(mcpSetupModalHtml, { tokenSection, actionSection, appUrl: env.APP_URL });
 
   const toastParam = new URL(request.url).searchParams.get("toast");
   const toast = toastParam
@@ -84,6 +104,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
       notionAction,
       mcpBadgeClass,
       mcpBadgeText,
+      mcpModal,
     }),
   );
 }

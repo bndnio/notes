@@ -9,6 +9,7 @@
 <body class="page">
   {{toast}}
   {{notionModal}}
+  {{mcpModal}}
 
   <h1>{{username}}</h1>
   <p class="subtitle"><code>{{emailAddress}}</code></p>
@@ -31,7 +32,9 @@
     </div>
     <div class="status-card-actions">
       <span class="status-badge {{mcpBadgeClass}}">{{mcpBadgeText}}</span>
-      <a class="btn" href="/setup-mcp">Setup →</a>
+      <form class="form-inline" method="POST" action="/setup-mcp/generate">
+        <button type="submit" class="btn">Setup →</button>
+      </form>
     </div>
   </div>
 
@@ -61,9 +64,22 @@
       document.getElementById('notion-modal-overlay').classList.remove('modal-overlay--visible');
     }
 
-    // Auto-open modal when redirected back from popup
+    // Auto-open notion modal when redirected back from popup
     if (new URLSearchParams(window.location.search).get('modal') === 'notion-select') {
       openNotionModal();
+    }
+
+    // MCP modal
+    function openMcpModal() {
+      document.getElementById('mcp-modal-overlay').classList.add('modal-overlay--visible');
+    }
+    function closeMcpModal() {
+      document.getElementById('mcp-modal-overlay').classList.remove('modal-overlay--visible');
+    }
+
+    // Auto-open MCP modal when redirected back from generate
+    if (new URLSearchParams(window.location.search).get('modal') === 'mcp-setup') {
+      openMcpModal();
     }
   </script>
 </body>

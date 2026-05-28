@@ -2,7 +2,7 @@ export interface Profile {
   userId: string;
   username: string;
   notionDbId?: string;
-  mcpConfigured?: boolean;
+  mcpTokenHash?: string;
   requireSenderMatch?: boolean;
 }
 
