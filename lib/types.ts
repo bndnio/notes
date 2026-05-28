@@ -2,6 +2,7 @@ export interface Profile {
   userId: string;
   username: string;
   notionDbId?: string;
+  notionPending?: boolean;
   requireSenderMatch?: boolean;
 }
 

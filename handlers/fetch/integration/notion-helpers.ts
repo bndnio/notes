@@ -62,6 +62,3 @@ export async function listDatabases(accessToken: string): Promise<NotionDatabase
   return [...byId.values()].sort((a, b) => a.title.localeCompare(b.title));
 }
 
-export function escHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}

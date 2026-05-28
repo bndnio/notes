@@ -4,10 +4,10 @@ import { encrypt, generateRandomHex, hmacToken } from "../../../lib/crypto";
 import { resolveNotionToken } from "../../../lib/tokens";
 import { getCookie } from "../../../lib/cookies";
 import { html, renderTemplate } from "../../../lib/responses";
+import { escHtml } from "../../../lib/html";
 import type { Env } from "../../../lib/types";
 import {
   completeNotionSetup,
-  escHtml,
   listDatabases,
   type NotionDatabase,
 } from "./notion-helpers";

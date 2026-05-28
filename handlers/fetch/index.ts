@@ -2,6 +2,7 @@ import { handleMcp } from "./mcp";
 import { handleRegistration } from "./registration";
 import { handleLogin } from "./login";
 import { handleVerify } from "./verify";
+import { handleProfile } from "./profile";
 import { handleIntegration } from "./integration/index";
 import { html, renderTemplate, text, css } from "../../lib/responses";
 import indexHtml from "../../templates/index.html";
@@ -18,6 +19,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname.startsWith("/register")) return handleRegistration(request, env);
   if (pathname.startsWith("/login")) return handleLogin(request, env);
   if (pathname.startsWith("/verify")) return handleVerify(request, env);
+  if (pathname === "/profile") return handleProfile(request, env);
   if (pathname.startsWith("/integration")) return handleIntegration(request, env);
   if (pathname === "/setup-mcp") return html(setupMcpHtml.replaceAll("{{appUrl}}", env.APP_URL));
   if (pathname === "/install-mcp/claude-code") return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
