@@ -5,7 +5,7 @@ import { handleVerify } from "./verify";
 import { handleIntegration } from "./integration/index";
 import { html, renderTemplate, text, css } from "../../lib/responses";
 import indexHtml from "../../templates/index.html";
-import installMcpHtml from "../../templates/install-mcp.html";
+import setupMcpHtml from "../../templates/setup-mcp.html";
 import installMcpScript from "../../templates/install-mcp.sh";
 import baseCss from "../../templates/base.css";
 import type { Env } from "../../lib/types";
@@ -19,7 +19,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname.startsWith("/login")) return handleLogin(request, env);
   if (pathname.startsWith("/verify")) return handleVerify(request, env);
   if (pathname.startsWith("/integration")) return handleIntegration(request, env);
-  if (pathname === "/install-mcp") return html(installMcpHtml.replaceAll("{{appUrl}}", env.APP_URL));
+  if (pathname === "/setup-mcp") return html(setupMcpHtml.replaceAll("{{appUrl}}", env.APP_URL));
   if (pathname === "/install-mcp/claude-code") return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
   return new Response("Not found", { status: 404 });
 }

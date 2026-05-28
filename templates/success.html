@@ -5,14 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registered — Notes</title>
   <link rel="stylesheet" href="/styles.css">
-  <style>
-    body { max-width: 480px; margin: 3rem auto; }
-    .warning { color: #c00; font-weight: 500; margin-bottom: 0.75rem; }
-    .token-box { background: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; padding: 1rem; word-break: break-all; font-family: monospace; font-size: 0.95rem; margin-bottom: 1.5rem; }
-    .btn-row { display: flex; gap: 0.75rem; }
-  </style>
 </head>
-<body>
+<body class="page">
   <h1>You're registered</h1>
   <p class="subtitle">Your account is set up. Connect Notion to start saving notes.</p>
   <p>Your notes email: <code>{{emailAddress}}</code></p>
@@ -20,7 +14,7 @@
   <div class="token-box">{{mcpToken}}</div>
   <div class="btn-row">
     <a class="btn" href="/integration/notion/connect" target="_blank" rel="noopener noreferrer">Connect Notion →</a>
-    <a class="btn" style="background:#555;" href="/install-mcp">Install MCP server →</a>
+    <a class="btn btn--muted" href="/setup-mcp">Setup MCP server →</a>
   </div>
 </body>
 </html>
