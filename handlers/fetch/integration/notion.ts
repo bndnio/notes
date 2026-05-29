@@ -1,19 +1,14 @@
 import notionRelayHtml from "../../../templates/notion-relay.html";
-import { encrypt, generateRandomHex, hmacToken } from "../../../lib/crypto";
+import { resolveSession } from "../../../lib/auth";
+import { encrypt, generateRandomHex } from "../../../lib/crypto";
 import { resolveNotionToken } from "../../../lib/tokens";
-import { getCookie } from "../../../lib/cookies";
-import { escHtml } from "../../../lib/html";
 import { html } from "../../../lib/responses";
 import type { Env } from "../../../lib/types";
 import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
-  const sessionToken = getCookie(request, "session");
-  if (!sessionToken) return Response.redirect(`${env.APP_URL}/login`, 302);
-
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  const userId = await env.EPHEMERAL_KV.get(`session:${sessionHash}`);
+  const userId = await resolveSession(request, env, encryptionKey);
   if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const state = generateRandomHex(32);
@@ -87,12 +82,8 @@ function handleRelay(env: Env): Response {
 }
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
-  const sessionToken = getCookie(request, "session");
-  if (!sessionToken) return Response.redirect(`${env.APP_URL}/login`, 302);
-
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  const userId = await env.EPHEMERAL_KV.get(`session:${sessionHash}`);
+  const userId = await resolveSession(request, env, encryptionKey);
   if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const form = await request.formData();

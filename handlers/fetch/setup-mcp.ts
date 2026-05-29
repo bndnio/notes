@@ -1,14 +1,7 @@
-import { getCookie } from "../../lib/cookies";
+import { resolveSession } from "../../lib/auth";
 import { hmacToken, generateRandomHex, encrypt } from "../../lib/crypto";
 import { lookupProfile } from "../../lib/profiles";
 import type { Env } from "../../lib/types";
-
-async function resolveSession(request: Request, env: Env, encryptionKey: string): Promise<string | null> {
-  const sessionToken = getCookie(request, "session");
-  if (!sessionToken) return null;
-  const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  return env.EPHEMERAL_KV.get(`session:${sessionHash}`);
-}
 
 export async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();

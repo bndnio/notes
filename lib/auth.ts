@@ -1,4 +1,5 @@
 import { hmacToken } from "./crypto";
+import { getCookie } from "./cookies";
 import { lookupProfile } from "./profiles";
 import type { Env, Profile } from "./types";
 
@@ -8,4 +9,11 @@ export async function resolveProfile(token: string, env: Env): Promise<Profile |
   const userId = await env.MCP_TOKEN_KV.get(hash);
   if (!userId) return null;
   return lookupProfile(env.PROFILE_KV, userId);
+}
+
+export async function resolveSession(request: Request, env: Env, encryptionKey: string): Promise<string | null> {
+  const sessionToken = getCookie(request, "session");
+  if (!sessionToken) return null;
+  const sessionHash = await hmacToken(sessionToken, encryptionKey);
+  return env.EPHEMERAL_KV.get(`session:${sessionHash}`);
 }

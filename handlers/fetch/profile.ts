@@ -1,8 +1,8 @@
 import profileHtml from "../../templates/profile.html";
 import notionSelectModalHtml from "../../templates/notion-select-modal.html";
 import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
-import { getCookie } from "../../lib/cookies";
-import { hmacToken, decrypt } from "../../lib/crypto";
+import { resolveSession } from "../../lib/auth";
+import { decrypt } from "../../lib/crypto";
 import { escHtml } from "../../lib/html";
 import { lookupProfile } from "../../lib/profiles";
 import { html, renderTemplate } from "../../lib/responses";
@@ -22,12 +22,8 @@ function buildNotionModal(databases: Array<{ id: string; title: string }>): stri
 }
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
-  const sessionToken = getCookie(request, "session");
-  if (!sessionToken) return Response.redirect(`${env.APP_URL}/login`, 302);
-
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  const userId = await env.EPHEMERAL_KV.get(`session:${sessionHash}`);
+  const userId = await resolveSession(request, env, encryptionKey);
   if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const profile = await lookupProfile(env.PROFILE_KV, userId);
