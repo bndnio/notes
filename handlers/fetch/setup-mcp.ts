@@ -29,7 +29,7 @@ export async function handleGenerateMcpToken(request: Request, env: Env): Promis
     env.PROFILE_KV.put(userId, JSON.stringify({ ...profile, mcpTokenHash })),
   ];
 
-  if (isRegenerate && profile.mcpTokenHash) {
+  if (profile.mcpTokenHash) {
     writes.push(env.MCP_TOKEN_KV.delete(profile.mcpTokenHash));
   }
 

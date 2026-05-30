@@ -2,7 +2,7 @@
 // Usage: bun run clear-kv
 // Does not touch R2 — clear the bndnio-notes bucket separately in the dashboard or with aws/rclone.
 
-import { execSync } from "child_process";
+import { execSync, spawnSync } from "child_process";
 
 const KV_NAMESPACES: Record<string, string> = {
   MCP_TOKEN_KV: "dfae73f4893d406095ebb95b26e30563",
@@ -12,21 +12,25 @@ const KV_NAMESPACES: Record<string, string> = {
   EPHEMERAL_KV: "da30844449de47bbb874342583c9c485",
 };
 
-function wrangler(args: string): string {
-  return execSync(`bunx wrangler ${args} 2>/dev/null`, { encoding: "utf8" }).trim();
-}
-
 function listKvKeys(namespaceId: string): string[] {
-  const out = wrangler(`kv key list --namespace-id=${namespaceId} --remote`);
+  const out = execSync(`bunx wrangler kv key list --namespace-id=${namespaceId} --remote`, {
+    encoding: "utf8",
+  }).trim();
   const page = JSON.parse(out) as Array<{ name: string }>;
   return page.map((e) => e.name);
+}
+
+function deleteKey(namespaceId: string, key: string): void {
+  spawnSync("bunx", ["wrangler", "kv", "key", "delete", `--namespace-id=${namespaceId}`, "--remote", key], {
+    stdio: "inherit",
+  });
 }
 
 function clearKvNamespace(name: string, namespaceId: string): void {
   const keys = listKvKeys(namespaceId);
   console.log(`${name}: deleting ${keys.length} key(s)`);
   for (const key of keys) {
-    execSync(`bunx wrangler kv key delete --namespace-id=${namespaceId} "${key}" --remote`, { stdio: "inherit" });
+    deleteKey(namespaceId, key);
   }
 }
 
