@@ -22,12 +22,27 @@ export async function consumePin(
   email: string,
   pin: string,
   env: Env,
-): Promise<Record<string, unknown> | null> {
-  const raw = await env.EPHEMERAL_KV.get(`pin:${email}`);
+): Promise<Record<string, unknown> | "locked" | null> {
+  const attemptsKey = `pin_attempts:${email}`;
+  const [raw, attemptsRaw] = await Promise.all([
+    env.EPHEMERAL_KV.get(`pin:${email}`),
+    env.EPHEMERAL_KV.get(attemptsKey),
+  ]);
   if (!raw) return null;
+
+  const attempts = parseInt(attemptsRaw ?? "0", 10);
+  if (attempts >= 5) return "locked";
+
   const data = JSON.parse(raw) as Record<string, unknown>;
-  if (data.pin !== pin) return null;
-  await env.EPHEMERAL_KV.delete(`pin:${email}`);
+  if (data.pin !== pin) {
+    await env.EPHEMERAL_KV.put(attemptsKey, String(attempts + 1), { expirationTtl: PIN_TTL });
+    return null;
+  }
+
+  await Promise.all([
+    env.EPHEMERAL_KV.delete(`pin:${email}`),
+    env.EPHEMERAL_KV.delete(attemptsKey),
+  ]);
   return data;
 }
 

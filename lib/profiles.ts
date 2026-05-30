@@ -5,3 +5,7 @@ export async function lookupProfile(kv: KVNamespace, userId: string): Promise<Pr
   if (!raw) return null;
   return JSON.parse(raw) as Profile;
 }
+
+export async function lookupUserId(kv: KVNamespace, identifier: string): Promise<string | null> {
+  return kv.get(identifier.toLowerCase().trim());
+}

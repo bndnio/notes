@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <title>Connecting…</title>
 </head>
-<body>
+<body data-error="{{error}}" data-app-url="{{appUrl}}">
   <script>
+    var error = document.body.dataset.error;
+    var appUrl = document.body.dataset.appUrl;
     if (window.opener) {
-      window.opener.postMessage('notion-pending', '{{appUrl}}');
+      window.opener.postMessage(error ? { type: 'notion-error', message: error } : 'notion-pending', appUrl);
       window.close();
     } else {
-      window.location.href = '{{appUrl}}/profile?modal=notion-select';
+      window.location.href = appUrl + (error
+        ? '/profile?toast=' + encodeURIComponent(error)
+        : '/profile?modal=notion-select');
     }
   </script>
   <p>Connecting…</p>

@@ -2,22 +2,17 @@ import verifyHtml from "../../templates/verify.html";
 import { consumePin } from "../../lib/pin";
 import { completeRegistration } from "../../lib/registration";
 import { hmacToken, generateRandomHex } from "../../lib/crypto";
+import { escHtml } from "../../lib/html";
+import { formField } from "../../lib/form";
+import { sessionCookieHeader } from "../../lib/auth";
 import { html, renderTemplate } from "../../lib/responses";
 import type { Env } from "../../lib/types";
-
-function formField(form: FormData, name: string): string {
-  return ((form.get(name) as string) ?? "").trim();
-}
-
-function sessionCookieHeader(token: string): string {
-  return `session=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`;
-}
 
 export async function handleVerify(request: Request, env: Env): Promise<Response> {
   if (request.method === "GET") {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email") ?? "";
-    return html(renderTemplate(verifyHtml, { error: "", email }));
+    return html(renderTemplate(verifyHtml, { error: "", email: escHtml(email) }));
   }
 
   if (request.method === "POST") {
@@ -26,11 +21,12 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
     const pin = formField(form, "pin");
 
     const renderError = (error: string) =>
-      html(renderTemplate(verifyHtml, { error, email }));
+      html(renderTemplate(verifyHtml, { error, email: escHtml(email) }));
 
     if (!email || !pin) return renderError("Email and PIN are required.");
 
     const data = await consumePin(email, pin, env);
+    if (data === "locked") return renderError("Too many attempts. Request a new PIN.");
     if (!data) return renderError("Invalid or expired PIN.");
 
     if (data.type === "register") {

@@ -1,8 +1,9 @@
 import notionRelayHtml from "../../../templates/notion-relay.html";
 import { resolveSession } from "../../../lib/auth";
 import { encrypt, generateRandomHex } from "../../../lib/crypto";
+import { escHtml } from "../../../lib/html";
 import { resolveNotionToken } from "../../../lib/tokens";
-import { html } from "../../../lib/responses";
+import { html, renderTemplate } from "../../../lib/responses";
 import type { Env } from "../../../lib/types";
 import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
 
@@ -23,20 +24,22 @@ async function handleConnect(request: Request, env: Env): Promise<Response> {
   return Response.redirect(oauthUrl.toString(), 302);
 }
 
-async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<Response> {
+async function handleCallback(request: Request, searchParams: URLSearchParams, env: Env): Promise<Response> {
   const state = searchParams.get("state") ?? "";
   const code = searchParams.get("code") ?? "";
 
   const userId = await env.EPHEMERAL_KV.get(`notion_state:${state}`);
   if (!userId) return new Response("Link expired or invalid.", { status: 404 });
 
+  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const sessionUserId = await resolveSession(request, env, encryptionKey);
+  if (sessionUserId !== userId) {
+    return Response.redirect(`${env.APP_URL}/login`, 302);
+  }
+
   await env.EPHEMERAL_KV.delete(`notion_state:${state}`);
 
-  const [clientSecret, encryptionKey] = await Promise.all([
-    env.NOTION_CLIENT_SECRET.get(),
-    env.ENCRYPTION_KEY.get(),
-  ]);
-
+  const clientSecret = await env.NOTION_CLIENT_SECRET.get();
   const credentials = btoa(`${env.NOTION_CLIENT_ID}:${clientSecret}`);
   const tokenRes = await fetch("https://api.notion.com/v1/oauth/token", {
     method: "POST",
@@ -61,10 +64,8 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
   const databases = await listDatabases(accessToken);
 
   if (databases.length === 0) {
-    return new Response(
-      "No databases were shared. Share at least one Notion database with this integration and try again.",
-      { status: 400 },
-    );
+    const error = encodeURIComponent("No databases found. Share a Notion database with this integration and try again.");
+    return Response.redirect(`${env.APP_URL}/integration/notion/relay?error=${error}`, 302);
   }
 
   const encrypted = await encrypt(accessToken, encryptionKey);
@@ -77,8 +78,9 @@ async function handleCallback(searchParams: URLSearchParams, env: Env): Promise<
   return Response.redirect(`${env.APP_URL}/integration/notion/relay`, 302);
 }
 
-function handleRelay(env: Env): Response {
-  return html(notionRelayHtml.replaceAll("{{appUrl}}", env.APP_URL));
+function handleRelay(request: Request, env: Env): Response {
+  const error = new URL(request.url).searchParams.get("error") ?? "";
+  return html(renderTemplate(notionRelayHtml, { appUrl: env.APP_URL, error: escHtml(error) }));
 }
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
@@ -117,10 +119,10 @@ export async function handleNotionIntegration(request: Request, env: Env): Promi
     return handleConnect(request, env);
   }
   if (pathname === "/integration/notion/callback" && request.method === "GET") {
-    return handleCallback(searchParams, env);
+    return handleCallback(request, searchParams, env);
   }
   if (pathname === "/integration/notion/relay" && request.method === "GET") {
-    return handleRelay(env);
+    return handleRelay(request, env);
   }
   if (pathname === "/integration/notion/select" && request.method === "POST") {
     return handleSelectPost(request, env);

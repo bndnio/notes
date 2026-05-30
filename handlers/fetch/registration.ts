@@ -1,12 +1,9 @@
 import registerHtml from "../../templates/register.html";
 import { stageRegistration } from "../../lib/registration";
 import { sendPin } from "../../lib/pin";
+import { formField } from "../../lib/form";
 import { html, renderTemplate } from "../../lib/responses";
 import type { Env } from "../../lib/types";
-
-function formField(form: FormData, name: string): string {
-  return ((form.get(name) as string) ?? "").trim();
-}
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
   const renderRegister = (error: string) =>

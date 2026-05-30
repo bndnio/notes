@@ -1,6 +1,6 @@
 import { streamToText, parseEmail } from "../lib/email";
 import { computeKeys, saveNote } from "../lib/notes";
-import { lookupUserId } from "../lib/senders";
+import { lookupUserId } from "../lib/profiles";
 import { lookupProfile } from "../lib/profiles";
 import type { Env } from "../lib/types";
 

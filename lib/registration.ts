@@ -12,6 +12,7 @@ const RESERVED_USERNAMES = new Set([
 
 function validateUsername(username: string): string | null {
   if (username.length < 6) return "Username must be at least 6 characters.";
+  if (!/^[a-z0-9_-]+$/.test(username)) return "Username may only contain lowercase letters, numbers, hyphens, and underscores.";
   if (RESERVED_USERNAMES.has(username)) return "That username is reserved.";
   return null;
 }

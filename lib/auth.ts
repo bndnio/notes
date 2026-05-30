@@ -3,6 +3,10 @@ import { getCookie } from "./cookies";
 import { lookupProfile } from "./profiles";
 import type { Env, Profile } from "./types";
 
+export function sessionCookieHeader(token: string): string {
+  return `session=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`;
+}
+
 export async function resolveProfile(token: string, env: Env): Promise<Profile | null> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
   const hash = await hmacToken(token, encryptionKey);
