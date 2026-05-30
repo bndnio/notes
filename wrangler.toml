@@ -33,6 +33,14 @@ bucket_name = "bndnio-notes"
 #   notes.bndn.io: specific address routing (u_<username>@notes.bndn.io → this Worker)
 #   bndn.io: catch-all (*@bndn.io → this Worker) for backwards compatibility
 
+# ── D1: relational data (users, emails, notion integrations) ─────────────────
+# Create with: bunx wrangler d1 create bndnio-notes
+# Then paste the database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "bndnio-notes"
+database_id = "512d5056-9718-4afd-b2d0-4c6b88e6c2be"
+
 # ── KV: hmac(mcpToken) → userId ──────────────────────────────────────────────
 [[kv_namespaces]]
 binding = "MCP_TOKEN_KV"

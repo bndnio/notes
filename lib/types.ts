@@ -7,6 +7,7 @@ export interface Profile {
 }
 
 export interface Env {
+  DB: D1Database;
   NOTES_BUCKET: R2Bucket;
   MCP_TOKEN_KV: KVNamespace;
   USER_INDEX_KV: KVNamespace;
