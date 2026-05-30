@@ -5,14 +5,14 @@ import { hmacToken, generateRandomHex } from "../../lib/crypto";
 import { escHtml } from "../../lib/html";
 import { formField } from "../../lib/form";
 import { sessionCookieHeader } from "../../lib/auth";
-import { html, renderTemplate } from "../../lib/responses";
+import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
 export async function handleVerify(request: Request, env: Env): Promise<Response> {
   if (request.method === "GET") {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email") ?? "";
-    return html(renderTemplate(verifyHtml, { error: "", email: escHtml(email) }));
+    return html(renderTemplate(verifyHtml, pageVars({ error: "", email: escHtml(email) })));
   }
 
   if (request.method === "POST") {
@@ -21,7 +21,7 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
     const pin = formField(form, "pin");
 
     const renderError = (error: string) =>
-      html(renderTemplate(verifyHtml, { error, email: escHtml(email) }));
+      html(renderTemplate(verifyHtml, pageVars({ error, email: escHtml(email) })));
 
     if (!email || !pin) return renderError("Email and PIN are required.");
 

@@ -6,7 +6,7 @@ import { decrypt } from "../../lib/crypto";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
-import { html, renderTemplate } from "../../lib/responses";
+import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
 function buildNotionModal(databases: Array<{ id: string; title: string }>): string {
@@ -91,7 +91,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     : "";
 
   return html(
-    renderTemplate(profileHtml, {
+    renderTemplate(profileHtml, pageVars({
       toast,
       notionModal,
       username,
@@ -103,6 +103,6 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
       mcpBadgeClass,
       mcpBadgeText,
       mcpModal,
-    }),
+    })),
   );
 }

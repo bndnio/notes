@@ -1,0 +1,30 @@
+<div class="beta-banner" id="beta-banner" role="status">
+    <div class="beta-banner-content">
+        <span class="beta-banner-emoji" aria-hidden="true">🛠️</span>
+        <p class="beta-banner-text">
+            <span class="beta-banner-badge">Beta</span>
+            We're building Notes in public. Expect change, occasional breakage,
+            and regular improvement.
+        </p>
+    </div>
+    <button
+        type="button"
+        class="beta-banner-dismiss"
+        id="beta-banner-dismiss"
+        aria-label="Dismiss beta banner"
+    >
+        ✕
+    </button>
+</div>
+<script>
+    (function () {
+        var banner = document.getElementById("beta-banner");
+        if (sessionStorage.getItem("notes-beta-banner-dismissed") === "1") {
+            banner?.classList.add("beta-banner--dismissed");
+        }
+        document.getElementById("beta-banner-dismiss")?.addEventListener("click", function () {
+            sessionStorage.setItem("notes-beta-banner-dismissed", "1");
+            banner?.classList.add("beta-banner--dismissed");
+        });
+    })();
+</script>

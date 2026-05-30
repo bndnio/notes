@@ -1,5 +1,11 @@
+import betaBannerHtml from "../templates/beta-banner.html";
+
 export function renderTemplate(template: string, vars: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
+}
+
+export function pageVars(vars: Record<string, string> = {}): Record<string, string> {
+  return { betaBanner: betaBannerHtml, ...vars };
 }
 
 export const html = (content: string) =>
