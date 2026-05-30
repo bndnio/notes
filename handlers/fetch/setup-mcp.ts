@@ -1,6 +1,7 @@
 import { resolveSession } from "../../lib/auth";
 import { hmacToken, generateRandomHex, encrypt } from "../../lib/crypto";
-import { lookupProfile } from "../../lib/profiles";
+import { createDb } from "../../lib/db";
+import * as usersRepo from "../../lib/db/repositories/users";
 import type { Env } from "../../lib/types";
 
 export async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {
@@ -8,8 +9,9 @@ export async function handleGenerateMcpToken(request: Request, env: Env): Promis
   const userId = await resolveSession(request, env, encryptionKey);
   if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
-  const profile = await lookupProfile(env.PROFILE_KV, userId);
-  if (!profile) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const db = createDb(env.DB);
+  const user = await usersRepo.findById(db, userId);
+  if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const form = await request.formData();
   const isRegenerate = form.get("regenerate") === "1";
@@ -18,22 +20,15 @@ export async function handleGenerateMcpToken(request: Request, env: Env): Promis
   if (existingEncrypted && !isRegenerate) {
     return Response.redirect(`${env.APP_URL}/profile?modal=mcp-setup`, 302);
   }
-
   const mcpToken = generateRandomHex(32);
   const mcpTokenHash = await hmacToken(mcpToken, encryptionKey);
   const encrypted = await encrypt(mcpToken, encryptionKey);
 
-  const writes: Promise<unknown>[] = [
-    env.MCP_TOKEN_KV.put(mcpTokenHash, userId),
+  await Promise.all([
+    usersRepo.updateMcpTokenHash(db, userId, mcpTokenHash),
     env.EPHEMERAL_KV.put(`mcp_token:${userId}`, encrypted, { expirationTtl: 3600 }),
-    env.PROFILE_KV.put(userId, JSON.stringify({ ...profile, mcpTokenHash })),
-  ];
+  ]);
 
-  if (profile.mcpTokenHash) {
-    writes.push(env.MCP_TOKEN_KV.delete(profile.mcpTokenHash));
-  }
-
-  await Promise.all(writes);
   return Response.redirect(`${env.APP_URL}/profile?modal=mcp-setup`, 302);
 }
 

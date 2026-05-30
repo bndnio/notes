@@ -10,11 +10,11 @@ function makeMcpServer(env: Env, profile: Profile): McpServer {
 
   async function saveNoteTool(subject: string, body: string) {
     const timestamp = new Date().toISOString();
-    const { mdKey } = computeKeys(subject, profile.userId, timestamp);
+    const { mdKey } = computeKeys(subject, profile.id, timestamp);
     const result = await saveNote({ mdKey, timestamp, subject, body }, env, profile);
     const notionStatus = result.notionOk
       ? "ok"
-      : profile.notionDbId
+      : profile.notion?.databaseId
         ? "failed"
         : `not connected — visit ${env.APP_URL}/integration/notion/connect to link Notion`;
     return {

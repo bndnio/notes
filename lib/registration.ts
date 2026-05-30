@@ -1,5 +1,9 @@
 import { hmacToken, generateRandomHex } from "./crypto";
 import { generatePin, storePin } from "./pin";
+import { createDb } from "./db";
+import { users, userEmails } from "./db/schema";
+import * as usersRepo from "./db/repositories/users";
+import * as userEmailsRepo from "./db/repositories/user-emails";
 import type { Env } from "./types";
 
 const RESERVED_USERNAMES = new Set([
@@ -17,14 +21,6 @@ function validateUsername(username: string): string | null {
   return null;
 }
 
-async function generateUniqueUserId(profileKv: KVNamespace): Promise<string> {
-  for (let i = 0; i < 5; i++) {
-    const id = generateRandomHex(4);
-    if (!(await profileKv.get(id))) return id;
-  }
-  throw new Error("Failed to generate unique userId after 5 attempts");
-}
-
 export async function stageRegistration(
   env: Env,
   input: { email: string; username: string; requireSenderMatch: boolean },
@@ -34,12 +30,13 @@ export async function stageRegistration(
   const usernameError = validateUsername(username);
   if (usernameError) return { error: usernameError };
 
-  const [emailExists, usernameExists] = await Promise.all([
-    env.USER_INDEX_KV.get(email),
-    env.USER_INDEX_KV.get(username),
+  const db = createDb(env.DB);
+  const [emailTaken, existingUser] = await Promise.all([
+    userEmailsRepo.emailExists(db, email),
+    usersRepo.findByUsername(db, username),
   ]);
-  if (emailExists) return { error: "Email already registered." };
-  if (usernameExists) return { error: "Username already taken." };
+  if (emailTaken) return { error: "Email already registered." };
+  if (existingUser) return { error: "Username already taken." };
 
   const pin = generatePin();
   const stagedData = { type: "register", username, requireSenderMatch };
@@ -55,20 +52,19 @@ export async function completeRegistration(
 ): Promise<{ sessionToken: string }> {
   const { username, requireSenderMatch } = pending;
 
-  const [encryptionKey, userId] = await Promise.all([
-    env.ENCRYPTION_KEY.get(),
-    generateUniqueUserId(env.PROFILE_KV),
-  ]);
-
+  const db = createDb(env.DB);
+  const userId = generateRandomHex(6);
+  const encryptionKey = await env.ENCRYPTION_KEY.get();
   const sessionToken = generateRandomHex(32);
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
+  const now = Date.now();
 
-  await Promise.all([
-    env.USER_INDEX_KV.put(email, userId),
-    env.USER_INDEX_KV.put(username, userId),
-    env.PROFILE_KV.put(userId, JSON.stringify({ userId, username, requireSenderMatch })),
-    env.EPHEMERAL_KV.put(`session:${sessionHash}`, userId, { expirationTtl: 604800 }),
+  await db.batch([
+    db.insert(users).values({ id: userId, username, requireSenderMatch, createdAt: now }),
+    db.insert(userEmails).values({ email, userId, createdAt: now }),
   ]);
+
+  await env.EPHEMERAL_KV.put(`session:${sessionHash}`, userId, { expirationTtl: 604800 });
 
   return { sessionToken };
 }

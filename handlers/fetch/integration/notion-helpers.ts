@@ -1,6 +1,6 @@
 import { fetchNotion } from "../../../lib/destinations/notion";
-import { encrypt } from "../../../lib/crypto";
-import { lookupProfile } from "../../../lib/profiles";
+import { createDb } from "../../../lib/db";
+import * as notionIntegrations from "../../../lib/db/repositories/notion-integrations";
 import type { Env } from "../../../lib/types";
 
 export interface NotionDatabase {
@@ -18,17 +18,9 @@ interface NotionSearchResponse {
   next_cursor: string | null;
 }
 
-export async function completeNotionSetup(userId: string, accessToken: string, dbId: string, env: Env): Promise<void> {
-  const [encryptionKey, profile] = await Promise.all([
-    env.ENCRYPTION_KEY.get(),
-    lookupProfile(env.PROFILE_KV, userId),
-  ]);
-  if (!profile) throw new Error(`No profile for userId: ${userId}`);
-  const encrypted = await encrypt(accessToken, encryptionKey);
-  await Promise.all([
-    env.NOTION_TOKEN_KV.put(userId, encrypted),
-    env.PROFILE_KV.put(userId, JSON.stringify({ ...profile, notionDbId: dbId })),
-  ]);
+export async function completeNotionSetup(userId: string, accessTokenEncrypted: string, dbId: string, env: Env): Promise<void> {
+  const db = createDb(env.DB);
+  await notionIntegrations.upsert(db, { userId, databaseId: dbId, accessTokenEncrypted });
 }
 
 export async function listDatabases(accessToken: string): Promise<NotionDatabase[]> {
@@ -61,4 +53,3 @@ export async function listDatabases(accessToken: string): Promise<NotionDatabase
 
   return [...byId.values()].sort((a, b) => a.title.localeCompare(b.title));
 }
-

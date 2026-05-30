@@ -1,9 +1,13 @@
 export interface Profile {
-  userId: string;
+  id: string;
   username: string;
-  notionDbId?: string;
-  mcpTokenHash?: string;
-  requireSenderMatch?: boolean;
+  requireSenderMatch: boolean;
+  mcpTokenHash: string | null;
+  createdAt: number;
+  notion: {
+    databaseId: string;
+    accessTokenEncrypted: string;
+  } | null;
 }
 
 export interface Env {

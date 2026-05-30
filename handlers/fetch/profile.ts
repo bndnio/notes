@@ -4,7 +4,8 @@ import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
 import { resolveSession } from "../../lib/auth";
 import { decrypt } from "../../lib/crypto";
 import { escHtml } from "../../lib/html";
-import { lookupProfile } from "../../lib/profiles";
+import { createDb } from "../../lib/db";
+import * as usersRepo from "../../lib/db/repositories/users";
 import { html, renderTemplate } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
@@ -26,10 +27,11 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   const userId = await resolveSession(request, env, encryptionKey);
   if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
-  const profile = await lookupProfile(env.PROFILE_KV, userId);
+  const db = createDb(env.DB);
+  const profile = await usersRepo.findById(db, userId);
   if (!profile) return Response.redirect(`${env.APP_URL}/login`, 302);
 
-  const { username, notionDbId, mcpTokenHash } = profile;
+  const { username, mcpTokenHash } = profile;
   const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
 
   let notionBadgeClass: string;
@@ -38,7 +40,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   let notionAction: string;
   let notionModal = "";
 
-  if (notionDbId) {
+  if (profile.notion?.databaseId) {
     notionBadgeClass = "status-badge--connected";
     notionBadgeText = "Connected";
     notionDescription = "Notes are being saved to your Notion database.";

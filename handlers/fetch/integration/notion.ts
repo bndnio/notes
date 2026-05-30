@@ -2,9 +2,10 @@ import notionRelayHtml from "../../../templates/notion-relay.html";
 import { resolveSession } from "../../../lib/auth";
 import { encrypt, generateRandomHex } from "../../../lib/crypto";
 import { escHtml } from "../../../lib/html";
-import { resolveNotionToken } from "../../../lib/tokens";
 import { html, renderTemplate } from "../../../lib/responses";
 import type { Env } from "../../../lib/types";
+import { createDb } from "../../../lib/db";
+import * as usersRepo from "../../../lib/db/repositories/users";
 import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
@@ -71,7 +72,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
   const encrypted = await encrypt(accessToken, encryptionKey);
 
   await Promise.all([
-    env.NOTION_TOKEN_KV.put(userId, encrypted),
+    env.EPHEMERAL_KV.put(`notion_token:${userId}`, encrypted, { expirationTtl: 3600 }),
     env.EPHEMERAL_KV.put(`notion_dbs:${userId}`, JSON.stringify(databases), { expirationTtl: 3600 }),
   ]);
 
@@ -88,11 +89,19 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   const userId = await resolveSession(request, env, encryptionKey);
   if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
 
+  const db = createDb(env.DB);
+  const user = await usersRepo.findById(db, userId);
+  if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
+
   const form = await request.formData();
   const dbId = ((form.get("dbId") as string) ?? "").trim();
 
-  const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
-  if (!dbsJson) {
+  const [dbsJson, encryptedToken] = await Promise.all([
+    env.EPHEMERAL_KV.get(`notion_dbs:${userId}`),
+    env.EPHEMERAL_KV.get(`notion_token:${userId}`),
+  ]);
+
+  if (!dbsJson || !encryptedToken) {
     return Response.redirect(`${env.APP_URL}/profile?toast=Notion+authorization+expired,+please+reconnect`, 302);
   }
 
@@ -101,12 +110,10 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
     return new Response("Invalid database selection.", { status: 400 });
   }
 
-  const accessToken = await resolveNotionToken(userId, env);
-  if (!accessToken) return new Response("Access token not found.", { status: 400 });
-
   await Promise.all([
-    completeNotionSetup(userId, accessToken, dbId, env),
+    completeNotionSetup(userId, encryptedToken, dbId, env),
     env.EPHEMERAL_KV.delete(`notion_dbs:${userId}`),
+    env.EPHEMERAL_KV.delete(`notion_token:${userId}`),
   ]);
 
   return Response.redirect(`${env.APP_URL}/profile?toast=Notion+database+connected`, 302);

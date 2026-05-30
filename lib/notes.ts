@@ -1,6 +1,6 @@
 import { postToNotion } from "./destinations/notion";
 import { toMarkdown, slugify } from "./markdown";
-import { resolveNotionToken } from "./tokens";
+import { decrypt } from "./crypto";
 import type { Env, Note, Profile } from "./types";
 
 interface SaveNoteInput {
@@ -41,10 +41,14 @@ export async function saveNote(input: SaveNoteInput, env: Env, profile: Profile)
     customMetadata: { subject: note.subject, from: note.from },
   });
 
-  const notionToken = profile.notionDbId ? await resolveNotionToken(profile.userId, env) : null;
-  const notionWrite = notionToken
-    ? postToNotion(note, notionToken, profile.notionDbId!)
-    : Promise.reject("not configured");
+  let notionWrite: Promise<unknown>;
+  if (profile.notion) {
+    const encryptionKey = await env.ENCRYPTION_KEY.get();
+    const notionToken = await decrypt(profile.notion.accessTokenEncrypted, encryptionKey);
+    notionWrite = postToNotion(note, notionToken, profile.notion.databaseId);
+  } else {
+    notionWrite = Promise.reject("not configured");
+  }
 
   const [r2Result, notionResult] = await Promise.allSettled([saveMd, notionWrite]);
 

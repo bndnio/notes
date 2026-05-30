@@ -1,7 +1,7 @@
 import { streamToText, parseEmail } from "../lib/email";
 import { computeKeys, saveNote } from "../lib/notes";
-import { lookupUserId } from "../lib/profiles";
-import { lookupProfile } from "../lib/profiles";
+import { createDb } from "../lib/db";
+import * as usersRepo from "../lib/db/repositories/users";
 import type { Env } from "../lib/types";
 
 export async function handleEmail(message: ForwardableEmailMessage, env: Env): Promise<void> {
@@ -13,23 +13,17 @@ export async function handleEmail(message: ForwardableEmailMessage, env: Env): P
   }
   const username = localPart.slice(2);
 
-  const userId = await lookupUserId(env.USER_INDEX_KV, username);
-  if (!userId) {
+  const db = createDb(env.DB);
+  const profile = await usersRepo.findByUsername(db, username);
+  if (!profile) {
     console.warn(`Rejected email to unknown username: ${username}`);
     message.setReject("Address not found");
     return;
   }
 
-  const profile = await lookupProfile(env.PROFILE_KV, userId);
-  if (!profile) {
-    console.warn(`No profile for userId: ${userId}`);
-    message.setReject("Address not found");
-    return;
-  }
-
   if (profile.requireSenderMatch) {
-    const senderUserId = await lookupUserId(env.USER_INDEX_KV, message.from ?? "");
-    if (senderUserId !== userId) {
+    const senderUser = await usersRepo.findByEmail(db, message.from ?? "");
+    if (senderUser?.id !== profile.id) {
       console.warn(`Rejected email from unregistered sender: ${message.from} → ${username}`);
       message.setReject("Sender not authorised");
       return;
@@ -40,7 +34,7 @@ export async function handleEmail(message: ForwardableEmailMessage, env: Env): P
   const parsed = parseEmail(rawEmail);
 
   const timestamp = new Date().toISOString();
-  const { mdKey, emlKey } = computeKeys(parsed.subject, profile.userId, timestamp);
+  const { mdKey, emlKey } = computeKeys(parsed.subject, profile.id, timestamp);
 
   const saveEml = env.NOTES_BUCKET.put(emlKey, rawEmail, {
     httpMetadata: { contentType: "message/rfc822" },

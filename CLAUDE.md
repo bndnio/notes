@@ -174,6 +174,39 @@ export async function completeRegistration(env, email, pending) {
 // User clicks "Setup →" → POST /setup-mcp/generate → token created and shown.
 ```
 
+### Authentication checks always go at the top of handlers
+
+Resolve and verify the user's identity as the first thing a handler does, before reading form data, query params, or any state. Never defer auth checks to a downstream helper or repository.
+
+**Why:** User instruction: *"authentication checks should be done at the top of the handlers, ALWAYS."* Deferring auth to a helper obscures the security boundary, makes it easy to skip, and can leave a handler partially executing on behalf of an unauthenticated caller.
+
+**Don't** — let a helper do the auth check mid-handler:
+```ts
+async function handleSelectPost(request, env) {
+  const form = await request.formData();           // ← executing before auth
+  const dbId = form.get("dbId");
+  const dbsJson = await env.EPHEMERAL_KV.get(...); // ← reading state before auth
+  await completeNotionSetup(userId, ...);          // ← helper throws if user missing
+}
+```
+
+**Do** — resolve and verify identity before anything else:
+```ts
+async function handleSelectPost(request, env) {
+  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const userId = await resolveSession(request, env, encryptionKey);
+  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+
+  const db = createDb(env.DB);
+  const user = await usersRepo.findById(db, userId);
+  if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
+
+  // now safe to read form data and proceed
+  const form = await request.formData();
+  ...
+}
+```
+
 ### Always use the session cookie for user identity
 
 Never pass picker tokens or short-lived correlation tokens through form fields, URL params, or hidden inputs to identify the user across steps.
