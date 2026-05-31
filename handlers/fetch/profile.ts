@@ -63,18 +63,21 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     }
   }
 
-  const mcpBadgeClass = mcpTokenHash ? "status-badge--connected" : "status-badge--none";
-  const mcpBadgeText = mcpTokenHash ? "Configured" : "Not set up";
-
   const pendingMcpToken = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
   const mcpToken = pendingMcpToken ? await decrypt(pendingMcpToken, encryptionKey) : null;
+
+  let mcpBadgeClass: string;
+  let mcpBadgeText: string;
+  if (mcpTokenHash) { mcpBadgeClass = "status-badge--connected"; mcpBadgeText = "Configured"; }
+  else if (mcpToken) { mcpBadgeClass = "status-badge--pending"; mcpBadgeText = "Pending"; }
+  else { mcpBadgeClass = "status-badge--none"; mcpBadgeText = "Not set up"; }
 
   const tokenSection = mcpToken
     ? `<p class="warning">Save this token — it won't be shown after you click Done.</p><div class="token-box">${mcpToken}</div>`
     : "";
 
   const actionSection = mcpToken
-    ? `<a class="btn" href="/setup-mcp/done">Done →</a>`
+    ? `<form class="form-inline" method="POST" action="/setup-mcp/done"><button type="submit" class="btn">Done →</button></form>`
     : `<div class="btn-row">
         <form class="form-inline" method="POST" action="/setup-mcp/generate">
           <input type="hidden" name="regenerate" value="1">

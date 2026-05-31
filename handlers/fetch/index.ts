@@ -21,7 +21,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname.startsWith("/verify")) return handleVerify(request, env);
   if (pathname === "/profile") return handleProfile(request, env);
   if (pathname === "/setup-mcp/generate" && request.method === "POST") return handleGenerateMcpToken(request, env);
-  if (pathname === "/setup-mcp/done") return handleMcpDone(request, env);
+  if (pathname === "/setup-mcp/done" && request.method === "POST") return handleMcpDone(request, env);
   if (pathname.startsWith("/integration")) return handleIntegration(request, env);
   if (pathname === "/install-mcp/claude-code") return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
   return new Response("Not found", { status: 404 });

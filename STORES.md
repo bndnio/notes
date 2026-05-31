@@ -64,7 +64,7 @@ Short-lived state. All entries expire automatically.
 | `pin_attempts:<email>` | attempt count (string) | 10 min |
 | `notion_state:<randomHex32>` | `userId` | 15 min |
 | `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr |
-| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64) | 1 hr |
+| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr |
 
 **`pin` payload** varies by type:
 - `register`: `{pin, type: "register", username, requireSenderMatch}`
@@ -72,7 +72,7 @@ Short-lived state. All entries expire automatically.
 
 **`notion_dbs`** is written during OAuth callback and deleted after DB selection (or expires after 1 hr if the user never completes setup).
 
-**`mcp_token`** is written when the user generates a token and deleted when they click Done. The token itself remains active in `MCP_TOKEN_KV` indefinitely.
+**`mcp_token`** is written when the user generates a token and deleted when they click Done. Clicking Done commits the hash to D1 — the hash is not written to the database until that point.
 
 ---
 
