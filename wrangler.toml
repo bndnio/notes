@@ -17,7 +17,7 @@ routes = [{ pattern = "notes.bndn.io", custom_domain = true }]
 
 [[rules]]
 type = "Text"
-globs = ["**/*.html", "**/*.sh", "**/*.css"]
+globs = ["**/*.html", "**/*.sh", "**/*.css", "**/*.js"]
 fallthrough = false
 
 [observability]

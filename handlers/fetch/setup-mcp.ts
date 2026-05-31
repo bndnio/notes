@@ -1,8 +1,52 @@
+import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
 import { resolveSession } from "../../lib/auth";
 import { hmacToken, generateRandomHex, encrypt, decrypt } from "../../lib/crypto";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
-import type { Env } from "../../lib/types";
+import { renderTemplate, renderIntegrationCard } from "../../lib/responses";
+import type { Env, Profile } from "../../lib/types";
+
+export async function buildMcpCard(
+  profile: Profile,
+  userId: string,
+  env: Env,
+  encryptionKey: string,
+): Promise<{ card: string; modal: string }> {
+  const pendingEncrypted = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
+  const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
+
+  let badgeClass: string;
+  let badgeText: string;
+  if (profile.mcpTokenHash) { badgeClass = "status-badge--connected"; badgeText = "Configured"; }
+  else if (mcpToken) { badgeClass = "status-badge--pending"; badgeText = "Pending"; }
+  else { badgeClass = "status-badge--none"; badgeText = "Not set up"; }
+
+  const tokenSection = mcpToken
+    ? `<p class="warning">Save this token — it won't be shown after you click Done.</p><div class="token-box">${mcpToken}</div>`
+    : "";
+
+  const actionSection = mcpToken
+    ? `<form class="form-inline" method="POST" action="/setup-mcp/done"><button type="submit" class="btn">Done →</button></form>`
+    : `<div class="btn-row">
+        <form class="form-inline" method="POST" action="/setup-mcp/generate">
+          <input type="hidden" name="regenerate" value="1">
+          <button type="submit" class="btn btn--muted">Regenerate token</button>
+        </form>
+        <a class="btn" href="/profile">Back →</a>
+       </div>`;
+
+  const modal = renderTemplate(mcpSetupModalHtml, { tokenSection, actionSection, appUrl: env.APP_URL });
+
+  const card = renderIntegrationCard({
+    name: "MCP Server",
+    badgeClass,
+    badgeText,
+    description: "Connect Notes to Claude Code as an AI tool.",
+    action: `<form class="form-inline" method="POST" action="/setup-mcp/generate"><button type="submit" class="btn">Setup →</button></form>`,
+  });
+
+  return { card, modal };
+}
 
 export async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();

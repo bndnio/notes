@@ -1,12 +1,71 @@
 import notionRelayHtml from "../../../templates/notion-relay.html";
+import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
 import { resolveSession } from "../../../lib/auth";
 import { encrypt, generateRandomHex } from "../../../lib/crypto";
 import { escHtml } from "../../../lib/html";
-import { html, renderTemplate } from "../../../lib/responses";
-import type { Env } from "../../../lib/types";
+import { html, renderTemplate, renderIntegrationCard } from "../../../lib/responses";
+import type { Env, Profile } from "../../../lib/types";
 import { createDb } from "../../../lib/db";
 import * as usersRepo from "../../../lib/db/repositories/users";
 import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
+
+function buildNotionModal(databases: Array<{ id: string; title: string }>): string {
+  const databaseOptions = databases
+    .map(
+      (db) =>
+        `<label class="checkbox-label">` +
+        `<input type="radio" name="dbId" value="${escHtml(db.id)}" required> ` +
+        `${escHtml(db.title)}</label>`,
+    )
+    .join("\n");
+  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions });
+}
+
+export async function buildNotionCard(
+  profile: Profile,
+  userId: string,
+  env: Env,
+): Promise<{ card: string; modal: string }> {
+  if (profile.notion?.databaseId) {
+    return {
+      card: renderIntegrationCard({
+        name: "Notion",
+        badgeClass: "status-badge--connected",
+        badgeText: "Connected",
+        description: "Notes are being saved to your Notion database.",
+        action: "",
+      }),
+      modal: "",
+    };
+  }
+
+  const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
+  const databases = dbsJson ? (JSON.parse(dbsJson) as Array<{ id: string; title: string }>) : null;
+
+  if (databases && databases.length > 0) {
+    return {
+      card: renderIntegrationCard({
+        name: "Notion",
+        badgeClass: "status-badge--pending",
+        badgeText: "Pending",
+        description: "Notion is authorized — choose which database to save notes to.",
+        action: `<button class="btn" onclick="openNotionModal()">Select database →</button>`,
+      }),
+      modal: buildNotionModal(databases),
+    };
+  }
+
+  return {
+    card: renderIntegrationCard({
+      name: "Notion",
+      badgeClass: "status-badge--none",
+      badgeText: "Not connected",
+      description: "Connect Notion to save notes to your workspace.",
+      action: `<button id="notion-connect-btn" class="btn" onclick="openNotionPopup()">Connect →</button>`,
+    }),
+    modal: "",
+  };
+}
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();

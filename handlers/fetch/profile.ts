@@ -1,26 +1,12 @@
 import profileHtml from "../../templates/profile.html";
-import notionSelectModalHtml from "../../templates/notion-select-modal.html";
-import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
 import { resolveSession } from "../../lib/auth";
-import { decrypt } from "../../lib/crypto";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
 import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
-
-function buildNotionModal(databases: Array<{ id: string; title: string }>): string {
-  const databaseOptions = databases
-    .map(
-      (db) =>
-        `<label class="checkbox-label">` +
-        `<input type="radio" name="dbId" value="${escHtml(db.id)}" required> ` +
-        `${escHtml(db.title)}</label>`,
-    )
-    .join("\n");
-
-  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions });
-}
+import { buildNotionCard } from "./integration/notion";
+import { buildMcpCard } from "./setup-mcp";
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
@@ -31,62 +17,16 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   const profile = await usersRepo.findById(db, userId);
   if (!profile) return Response.redirect(`${env.APP_URL}/login`, 302);
 
-  const { username, mcpTokenHash } = profile;
+  const { username } = profile;
   const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
 
-  let notionBadgeClass: string;
-  let notionBadgeText: string;
-  let notionDescription: string;
-  let notionAction: string;
-  let notionModal = "";
-
-  if (profile.notion?.databaseId) {
-    notionBadgeClass = "status-badge--connected";
-    notionBadgeText = "Connected";
-    notionDescription = "Notes are being saved to your Notion database.";
-    notionAction = "";
-  } else {
-    const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
-    const databases = dbsJson ? (JSON.parse(dbsJson) as Array<{ id: string; title: string }>) : null;
-
-    if (databases && databases.length > 0) {
-      notionBadgeClass = "status-badge--pending";
-      notionBadgeText = "Pending";
-      notionDescription = "Notion is authorized — choose which database to save notes to.";
-      notionAction = `<button class="btn" onclick="openNotionModal()">Select database →</button>`;
-      notionModal = buildNotionModal(databases);
-    } else {
-      notionBadgeClass = "status-badge--none";
-      notionBadgeText = "Not connected";
-      notionDescription = "Connect Notion to save notes to your workspace.";
-      notionAction = `<button class="btn" onclick="openNotionPopup()">Connect →</button>`;
-    }
-  }
-
-  const pendingMcpToken = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
-  const mcpToken = pendingMcpToken ? await decrypt(pendingMcpToken, encryptionKey) : null;
-
-  let mcpBadgeClass: string;
-  let mcpBadgeText: string;
-  if (mcpTokenHash) { mcpBadgeClass = "status-badge--connected"; mcpBadgeText = "Configured"; }
-  else if (mcpToken) { mcpBadgeClass = "status-badge--pending"; mcpBadgeText = "Pending"; }
-  else { mcpBadgeClass = "status-badge--none"; mcpBadgeText = "Not set up"; }
-
-  const tokenSection = mcpToken
-    ? `<p class="warning">Save this token — it won't be shown after you click Done.</p><div class="token-box">${mcpToken}</div>`
-    : "";
-
-  const actionSection = mcpToken
-    ? `<form class="form-inline" method="POST" action="/setup-mcp/done"><button type="submit" class="btn">Done →</button></form>`
-    : `<div class="btn-row">
-        <form class="form-inline" method="POST" action="/setup-mcp/generate">
-          <input type="hidden" name="regenerate" value="1">
-          <button type="submit" class="btn btn--muted">Regenerate token</button>
-        </form>
-        <a class="btn" href="/profile">Back →</a>
-       </div>`;
-
-  const mcpModal = renderTemplate(mcpSetupModalHtml, { tokenSection, actionSection, appUrl: env.APP_URL });
+  const [
+    { card: notionCard, modal: notionModal },
+    { card: mcpCard, modal: mcpModal },
+  ] = await Promise.all([
+    buildNotionCard(profile, userId, env),
+    buildMcpCard(profile, userId, env, encryptionKey),
+  ]);
 
   const toastParam = new URL(request.url).searchParams.get("toast");
   const toast = toastParam
@@ -97,15 +37,11 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     renderTemplate(profileHtml, pageVars({
       toast,
       notionModal,
+      notionCard,
+      mcpModal,
+      mcpCard,
       username,
       emailAddress,
-      notionBadgeClass,
-      notionBadgeText,
-      notionDescription,
-      notionAction,
-      mcpBadgeClass,
-      mcpBadgeText,
-      mcpModal,
     })),
   );
 }

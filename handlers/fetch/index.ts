@@ -5,16 +5,18 @@ import { handleVerify } from "./verify";
 import { handleProfile } from "./profile";
 import { handleGenerateMcpToken, handleMcpDone } from "./setup-mcp";
 import { handleIntegration } from "./integration/index";
-import { html, renderTemplate, pageVars, text, css } from "../../lib/responses";
+import { html, renderTemplate, pageVars, text, css, js } from "../../lib/responses";
 import indexHtml from "../../templates/index.html";
 import installMcpScript from "../../templates/install-mcp.sh";
 import baseCss from "../../templates/base.css";
+import baseJs from "../../templates/base.js";
 import type { Env } from "../../lib/types";
 
 export async function handleFetch(request: Request, env: Env): Promise<Response> {
   const { pathname } = new URL(request.url);
   if (pathname === "/") return html(renderTemplate(indexHtml, pageVars({ emailDomain: env.EMAIL_DOMAIN })));
   if (pathname === "/styles.css") return css(baseCss);
+  if (pathname === "/scripts.js") return js(baseJs);
   if (pathname === "/mcp") return handleMcp(request, env);
   if (pathname.startsWith("/register")) return handleRegistration(request, env);
   if (pathname.startsWith("/login")) return handleLogin(request, env);
