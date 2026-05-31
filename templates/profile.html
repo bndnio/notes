@@ -17,22 +17,20 @@
 
   <div class="status-card">
     <div class="status-card-info">
-      <h3>Notion</h3>
+      <h3>Notion <span class="status-badge {{notionBadgeClass}}">{{notionBadgeText}}</span></h3>
       <p>{{notionDescription}}</p>
     </div>
     <div class="status-card-actions">
-      <span class="status-badge {{notionBadgeClass}}">{{notionBadgeText}}</span>
       {{notionAction}}
     </div>
   </div>
 
   <div class="status-card">
     <div class="status-card-info">
-      <h3>MCP Server</h3>
+      <h3>MCP Server <span class="status-badge {{mcpBadgeClass}}">{{mcpBadgeText}}</span></h3>
       <p>Connect Notes to Claude Code as an AI tool.</p>
     </div>
     <div class="status-card-actions">
-      <span class="status-badge {{mcpBadgeClass}}">{{mcpBadgeText}}</span>
       <form class="form-inline" method="POST" action="/setup-mcp/generate">
         <button type="submit" class="btn">Setup →</button>
       </form>
@@ -75,6 +73,9 @@
     }
     function closeNotionModal() {
       document.getElementById('notion-modal-overlay').classList.remove('modal-overlay--visible');
+      const url = new URL(window.location);
+      url.searchParams.delete('modal');
+      history.replaceState(null, '', url);
     }
 
     // Auto-open notion modal when redirected back from popup
@@ -88,6 +89,9 @@
     }
     function closeMcpModal() {
       document.getElementById('mcp-modal-overlay').classList.remove('modal-overlay--visible');
+      const url = new URL(window.location);
+      url.searchParams.delete('modal');
+      history.replaceState(null, '', url);
     }
 
     // Auto-open MCP modal when redirected back from generate
