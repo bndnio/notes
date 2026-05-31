@@ -1,5 +1,6 @@
 import notionRelayHtml from "../../../templates/notion-relay.html";
 import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
+import notionScriptHtml from "../../../templates/notion-script.html";
 import { resolveSession } from "../../../lib/auth";
 import { encrypt, generateRandomHex } from "../../../lib/crypto";
 import { escHtml } from "../../../lib/html";
@@ -21,11 +22,13 @@ function buildNotionModal(databases: Array<{ id: string; title: string }>): stri
   return renderTemplate(notionSelectModalHtml, { databases: databaseOptions });
 }
 
-export async function buildNotionCard(
+export async function buildNotionSection(
   profile: Profile,
   userId: string,
   env: Env,
-): Promise<{ card: string; modal: string }> {
+): Promise<{ card: string; modal: string; script: string }> {
+  const script = notionScriptHtml;
+
   if (profile.notion?.databaseId) {
     return {
       card: renderIntegrationCard({
@@ -36,6 +39,7 @@ export async function buildNotionCard(
         action: "",
       }),
       modal: "",
+      script,
     };
   }
 
@@ -52,6 +56,7 @@ export async function buildNotionCard(
         action: `<button class="btn" onclick="openNotionModal()">Select database →</button>`,
       }),
       modal: buildNotionModal(databases),
+      script,
     };
   }
 
@@ -64,6 +69,7 @@ export async function buildNotionCard(
       action: `<button id="notion-connect-btn" class="btn" onclick="openNotionPopup()">Connect →</button>`,
     }),
     modal: "",
+    script,
   };
 }
 

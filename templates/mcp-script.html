@@ -1,0 +1,15 @@
+<script>
+  function openMcpModal() {
+    document.getElementById('mcp-modal-overlay').classList.add('modal-overlay--visible');
+  }
+  function closeMcpModal() {
+    document.getElementById('mcp-modal-overlay').classList.remove('modal-overlay--visible');
+    const url = new URL(window.location);
+    url.searchParams.delete('modal');
+    history.replaceState(null, '', url);
+  }
+
+  if (new URLSearchParams(window.location.search).get('modal') === 'mcp-setup') {
+    openMcpModal();
+  }
+</script>

@@ -1,4 +1,5 @@
 import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
+import mcpScriptHtml from "../../templates/mcp-script.html";
 import { resolveSession } from "../../lib/auth";
 import { hmacToken, generateRandomHex, encrypt, decrypt } from "../../lib/crypto";
 import { createDb } from "../../lib/db";
@@ -6,12 +7,12 @@ import * as usersRepo from "../../lib/db/repositories/users";
 import { renderTemplate, renderIntegrationCard } from "../../lib/responses";
 import type { Env, Profile } from "../../lib/types";
 
-export async function buildMcpCard(
+export async function buildMcpSection(
   profile: Profile,
   userId: string,
   env: Env,
   encryptionKey: string,
-): Promise<{ card: string; modal: string }> {
+): Promise<{ card: string; modal: string; script: string }> {
   const pendingEncrypted = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
   const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
 
@@ -45,7 +46,7 @@ export async function buildMcpCard(
     action: `<form class="form-inline" method="POST" action="/setup-mcp/generate"><button type="submit" class="btn">Setup →</button></form>`,
   });
 
-  return { card, modal };
+  return { card, modal, script: mcpScriptHtml };
 }
 
 export async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {

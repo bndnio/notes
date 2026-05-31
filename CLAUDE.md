@@ -301,6 +301,29 @@ export function escHtml(s: string): string {
 
 For every security fix, ask: *what other layer could catch this?* and fix that too.
 
+### Never put user-controlled data into script template slots
+
+`renderTemplate` substitutes `{{vars}}` with the same dumb string replacement whether it's inside HTML or a `<script>` block. `escHtml` guards against HTML injection but not JS injection — a value containing `'`, `\n`, or `</script>` will break out of a JS string literal or the script block entirely.
+
+**Why:** Introduced when integration section templates (`notion-section.html`, `mcp-section.html`) were adopted. Each section template contains a `<script>` block, which increases the surface area where a developer might accidentally pass user data through a template var into a JS context.
+
+**Don't** — substitute user-derived data inside a `<script>` in a template:
+```html
+<script>
+  var name = '{{username}}';  // ← username containing ' or </script> breaks this
+</script>
+```
+
+**Do** — pass user data through a DOM attribute, read it from JS:
+```html
+<div id="profile" data-username="{{username}}"></div>
+<script>
+  var name = document.getElementById('profile').dataset.username;
+</script>
+```
+
+`escHtml` protects the attribute; JS reads from the DOM, never from raw template substitution. Section templates and any template containing `<script>` must only use server-controlled values (config vars, static strings, server-generated IDs).
+
 ### Run a standard checklist on security review
 
 When asked to review or audit, walk through these categories in order. The initial implementation of every category had bugs — they aren't theoretical.

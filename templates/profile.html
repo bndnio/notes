@@ -17,96 +17,16 @@
   <p class="subtitle"><code>{{emailAddress}}</code></p>
 
   {{notionCard}}
-
   {{mcpCard}}
 
   <script>
-    // Toast
     const toast = document.getElementById('toast');
     if (toast) {
       setTimeout(() => toast.remove(), 5000);
       document.getElementById('toast-dismiss').addEventListener('click', () => toast.remove());
     }
-
-    // Notion connect button: loading state while popup is open
-    var notionConnectBtn = document.getElementById('notion-connect-btn');
-    if (notionConnectBtn) {
-      notionConnectBtn.addEventListener('click', function () {
-        notionConnectBtn.disabled = true;
-        var spinner = document.createElement('span');
-        spinner.className = 'btn-spinner';
-        notionConnectBtn.appendChild(spinner);
-
-        var timeoutId;
-        function done() {
-          window.removeEventListener('message', handler);
-          clearTimeout(timeoutId);
-          notionConnectBtn.disabled = false;
-          var s = notionConnectBtn.querySelector('.btn-spinner');
-          if (s) s.remove();
-        }
-        function handler(e) {
-          if (e.origin !== window.location.origin) return;
-          done();
-        }
-        window.addEventListener('message', handler);
-        timeoutId = setTimeout(done, 300000);
-      });
-    }
-
-    // Notion popup
-    function openNotionPopup() {
-      var popup = window.open('/integration/notion/connect', 'notion-oauth', 'width=600,height=700,menubar=no,toolbar=no,location=no');
-      if (!popup) {
-        window.location.href = '/integration/notion/connect';
-        return;
-      }
-      var timeoutId;
-      function handler(e) {
-        if (e.origin !== window.location.origin) return;
-        window.removeEventListener('message', handler);
-        clearTimeout(timeoutId);
-        if (e.data === 'notion-pending') {
-          window.location.href = '/profile?modal=notion-select';
-        } else if (e.data && e.data.type === 'notion-error') {
-          window.location.href = '/profile?toast=' + encodeURIComponent(e.data.message);
-        }
-      }
-      window.addEventListener('message', handler);
-      timeoutId = setTimeout(function() { window.removeEventListener('message', handler); }, 300000);
-    }
-
-    // Notion database modal
-    function openNotionModal() {
-      document.getElementById('notion-modal-overlay').classList.add('modal-overlay--visible');
-    }
-    function closeNotionModal() {
-      document.getElementById('notion-modal-overlay').classList.remove('modal-overlay--visible');
-      const url = new URL(window.location);
-      url.searchParams.delete('modal');
-      history.replaceState(null, '', url);
-    }
-
-    // Auto-open notion modal when redirected back from popup
-    if (new URLSearchParams(window.location.search).get('modal') === 'notion-select') {
-      openNotionModal();
-    }
-
-    // MCP modal
-    function openMcpModal() {
-      document.getElementById('mcp-modal-overlay').classList.add('modal-overlay--visible');
-    }
-    function closeMcpModal() {
-      document.getElementById('mcp-modal-overlay').classList.remove('modal-overlay--visible');
-      const url = new URL(window.location);
-      url.searchParams.delete('modal');
-      history.replaceState(null, '', url);
-    }
-
-    // Auto-open MCP modal when redirected back from generate
-    if (new URLSearchParams(window.location.search).get('modal') === 'mcp-setup') {
-      openMcpModal();
-    }
   </script>
+  {{notionScript}}
+  {{mcpScript}}
 </body>
 </html>
