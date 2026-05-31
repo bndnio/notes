@@ -7,6 +7,7 @@ import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 import { buildNotionSection } from "./integration/notion";
 import { buildMcpSection } from "./setup-mcp";
+import { buildEmailSection } from "./email-settings";
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
@@ -23,9 +24,11 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   const [
     { card: notionCard, modal: notionModal, script: notionScript },
     { card: mcpCard, modal: mcpModal, script: mcpScript },
+    { card: emailCard, modal: emailModal, script: emailScript },
   ] = await Promise.all([
     buildNotionSection(profile, userId, env),
     buildMcpSection(profile, userId, env, encryptionKey),
+    buildEmailSection(profile, userId, env),
   ]);
 
   const toastParam = new URL(request.url).searchParams.get("toast");
@@ -38,6 +41,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
       toast,
       notionModal, notionCard, notionScript,
       mcpModal, mcpCard, mcpScript,
+      emailModal, emailCard, emailScript,
       username,
       emailAddress,
     })),

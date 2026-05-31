@@ -4,6 +4,7 @@ import { handleLogin } from "./login";
 import { handleVerify } from "./verify";
 import { handleProfile } from "./profile";
 import { handleGenerateMcpToken, handleMcpDone } from "./setup-mcp";
+import { handleEmailSettingsSave } from "./email-settings";
 import { handleIntegration } from "./integration/index";
 import { html, renderTemplate, pageVars, text, css, js } from "../../lib/responses";
 import indexHtml from "../../templates/index.html";
@@ -24,6 +25,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
   if (pathname === "/profile") return handleProfile(request, env);
   if (pathname === "/setup-mcp/generate" && request.method === "POST") return handleGenerateMcpToken(request, env);
   if (pathname === "/setup-mcp/done" && request.method === "POST") return handleMcpDone(request, env);
+  if (pathname === "/settings/email" && request.method === "POST") return handleEmailSettingsSave(request, env);
   if (pathname.startsWith("/integration")) return handleIntegration(request, env);
   if (pathname === "/install-mcp/claude-code") return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
   return new Response("Not found", { status: 404 });

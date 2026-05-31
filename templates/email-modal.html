@@ -1,0 +1,18 @@
+<div class="modal-overlay" id="email-modal-overlay" onclick="if(event.target===this)closeEmailModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Manage email</h2>
+      <button class="modal-close" onclick="closeEmailModal()">✕</button>
+    </div>
+    <form id="email-settings-form" method="POST" action="/settings/email">
+      <p class="error" id="email-form-error"></p>
+      <div id="email-list">{{emailList}}</div>
+      <button type="button" class="btn btn--muted" onclick="addEmailRow()">+ Add</button>
+      <label class="checkbox-label checkbox-label--spaced">
+        <input type="checkbox" name="requireSenderMatch" value="1" {{requireSenderMatchChecked}}>
+        Only accept notes from registered addresses
+      </label>
+      <button type="submit" class="btn">Save →</button>
+    </form>
+  </div>
+</div>

@@ -43,3 +43,7 @@ export async function create(
 export async function updateMcpTokenHash(db: Db, id: string, hash: string | null): Promise<void> {
   await db.update(users).set({ mcpTokenHash: hash }).where(eq(users.id, id));
 }
+
+export async function updateRequireSenderMatch(db: Db, id: string, value: boolean): Promise<void> {
+  await db.update(users).set({ requireSenderMatch: value }).where(eq(users.id, id));
+}

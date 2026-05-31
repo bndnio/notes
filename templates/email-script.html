@@ -1,0 +1,43 @@
+<script>
+  function addEmailRow() {
+    var list = document.getElementById('email-list');
+    var row = document.createElement('div');
+    row.className = 'email-row';
+    row.innerHTML = '<input type="email" name="email" required placeholder="name@example.com">' +
+      '<button type="button" class="btn btn--muted btn--sm" onclick="removeEmailRow(this)">Remove</button>';
+    list.appendChild(row);
+    row.querySelector('input').focus();
+  }
+
+  function removeEmailRow(btn) {
+    btn.closest('.email-row').remove();
+  }
+
+  document.getElementById('email-settings-form').addEventListener('submit', function (e) {
+    var inputs = Array.from(document.querySelectorAll('#email-list input[name="email"]'));
+    var values = inputs.map(function (el) { return el.value.trim().toLowerCase(); }).filter(Boolean);
+    var errorEl = document.getElementById('email-form-error');
+
+    if (new Set(values).size !== values.length) {
+      e.preventDefault();
+      errorEl.textContent = 'Duplicate email addresses.';
+      return;
+    }
+
+    errorEl.textContent = '';
+  });
+
+  function openEmailModal() {
+    document.getElementById('email-modal-overlay').classList.add('modal-overlay--visible');
+  }
+  function closeEmailModal() {
+    document.getElementById('email-modal-overlay').classList.remove('modal-overlay--visible');
+    const url = new URL(window.location);
+    url.searchParams.delete('modal');
+    history.replaceState(null, '', url);
+  }
+
+  if (new URLSearchParams(window.location.search).get('modal') === 'email-manage') {
+    openEmailModal();
+  }
+</script>
