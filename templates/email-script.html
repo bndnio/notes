@@ -37,7 +37,8 @@
     history.replaceState(null, '', url);
   }
 
-  if (new URLSearchParams(window.location.search).get('modal') === 'email-manage') {
+  var requestedModal = new URLSearchParams(window.location.search).get('modal');
+  if (requestedModal === 'email-manage' || requestedModal === 'email') {
     openEmailModal();
   }
 </script>
