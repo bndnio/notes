@@ -24,7 +24,16 @@ export function pageVars(vars: Record<string, string> = {}): Record<string, stri
 }
 
 export const html = (content: string) =>
-  new Response(content, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  new Response(content, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy":
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'",
+      "X-Frame-Options": "DENY",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    },
+  });
 
 export const text = (content: string) =>
   new Response(content, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
