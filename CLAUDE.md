@@ -190,22 +190,62 @@ async function handleSelectPost(request, env) {
 }
 ```
 
-**Do** — resolve and verify identity before anything else:
+**Do** — use the assert helpers as the first lines of every handler:
 ```ts
 async function handleSelectPost(request, env) {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const user = await usersRepo.findById(db, userId);
-  if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const user = await assertUser(db, userId, env.APP_URL);
 
   // now safe to read form data and proceed
   const form = await request.formData();
+  await assertCsrf(form, sessionHash, encryptionKey);
   ...
 }
 ```
+
+### Use throwing assert helpers, not discriminated returns
+
+`assertSession`, `assertUser`, and `assertCsrf` throw `HttpError` on failure — they do not return `T | Response`. A single catch in the dispatcher (`handleFetch`) converts every `HttpError` into its response. Handlers contain no auth `if` checks at all.
+
+**Why:** User asked *"if I keep them as assert methods that raise, can I keep everything consistent?"* — the answer was yes: session, user, and CSRF all fit the same `await assertX(...)` shape with no conditional check at the call site. Discriminated returns (`T | Response`) require every caller to check `instanceof Response` and early-return, which is boilerplate that grows with every new handler.
+
+**Don't** — return a union and check at every call site:
+```ts
+// lib/auth.ts
+export async function assertSession(...): Promise<{ userId: string } | Response> {
+  if (!session) return Response.redirect(...);  // ← caller must check
+  return session;
+}
+
+// handler
+const session = await assertSession(request, env, encryptionKey);
+if (session instanceof Response) return session;  // ← repeated in every handler
+const { userId } = session;
+```
+
+**Do** — throw and catch once:
+```ts
+// lib/auth.ts
+export async function assertSession(...): Promise<{ userId: string; sessionHash: string }> {
+  if (!session) throw new HttpError(Response.redirect(...));
+  return session;
+}
+
+// handlers/fetch/index.ts — one place
+try {
+  return await handler(request, env);
+} catch (e) {
+  if (e instanceof HttpError) return e.response;
+  throw e;
+}
+```
+
+`HttpError` is a plain class (not `extends Error`) — it is a control flow mechanism, not an exception. It lives in `lib/responses.ts` because it wraps a `Response`, not in `lib/auth.ts` or a dedicated errors file.
+
+The one recognised exception is `handleCallback` in notion.ts, which does a cross-check (OAuth state userId vs session userId) rather than a plain "is authenticated" assertion. It stays manual and that's intentional.
 
 ### Always use the session cookie for user identity
 
