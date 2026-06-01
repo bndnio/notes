@@ -115,7 +115,7 @@ body {
 
 .page-header-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;

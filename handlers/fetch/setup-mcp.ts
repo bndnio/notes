@@ -39,8 +39,8 @@ export async function buildMcpSection(
 
   const cardAction = profile.mcpTokenHash
     ? `<div class="btn-row">
-        <button type="button" class="btn btn--red" disabled>Setup →</button>
         <form class="form-inline" method="POST" action="/setup-mcp/reset" onsubmit="return confirmResetMcp()">${csrfField}<button type="submit" class="btn btn--ghost btn--sm">Reset</button></form>
+        <button type="button" class="btn btn--ghost" disabled>Setup →</button>
        </div>`
     : `<form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<button type="submit" class="btn btn--red">Setup →</button></form>`;
 
