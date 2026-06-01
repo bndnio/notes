@@ -39,6 +39,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   return html(
     renderTemplate(profileHtml, pageVars({
       toast,
+      csrfField,
       notionModal, notionCard, notionScript,
       mcpModal, mcpCard, mcpScript,
       emailModal, emailCard, emailScript,

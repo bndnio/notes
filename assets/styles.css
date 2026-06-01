@@ -111,6 +111,12 @@ body {
 .page--wide .btn { margin-top: 8px; }
 
 /* ── Profile header ── */
+.page-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
 .page-header { margin-bottom: 36px; }
 
 .page-title {

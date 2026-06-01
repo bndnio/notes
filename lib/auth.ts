@@ -9,6 +9,10 @@ export function sessionCookieHeader(token: string): string {
   return `session=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`;
 }
 
+export function clearSessionCookieHeader(): string {
+  return `session=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`;
+}
+
 export async function resolveProfile(token: string, env: Env): Promise<Profile | null> {
   const db = createDb(env.DB);
   const encryptionKey = await env.ENCRYPTION_KEY.get();

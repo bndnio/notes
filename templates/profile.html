@@ -15,6 +15,13 @@
   {{emailModal}}
 
   <div class="page page--wide">
+    <div class="page-toolbar">
+      <form method="POST" action="/logout">
+        {{csrfField}}
+        <button type="submit" class="btn btn--ghost btn--sm">Log out</button>
+      </form>
+    </div>
+
     <header class="page-header">
       <h1 class="page-title">Your Profile</h1>
       <div class="profile-items">

@@ -1,6 +1,7 @@
 import { handleMcp } from "./mcp";
 import { handleRegistration } from "./registration";
 import { handleLogin } from "./login";
+import { handleLogout } from "./logout";
 import { handleVerify } from "./verify";
 import { handleProfile } from "./profile";
 import { handleGenerateMcpToken, handleMcpDone } from "./setup-mcp";
@@ -19,6 +20,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname === "/mcp") return handleMcp(request, env);
     if (pathname.startsWith("/register")) return handleRegistration(request, env);
     if (pathname.startsWith("/login")) return handleLogin(request, env);
+    if (pathname === "/logout" && request.method === "POST") return handleLogout(request, env);
     if (pathname.startsWith("/verify")) return handleVerify(request, env);
     if (pathname === "/profile") return handleProfile(request, env);
     if (pathname === "/setup-mcp/generate" && request.method === "POST") return handleGenerateMcpToken(request, env);
