@@ -7,27 +7,29 @@
   <link rel="stylesheet" href="/styles.css">
   <script src="/scripts.js" defer></script>
 </head>
-<body class="page">
+<body>
   {{betaBanner}}
-  <h1>Register</h1>
-  <p class="subtitle">Create an account to start capturing notes.</p>
-  <p class="error">{{error}}</p>
-  <form method="POST" action="/register">
-    <label>
-      Email
-      <input type="email" name="email" required autocomplete="email">
-    </label>
-    <label>
-      Username
-      <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]{6,}" minlength="6" title="Lowercase letters, numbers, hyphens and underscores only (minimum 6 characters)">
-      <p class="field-hint">Your notes address will be <code>u_username@{{emailDomain}}</code></p>
-    </label>
-    <label class="checkbox-label">
-      <input type="checkbox" name="requireSenderMatch" value="true" checked>
-      Only accept emails from my registered address
-    </label>
-    <button type="submit" class="btn">Register →</button>
-  </form>
-  <p class="help-text">Already registered? <a href="/login">Login</a></p>
+  <div class="page">
+    <h1>Register</h1>
+    <p class="subtitle">Create an account to start capturing notes.</p>
+    <p class="error">{{error}}</p>
+    <form method="POST" action="/register">
+      <label>
+        Email
+        <input type="email" name="email" required autocomplete="email">
+      </label>
+      <label>
+        Username
+        <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]{6,}" minlength="6" title="Lowercase letters, numbers, hyphens and underscores only (minimum 6 characters)">
+        <p class="field-hint">Your notes address will be <code>u_username@{{emailDomain}}</code></p>
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="requireSenderMatch" value="true" checked>
+        Only accept emails from my registered address
+      </label>
+      <button type="submit" class="btn">Register →</button>
+    </form>
+    <p class="help-text">Already registered? <a href="/login">Login</a></p>
+  </div>
 </body>
 </html>

@@ -7,18 +7,20 @@
   <link rel="stylesheet" href="/styles.css">
   <script src="/scripts.js" defer></script>
 </head>
-<body class="page">
+<body>
   {{betaBanner}}
-  <h1>Login</h1>
-  <p class="subtitle">Enter your email to receive a login PIN.</p>
-  <p class="error">{{error}}</p>
-  <form method="POST" action="/login">
-    <label>
-      Email
-      <input type="email" name="email" required autocomplete="email">
-    </label>
-    <button type="submit" class="btn">Send PIN →</button>
-  </form>
-  <p class="help-text">Don't have an account? <a href="/register">Register</a></p>
+  <div class="page">
+    <h1>Login</h1>
+    <p class="subtitle">Enter your email to receive a login PIN.</p>
+    <p class="error">{{error}}</p>
+    <form method="POST" action="/login">
+      <label>
+        Email
+        <input type="email" name="email" required autocomplete="email">
+      </label>
+      <button type="submit" class="btn">Send PIN →</button>
+    </form>
+    <p class="help-text">Don't have an account? <a href="/register">Register</a></p>
+  </div>
 </body>
 </html>

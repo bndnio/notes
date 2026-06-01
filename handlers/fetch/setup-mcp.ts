@@ -4,6 +4,7 @@ import { assertSession, assertUser, assertCsrf } from "../../lib/auth";
 import { hmacToken, generateRandomHex, encrypt, decrypt } from "../../lib/crypto";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
+import { escHtml } from "../../lib/html";
 import { renderTemplate, renderIntegrationCard } from "../../lib/responses";
 import type { Env, Profile } from "../../lib/types";
 
@@ -24,7 +25,7 @@ export async function buildMcpSection(
   else { badgeClass = "status-badge--none"; badgeText = "Not set up"; }
 
   const tokenSection = mcpToken
-    ? `<p class="warning">Save this token — it won't be shown after you click Done.</p><div class="token-box">${mcpToken}</div>`
+    ? `<p class="warning">Save this token — it won't be shown after you click Done.</p><div class="token-box">${escHtml(mcpToken)}</div>`
     : "";
 
   const actionSection = mcpToken

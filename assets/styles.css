@@ -9,6 +9,10 @@
   --mustard: #F2C744;
   --ink:     #1A1A1A;
   --ink-mid: #555555;
+  --banner-bg:      #EAE3D1;
+  --banner-border:  rgba(26, 26, 26, 0.14);
+  --banner-accent:  #A84832;
+  --banner-text:    #6B6355;
 }
 
 body {
@@ -24,35 +28,42 @@ body {
 
 /* ── Banner ── */
 .banner {
-  background: var(--red);
-  color: var(--paper);
+  background: var(--banner-bg);
+  color: var(--banner-text);
   font-family: 'Anton', sans-serif;
-  font-size: 13px;
-  letter-spacing: 0.12em;
+  font-size: 12px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 10px 32px;
+  padding: 9px 32px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
+  width: 100%;
+  border-bottom: 1.5px solid var(--banner-border);
 }
 
 .banner-marker {
-  width: 9px;
-  height: 9px;
-  background: var(--mustard);
+  width: 7px;
+  height: 7px;
+  background: var(--banner-accent);
   flex-shrink: 0;
+  opacity: 0.85;
 }
 
-.banner-label { flex-shrink: 0; }
+.banner-label {
+  flex-shrink: 0;
+  color: var(--banner-accent);
+}
 
 .banner-text {
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
-  line-height: 1.4;
+  line-height: 1.45;
+  color: var(--banner-text);
 }
 
 /* ── Layout ── */
@@ -68,12 +79,17 @@ body {
   padding: 52px 28px 80px;
 }
 
-.page--wide h2 {
+.page--wide h2,
+.integration-group h2 {
   font-family: 'Anton', sans-serif;
   font-size: 26px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--red);
+  margin-bottom: 16px;
+}
+
+.page--wide h2 {
   margin: 32px 0 16px;
 }
 
@@ -138,15 +154,6 @@ body {
 /* ── Integration groups ── */
 .integration-group + .integration-group { margin-top: 36px; }
 
-.integration-group h2 {
-  font-family: 'Anton', sans-serif;
-  font-size: 26px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--red);
-  margin-bottom: 16px;
-}
-
 .cards {
   display: flex;
   flex-direction: column;
@@ -196,6 +203,10 @@ body {
   flex-shrink: 0;
 }
 
+.card-actions .btn {
+  min-height: 40px;
+}
+
 /* ── Status badges ── */
 .status-badge {
   display: inline-flex;
@@ -234,7 +245,9 @@ body {
 
 /* ── Buttons ── */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'Anton', sans-serif;
   font-size: 13px;
   letter-spacing: 0.08em;
@@ -248,6 +261,9 @@ body {
   white-space: nowrap;
   box-shadow: 3px 3px 0 var(--blue);
   transition: box-shadow 0.1s, transform 0.1s;
+  line-height: 1.2;
+  min-height: 40px;
+  box-sizing: border-box;
 }
 
 .btn:hover  { box-shadow: 1px 1px 0 var(--blue); transform: translate(2px, 2px); }
@@ -266,7 +282,7 @@ body {
 .btn--ghost:active { box-shadow: none; }
 .btn--ghost:disabled:hover { box-shadow: 3px 3px 0 var(--ink); transform: none; }
 
-.btn--sm { font-size: 11px; padding: 6px 14px; }
+.btn--sm { font-size: 11px; padding: 6px 14px; min-height: 32px; }
 
 .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
@@ -424,7 +440,7 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   margin-bottom: 12px;
 }
 
-/* ── Token box ── */
+/* ── Token box (MCP modal) ── */
 .token-box {
   background: var(--ink);
   color: var(--paper);
@@ -474,14 +490,15 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 
 .step h3 {
   font-family: 'Anton', sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-mid);
-  margin: 12px 0 6px;
+  margin: 18px 0 10px;
+  line-height: 1.5;
 }
 
-.step p { font-size: 13px; color: var(--ink-mid); margin: 0 0 6px; }
+.step p { font-size: 13px; color: var(--ink-mid); margin: 0 0 10px; line-height: 1.5; }
 
 .note { font-size: 12px; color: var(--ink-mid); margin-top: 6px; }
 
@@ -563,6 +580,11 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   gap: 10px;
   padding: 0 22px 22px;
   flex-wrap: wrap;
+}
+
+.modal-actions--end {
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 /* ── Email rows (modal) ── */

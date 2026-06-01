@@ -45,7 +45,7 @@ export async function buildEmailSection(
   const emails = await userEmailsRepo.findAllByUserId(db, userId);
   const { requireSenderMatch } = profile;
 
-  const badgeClass = requireSenderMatch ? "status-badge--restricted" : "status-badge--none";
+  const badgeClass = requireSenderMatch ? "status-badge--connected" : "status-badge--none";
   const badgeText = requireSenderMatch ? "Restricted" : "Open";
   const description = requireSenderMatch
     ? "Only notes from registered addresses are accepted."

@@ -7,41 +7,43 @@
   <link rel="stylesheet" href="/styles.css">
   <script src="/scripts.js" defer></script>
 </head>
-<body class="page page--wide">
+<body>
   {{betaBanner}}
   {{toast}}
   {{notionModal}}
   {{mcpModal}}
   {{emailModal}}
 
-  <header class="page-header">
-    <h1 class="page-title">Your Profile</h1>
-    <div class="profile-items">
-      <div class="profile-item">
-        <span class="profile-item-label">Handle</span>
-        <span class="profile-item-value">{{username}}</span>
+  <div class="page page--wide">
+    <header class="page-header">
+      <h1 class="page-title">Your Profile</h1>
+      <div class="profile-items">
+        <div class="profile-item">
+          <span class="profile-item-label">Handle</span>
+          <span class="profile-item-value">{{username}}</span>
+        </div>
+        <div class="profile-item">
+          <span class="profile-item-label">Inbound</span>
+          <span class="profile-item-value">{{emailAddress}}</span>
+        </div>
       </div>
-      <div class="profile-item">
-        <span class="profile-item-label">Inbound</span>
-        <span class="profile-item-value">{{emailAddress}}</span>
+    </header>
+
+    <section class="integration-group">
+      <h2>Input</h2>
+      <div class="cards">
+        {{emailCard}}
+        {{mcpCard}}
       </div>
-    </div>
-  </header>
+    </section>
 
-  <section class="integration-group">
-    <h2>Input</h2>
-    <div class="cards">
-      {{emailCard}}
-      {{mcpCard}}
-    </div>
-  </section>
-
-  <section class="integration-group">
-    <h2>Output</h2>
-    <div class="cards">
-      {{notionCard}}
-    </div>
-  </section>
+    <section class="integration-group">
+      <h2>Output</h2>
+      <div class="cards">
+        {{notionCard}}
+      </div>
+    </section>
+  </div>
 
   <script>
     const toast = document.getElementById('toast');
