@@ -20,13 +20,14 @@
     <label>
       Username
       <input type="text" name="username" required autocomplete="username" pattern="[a-z0-9_-]{6,}" minlength="6" title="Lowercase letters, numbers, hyphens and underscores only (minimum 6 characters)">
-      <p style="color: #888; font-size: 0.82rem; margin: 0.3rem 0 0;">Your notes address will be <code>u_username@{{emailDomain}}</code></p>
+      <p class="field-hint">Your notes address will be <code>u_username@{{emailDomain}}</code></p>
     </label>
     <label class="checkbox-label">
       <input type="checkbox" name="requireSenderMatch" value="true" checked>
       Only accept emails from my registered address
     </label>
-    <button type="submit" class="btn">Register</button>
+    <button type="submit" class="btn">Register →</button>
   </form>
+  <p class="help-text">Already registered? <a href="/login">Login</a></p>
 </body>
 </html>

@@ -4,11 +4,16 @@
       <h2>Choose a database</h2>
       <button class="modal-close" onclick="closeNotionModal()">✕</button>
     </div>
-    <p class="subtitle">Select which Notion database to save notes to.</p>
     <form method="POST" action="/integration/notion/select">
       {{csrfField}}
-      {{databases}}
-      <button type="submit" class="btn">Save →</button>
+      <div class="modal-body">
+        <p class="subtitle">Select which Notion database to save notes to.</p>
+        {{databases}}
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn--red">Save →</button>
+        <button type="button" class="btn btn--ghost" onclick="closeNotionModal()">Cancel</button>
+      </div>
     </form>
   </div>
 </div>

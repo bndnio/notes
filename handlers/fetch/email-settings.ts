@@ -23,7 +23,7 @@ function buildEmailModal(
         : `<input type="email" name="email" value="${escHtml(e.email)}" required>`;
       const action = isPrimary
         ? `<span class="email-primary-label">primary</span>`
-        : `<button type="button" class="btn btn--muted btn--sm" onclick="removeEmailRow(this)">Remove</button>`;
+        : `<button type="button" class="btn btn--ghost btn--sm" onclick="removeEmailRow(this)">Remove</button>`;
       return `<div class="email-row">${input}${action}</div>`;
     })
     .join("\n");
@@ -45,7 +45,7 @@ export async function buildEmailSection(
   const emails = await userEmailsRepo.findAllByUserId(db, userId);
   const { requireSenderMatch } = profile;
 
-  const badgeClass = requireSenderMatch ? "status-badge--connected" : "status-badge--none";
+  const badgeClass = requireSenderMatch ? "status-badge--restricted" : "status-badge--none";
   const badgeText = requireSenderMatch ? "Restricted" : "Open";
   const description = requireSenderMatch
     ? "Only notes from registered addresses are accepted."
@@ -57,7 +57,7 @@ export async function buildEmailSection(
       badgeClass,
       badgeText,
       description,
-      action: `<button class="btn" onclick="openEmailModal()">Manage →</button>`,
+      action: `<button class="btn btn--ghost" onclick="openEmailModal()">Manage →</button>`,
     }),
     modal: buildEmailModal(emails, requireSenderMatch, csrfField),
     script: emailScriptHtml,

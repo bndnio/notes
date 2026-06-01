@@ -4,7 +4,7 @@
     var row = document.createElement('div');
     row.className = 'email-row';
     row.innerHTML = '<input type="email" name="email" required placeholder="name@example.com">' +
-      '<button type="button" class="btn btn--muted btn--sm" onclick="removeEmailRow(this)">Remove</button>';
+      '<button type="button" class="btn btn--ghost btn--sm" onclick="removeEmailRow(this)">Remove</button>';
     list.appendChild(row);
     row.querySelector('input').focus();
   }

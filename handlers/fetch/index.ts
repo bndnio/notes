@@ -10,7 +10,7 @@ import { html, renderTemplate, pageVars, text, css, js } from "../../lib/respons
 import indexHtml from "../../templates/index.html";
 import installMcpScript from "../../templates/install-mcp.sh";
 import baseCss from "../../templates/base.css";
-import baseJs from "../../templates/base.js";
+import baseJs from "../../templates/base.txt";
 import { HttpError } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 

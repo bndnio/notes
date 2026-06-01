@@ -30,8 +30,8 @@ export async function buildMcpSection(
   const actionSection = mcpToken
     ? `<form class="form-inline" method="POST" action="/setup-mcp/done">${csrfField}<button type="submit" class="btn">Done →</button></form>`
     : `<div class="btn-row">
-        <form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<input type="hidden" name="regenerate" value="1"><button type="submit" class="btn btn--muted">Regenerate token</button></form>
-        <a class="btn" href="/profile">Back →</a>
+        <form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<input type="hidden" name="regenerate" value="1"><button type="submit" class="btn btn--ghost">Regenerate token</button></form>
+        <a class="btn btn--ghost" href="/profile">Back →</a>
        </div>`;
 
   const modal = renderTemplate(mcpSetupModalHtml, { tokenSection, actionSection, appUrl: env.APP_URL });
@@ -41,7 +41,7 @@ export async function buildMcpSection(
     badgeClass,
     badgeText,
     description: "Connect Notes to Claude Code as an AI tool.",
-    action: `<form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<button type="submit" class="btn">Setup →</button></form>`,
+    action: `<form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<button type="submit" class="btn btn--red">Setup →</button></form>`,
   });
 
   return { card, modal, script: mcpScriptHtml };
