@@ -15,10 +15,8 @@ main = "worker.ts"
 compatibility_date = "2024-09-23"
 routes = [{ pattern = "notes.bndn.io", custom_domain = true }]
 
-[[rules]]
-type = "Text"
-globs = ["**/*.css", "**/*.sh"]
-fallthrough = true
+[assets]
+directory = "./assets"
 
 [observability]
 enabled = true
