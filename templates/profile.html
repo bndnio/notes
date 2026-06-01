@@ -14,12 +14,34 @@
   {{mcpModal}}
   {{emailModal}}
 
-  <h1>{{username}}</h1>
-  <p class="subtitle"><code>{{emailAddress}}</code></p>
+  <header class="page-header">
+    <h1 class="page-title">Your Profile</h1>
+    <div class="profile-items">
+      <div class="profile-item">
+        <span class="profile-item-label">Handle</span>
+        <span class="profile-item-value">{{username}}</span>
+      </div>
+      <div class="profile-item">
+        <span class="profile-item-label">Inbound</span>
+        <span class="profile-item-value">{{emailAddress}}</span>
+      </div>
+    </div>
+  </header>
 
-  {{notionCard}}
-  {{mcpCard}}
-  {{emailCard}}
+  <section class="integration-group">
+    <h2>Input</h2>
+    <div class="cards">
+      {{emailCard}}
+      {{mcpCard}}
+    </div>
+  </section>
+
+  <section class="integration-group">
+    <h2>Output</h2>
+    <div class="cards">
+      {{notionCard}}
+    </div>
+  </section>
 
   <script>
     const toast = document.getElementById('toast');
