@@ -1,13 +1,12 @@
 import notionRelayHtml from "../../../templates/notion-relay.html";
 import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
 import notionScriptHtml from "../../../templates/notion-script.html";
-import { resolveSession, resolveSessionWithHash, assertCsrf } from "../../../lib/auth";
+import { resolveSession, assertSession, assertUser, assertCsrf } from "../../../lib/auth";
 import { encrypt, generateRandomHex } from "../../../lib/crypto";
 import { escHtml } from "../../../lib/html";
 import { html, renderTemplate, renderIntegrationCard } from "../../../lib/responses";
 import type { Env, Profile } from "../../../lib/types";
 import { createDb } from "../../../lib/db";
-import * as usersRepo from "../../../lib/db/repositories/users";
 import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
 
 function buildNotionModal(databases: Array<{ id: string; title: string }>, csrfField: string): string {
@@ -76,8 +75,7 @@ export async function buildNotionSection(
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId } = await assertSession(request, env, encryptionKey);
 
   const state = generateRandomHex(32);
   await env.EPHEMERAL_KV.put(`notion_state:${state}`, userId, { expirationTtl: 900 });
@@ -152,17 +150,13 @@ function handleRelay(request: Request, env: Env): Response {
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const session = await resolveSessionWithHash(request, env, encryptionKey);
-  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
-  const { userId, sessionHash } = session;
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const user = await usersRepo.findById(db, userId);
-  if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const user = await assertUser(db, userId, env.APP_URL);
 
   const form = await request.formData();
-  const csrfError = await assertCsrf(form, sessionHash, encryptionKey);
-  if (csrfError) return csrfError;
+  await assertCsrf(form, sessionHash, encryptionKey);
   const dbId = ((form.get("dbId") as string) ?? "").trim();
 
   const [dbsJson, encryptedToken] = await Promise.all([

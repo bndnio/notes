@@ -1,6 +1,6 @@
 import emailModalHtml from "../../templates/email-modal.html";
 import emailScriptHtml from "../../templates/email-script.html";
-import { resolveSessionWithHash, assertCsrf } from "../../lib/auth";
+import { assertSession, assertUser, assertCsrf } from "../../lib/auth";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
@@ -66,17 +66,13 @@ export async function buildEmailSection(
 
 export async function handleEmailSettingsSave(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const session = await resolveSessionWithHash(request, env, encryptionKey);
-  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
-  const { userId, sessionHash } = session;
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const user = await usersRepo.findById(db, userId);
-  if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const user = await assertUser(db, userId, env.APP_URL);
 
   const form = await request.formData();
-  const csrfError = await assertCsrf(form, sessionHash, encryptionKey);
-  if (csrfError) return csrfError;
+  await assertCsrf(form, sessionHash, encryptionKey);
   const submitted = (form.getAll("email") as string[])
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);

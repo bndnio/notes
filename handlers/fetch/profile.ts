@@ -1,8 +1,7 @@
 import profileHtml from "../../templates/profile.html";
-import { resolveSessionWithHash, getCsrfToken } from "../../lib/auth";
+import { assertSession, assertUser, getCsrfToken } from "../../lib/auth";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
-import * as usersRepo from "../../lib/db/repositories/users";
 import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 import { buildNotionSection } from "./integration/notion";
@@ -11,13 +10,10 @@ import { buildEmailSection } from "./email-settings";
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const session = await resolveSessionWithHash(request, env, encryptionKey);
-  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
-  const { userId, sessionHash } = session;
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const profile = await usersRepo.findById(db, userId);
-  if (!profile) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const profile = await assertUser(db, userId, env.APP_URL);
 
   const { username } = profile;
   const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;

@@ -2,6 +2,7 @@ import { hmacToken } from "./crypto";
 import { getCookie } from "./cookies";
 import { createDb } from "./db";
 import * as usersRepo from "./db/repositories/users";
+import { HttpError } from "./responses";
 import type { Env, Profile } from "./types";
 
 export function sessionCookieHeader(token: string): string {
@@ -33,6 +34,26 @@ export async function resolveSessionWithHash(
   const userId = await env.EPHEMERAL_KV.get(`session:${sessionHash}`);
   if (!userId) return null;
   return { userId, sessionHash };
+}
+
+export async function assertSession(
+  request: Request,
+  env: Env,
+  encryptionKey: string,
+): Promise<{ userId: string; sessionHash: string }> {
+  const session = await resolveSessionWithHash(request, env, encryptionKey);
+  if (!session) throw new HttpError(Response.redirect(`${env.APP_URL}/login`, 302));
+  return session;
+}
+
+export async function assertUser(
+  db: ReturnType<typeof createDb>,
+  userId: string,
+  appUrl: string,
+): Promise<Profile> {
+  const user = await usersRepo.findById(db, userId);
+  if (!user) throw new HttpError(Response.redirect(`${appUrl}/login`, 302));
+  return user;
 }
 
 // CSRF protection uses the Synchronizer Token Pattern: a token is embedded as a hidden
@@ -69,22 +90,9 @@ export async function assertCsrf(
   form: FormData,
   sessionHash: string,
   encryptionKey: string,
-): Promise<Response | null> {
+): Promise<void> {
   const submitted = (form.get("_csrf") as string) ?? "";
   if (!await validateCsrf(submitted, sessionHash, encryptionKey)) {
-    return new Response("Invalid request", { status: 403 });
+    throw new HttpError(new Response("Invalid request", { status: 403 }));
   }
-  return null;
-}
-
-export async function assertCsrf(
-  form: FormData,
-  sessionHash: string,
-  encryptionKey: string,
-): Promise<Response | null> {
-  const submitted = (form.get("_csrf") as string) ?? "";
-  if (!await validateCsrf(submitted, sessionHash, encryptionKey)) {
-    return new Response("Invalid request", { status: 403 });
-  }
-  return null;
 }

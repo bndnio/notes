@@ -1,6 +1,10 @@
 import betaBannerHtml from "../templates/beta-banner.html";
 import integrationCardHtml from "../templates/integration-card.html";
 
+export class HttpError {
+  constructor(public readonly response: Response) {}
+}
+
 export function renderTemplate(template: string, vars: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
 }
