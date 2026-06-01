@@ -6,6 +6,7 @@
     </div>
     <p class="subtitle">Select which Notion database to save notes to.</p>
     <form method="POST" action="/integration/notion/select">
+      {{csrfField}}
       {{databases}}
       <button type="submit" class="btn">Save →</button>
     </form>

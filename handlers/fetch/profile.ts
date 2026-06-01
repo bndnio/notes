@@ -1,5 +1,5 @@
 import profileHtml from "../../templates/profile.html";
-import { resolveSession } from "../../lib/auth";
+import { resolveSessionWithHash, getCsrfToken } from "../../lib/auth";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
@@ -11,8 +11,9 @@ import { buildEmailSection } from "./email-settings";
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const session = await resolveSessionWithHash(request, env, encryptionKey);
+  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId, sessionHash } = session;
 
   const db = createDb(env.DB);
   const profile = await usersRepo.findById(db, userId);
@@ -21,14 +22,17 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   const { username } = profile;
   const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
 
+  const csrfToken = await getCsrfToken(sessionHash, encryptionKey);
+  const csrfField = `<input type="hidden" name="_csrf" value="${csrfToken}">`;
+
   const [
     { card: notionCard, modal: notionModal, script: notionScript },
     { card: mcpCard, modal: mcpModal, script: mcpScript },
     { card: emailCard, modal: emailModal, script: emailScript },
   ] = await Promise.all([
-    buildNotionSection(profile, userId, env),
-    buildMcpSection(profile, userId, env, encryptionKey),
-    buildEmailSection(profile, userId, env),
+    buildNotionSection(profile, userId, env, csrfField),
+    buildMcpSection(profile, userId, env, encryptionKey, csrfField),
+    buildEmailSection(profile, userId, env, csrfField),
   ]);
 
   const toastParam = new URL(request.url).searchParams.get("toast");

@@ -1,6 +1,6 @@
 import registerHtml from "../../templates/register.html";
 import { stageRegistration } from "../../lib/registration";
-import { sendPin } from "../../lib/pin";
+import { sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "../../lib/pin";
 import { formField } from "../../lib/form";
 import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
@@ -19,6 +19,14 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
     const username = formField(form, "username").toLowerCase();
 
     if (!email || !username) return renderRegister("All fields are required.");
+
+    const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+    if (!await checkIpPinSendRate(ip, env)) {
+      return renderRegister("Too many requests. Please try again later.");
+    }
+    if (!await checkEmailPinSendRate(email, env)) {
+      return renderRegister("Too many verification emails sent to this address. Please try again later.");
+    }
 
     const requireSenderMatch = form.get("requireSenderMatch") === "true";
     const result = await stageRegistration(env, { email, username, requireSenderMatch });

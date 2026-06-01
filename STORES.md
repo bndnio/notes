@@ -62,6 +62,8 @@ Short-lived state. All entries expire automatically.
 | `session:<hmac-sha256(sessionToken)>` | `userId` | 7 days |
 | `pin:<email>` | JSON `{pin, type, ...payload}` | 10 min |
 | `pin_attempts:<email>` | attempt count (string) | 10 min |
+| `pin_send_count:<email>` | send count (string) | 1 hr |
+| `pin_send_count_ip:<ip>` | send count (string) | 1 hr |
 | `notion_state:<randomHex32>` | `userId` | 15 min |
 | `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr |
 | `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr |

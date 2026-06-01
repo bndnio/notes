@@ -5,6 +5,7 @@
       <button class="modal-close" onclick="closeEmailModal()">✕</button>
     </div>
     <form id="email-settings-form" method="POST" action="/settings/email">
+      {{csrfField}}
       <p class="error" id="email-form-error"></p>
       <div id="email-list">{{emailList}}</div>
       <button type="button" class="btn btn--muted" onclick="addEmailRow()">+ Add</button>

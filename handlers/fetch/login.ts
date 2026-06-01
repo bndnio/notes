@@ -1,5 +1,5 @@
 import loginHtml from "../../templates/login.html";
-import { generatePin, storePin, sendPin } from "../../lib/pin";
+import { generatePin, storePin, sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "../../lib/pin";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
 import { html, renderTemplate, pageVars } from "../../lib/responses";
@@ -23,12 +23,21 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
 
     if (!email) return renderLogin("Email is required.");
 
+    const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+    if (!await checkIpPinSendRate(ip, env)) {
+      return renderLogin("Too many requests. Please try again later.");
+    }
+
     const db = createDb(env.DB);
     const user = await usersRepo.findByEmail(db, email);
     if (user) {
-      const pin = generatePin();
-      await storePin(email, pin, { type: "login", userId: user.id }, env);
-      await sendPin(email, pin, env);
+      // Email rate check is inside this block to avoid leaking email existence via different errors
+      const emailAllowed = await checkEmailPinSendRate(email, env);
+      if (emailAllowed) {
+        const pin = generatePin();
+        await storePin(email, pin, { type: "login", userId: user.id }, env);
+        await sendPin(email, pin, env);
+      }
     }
 
     // Always redirect to avoid email enumeration

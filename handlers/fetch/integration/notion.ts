@@ -1,7 +1,7 @@
 import notionRelayHtml from "../../../templates/notion-relay.html";
 import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
 import notionScriptHtml from "../../../templates/notion-script.html";
-import { resolveSession } from "../../../lib/auth";
+import { resolveSession, resolveSessionWithHash, assertCsrf } from "../../../lib/auth";
 import { encrypt, generateRandomHex } from "../../../lib/crypto";
 import { escHtml } from "../../../lib/html";
 import { html, renderTemplate, renderIntegrationCard } from "../../../lib/responses";
@@ -10,7 +10,7 @@ import { createDb } from "../../../lib/db";
 import * as usersRepo from "../../../lib/db/repositories/users";
 import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
 
-function buildNotionModal(databases: Array<{ id: string; title: string }>): string {
+function buildNotionModal(databases: Array<{ id: string; title: string }>, csrfField: string): string {
   const databaseOptions = databases
     .map(
       (db) =>
@@ -19,13 +19,14 @@ function buildNotionModal(databases: Array<{ id: string; title: string }>): stri
         `${escHtml(db.title)}</label>`,
     )
     .join("\n");
-  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions });
+  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions, csrfField });
 }
 
 export async function buildNotionSection(
   profile: Profile,
   userId: string,
   env: Env,
+  csrfField: string,
 ): Promise<{ card: string; modal: string; script: string }> {
   const script = notionScriptHtml;
 
@@ -55,7 +56,7 @@ export async function buildNotionSection(
         description: "Notion is authorized — choose which database to save notes to.",
         action: `<button class="btn" onclick="openNotionModal()">Select database →</button>`,
       }),
-      modal: buildNotionModal(databases),
+      modal: buildNotionModal(databases, csrfField),
       script,
     };
   }
@@ -151,14 +152,17 @@ function handleRelay(request: Request, env: Env): Response {
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const session = await resolveSessionWithHash(request, env, encryptionKey);
+  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId, sessionHash } = session;
 
   const db = createDb(env.DB);
   const user = await usersRepo.findById(db, userId);
   if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const form = await request.formData();
+  const csrfError = await assertCsrf(form, sessionHash, encryptionKey);
+  if (csrfError) return csrfError;
   const dbId = ((form.get("dbId") as string) ?? "").trim();
 
   const [dbsJson, encryptedToken] = await Promise.all([

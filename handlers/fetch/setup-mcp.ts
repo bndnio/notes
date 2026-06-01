@@ -1,6 +1,6 @@
 import mcpSetupModalHtml from "../../templates/mcp-setup-modal.html";
 import mcpScriptHtml from "../../templates/mcp-script.html";
-import { resolveSession } from "../../lib/auth";
+import { resolveSessionWithHash, assertCsrf } from "../../lib/auth";
 import { hmacToken, generateRandomHex, encrypt, decrypt } from "../../lib/crypto";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
@@ -12,6 +12,7 @@ export async function buildMcpSection(
   userId: string,
   env: Env,
   encryptionKey: string,
+  csrfField: string,
 ): Promise<{ card: string; modal: string; script: string }> {
   const pendingEncrypted = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
   const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
@@ -27,12 +28,9 @@ export async function buildMcpSection(
     : "";
 
   const actionSection = mcpToken
-    ? `<form class="form-inline" method="POST" action="/setup-mcp/done"><button type="submit" class="btn">Done →</button></form>`
+    ? `<form class="form-inline" method="POST" action="/setup-mcp/done">${csrfField}<button type="submit" class="btn">Done →</button></form>`
     : `<div class="btn-row">
-        <form class="form-inline" method="POST" action="/setup-mcp/generate">
-          <input type="hidden" name="regenerate" value="1">
-          <button type="submit" class="btn btn--muted">Regenerate token</button>
-        </form>
+        <form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<input type="hidden" name="regenerate" value="1"><button type="submit" class="btn btn--muted">Regenerate token</button></form>
         <a class="btn" href="/profile">Back →</a>
        </div>`;
 
@@ -43,7 +41,7 @@ export async function buildMcpSection(
     badgeClass,
     badgeText,
     description: "Connect Notes to Claude Code as an AI tool.",
-    action: `<form class="form-inline" method="POST" action="/setup-mcp/generate"><button type="submit" class="btn">Setup →</button></form>`,
+    action: `<form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<button type="submit" class="btn">Setup →</button></form>`,
   });
 
   return { card, modal, script: mcpScriptHtml };
@@ -51,14 +49,17 @@ export async function buildMcpSection(
 
 export async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const session = await resolveSessionWithHash(request, env, encryptionKey);
+  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId, sessionHash } = session;
 
   const db = createDb(env.DB);
   const user = await usersRepo.findById(db, userId);
   if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const form = await request.formData();
+  const csrfError = await assertCsrf(form, sessionHash, encryptionKey);
+  if (csrfError) return csrfError;
   const isRegenerate = form.get("regenerate") === "1";
 
   const existingPending = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
@@ -76,12 +77,17 @@ export async function handleGenerateMcpToken(request: Request, env: Env): Promis
 
 export async function handleMcpDone(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const session = await resolveSessionWithHash(request, env, encryptionKey);
+  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId, sessionHash } = session;
 
   const db = createDb(env.DB);
   const user = await usersRepo.findById(db, userId);
   if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
+
+  const form = await request.formData();
+  const csrfError = await assertCsrf(form, sessionHash, encryptionKey);
+  if (csrfError) return csrfError;
 
   const encrypted = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
   if (encrypted) {

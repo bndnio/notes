@@ -1,6 +1,6 @@
 import emailModalHtml from "../../templates/email-modal.html";
 import emailScriptHtml from "../../templates/email-script.html";
-import { resolveSession } from "../../lib/auth";
+import { resolveSessionWithHash, assertCsrf } from "../../lib/auth";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
@@ -13,6 +13,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function buildEmailModal(
   emails: Array<{ email: string }>,
   requireSenderMatch: boolean,
+  csrfField: string,
 ): string {
   const emailList = emails
     .map((e, i) => {
@@ -30,6 +31,7 @@ function buildEmailModal(
   return renderTemplate(emailModalHtml, {
     emailList,
     requireSenderMatchChecked: requireSenderMatch ? "checked" : "",
+    csrfField,
   });
 }
 
@@ -37,6 +39,7 @@ export async function buildEmailSection(
   profile: Profile,
   userId: string,
   env: Env,
+  csrfField: string,
 ): Promise<{ card: string; modal: string; script: string }> {
   const db = createDb(env.DB);
   const emails = await userEmailsRepo.findAllByUserId(db, userId);
@@ -56,21 +59,24 @@ export async function buildEmailSection(
       description,
       action: `<button class="btn" onclick="openEmailModal()">Manage →</button>`,
     }),
-    modal: buildEmailModal(emails, requireSenderMatch),
+    modal: buildEmailModal(emails, requireSenderMatch, csrfField),
     script: emailScriptHtml,
   };
 }
 
 export async function handleEmailSettingsSave(request: Request, env: Env): Promise<Response> {
   const encryptionKey = await env.ENCRYPTION_KEY.get();
-  const userId = await resolveSession(request, env, encryptionKey);
-  if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const session = await resolveSessionWithHash(request, env, encryptionKey);
+  if (!session) return Response.redirect(`${env.APP_URL}/login`, 302);
+  const { userId, sessionHash } = session;
 
   const db = createDb(env.DB);
   const user = await usersRepo.findById(db, userId);
   if (!user) return Response.redirect(`${env.APP_URL}/login`, 302);
 
   const form = await request.formData();
+  const csrfError = await assertCsrf(form, sessionHash, encryptionKey);
+  if (csrfError) return csrfError;
   const submitted = (form.getAll("email") as string[])
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
