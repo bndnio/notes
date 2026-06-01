@@ -11,6 +11,7 @@ export function generatePin(): string {
 
   while (pin.length < 6) {
     const byte = crypto.getRandomValues(new Uint8Array(1))[0];
+    // 250 is the largest multiple of 10 below 256; rejecting 250-255 avoids modulo bias.
     if (byte < 250) pin += String(byte % 10);
   }
 
