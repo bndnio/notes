@@ -1,4 +1,12 @@
 <script>
+  function confirmResetMcp() {
+    return confirm(
+      "Reset your MCP token?\n\n" +
+      "Your current token will stop working immediately. Claude Code and any other MCP clients using it will lose access until you complete setup again.\n\n" +
+      "After resetting, you'll generate a new token and need to update NOTES_MCP_TOKEN in your shell."
+    );
+  }
+
   function openMcpModal() {
     document.getElementById('mcp-modal-overlay').classList.add('modal-overlay--visible');
   }

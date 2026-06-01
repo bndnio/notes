@@ -4,7 +4,7 @@ import { handleLogin } from "./login";
 import { handleLogout } from "./logout";
 import { handleVerify } from "./verify";
 import { handleProfile } from "./profile";
-import { handleGenerateMcpToken, handleMcpDone } from "./setup-mcp";
+import { handleGenerateMcpToken, handleMcpDone, handleResetMcpToken } from "./setup-mcp";
 import { handleEmailSettingsSave } from "./email-settings";
 import { handleIntegration } from "./integration/index";
 import { html, renderTemplate, pageVars, text } from "../../lib/responses";
@@ -24,6 +24,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname.startsWith("/verify")) return handleVerify(request, env);
     if (pathname === "/profile") return handleProfile(request, env);
     if (pathname === "/setup-mcp/generate" && request.method === "POST") return handleGenerateMcpToken(request, env);
+    if (pathname === "/setup-mcp/reset" && request.method === "POST") return handleResetMcpToken(request, env);
     if (pathname === "/setup-mcp/done" && request.method === "POST") return handleMcpDone(request, env);
     if (pathname === "/settings/email" && request.method === "POST") return handleEmailSettingsSave(request, env);
     if (pathname.startsWith("/integration")) return handleIntegration(request, env);

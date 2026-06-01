@@ -37,12 +37,19 @@ export async function buildMcpSection(
 
   const modal = renderTemplate(mcpSetupModalHtml, { tokenSection, actionSection, appUrl: env.APP_URL });
 
+  const cardAction = profile.mcpTokenHash
+    ? `<div class="btn-row">
+        <button type="button" class="btn btn--red" disabled>Setup →</button>
+        <form class="form-inline" method="POST" action="/setup-mcp/reset" onsubmit="return confirmResetMcp()">${csrfField}<button type="submit" class="btn btn--ghost btn--sm">Reset</button></form>
+       </div>`
+    : `<form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<button type="submit" class="btn btn--red">Setup →</button></form>`;
+
   const card = renderIntegrationCard({
     name: "MCP Server",
     badgeClass,
     badgeText,
     description: "Connect Notes to Claude Code as an AI tool.",
-    action: `<form class="form-inline" method="POST" action="/setup-mcp/generate">${csrfField}<button type="submit" class="btn btn--red">Setup →</button></form>`,
+    action: cardAction,
   });
 
   return { card, modal, script: mcpScriptHtml };
@@ -57,6 +64,11 @@ export async function handleGenerateMcpToken(request: Request, env: Env): Promis
 
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
+
+  if (user.mcpTokenHash) {
+    return Response.redirect(`${env.APP_URL}/profile?toast=Reset+your+MCP+token+before+setting+up+a+new+one`, 302);
+  }
+
   const isRegenerate = form.get("regenerate") === "1";
 
   const existingPending = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
@@ -93,4 +105,26 @@ export async function handleMcpDone(request: Request, env: Env): Promise<Respons
   }
 
   return Response.redirect(`${env.APP_URL}/profile?toast=MCP+server+configured`, 302);
+}
+
+export async function handleResetMcpToken(request: Request, env: Env): Promise<Response> {
+  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
+
+  const db = createDb(env.DB);
+  const user = await assertUser(db, userId, env.APP_URL);
+
+  const form = await request.formData();
+  await assertCsrf(form, sessionHash, encryptionKey);
+
+  if (!user.mcpTokenHash) {
+    return Response.redirect(`${env.APP_URL}/profile`, 302);
+  }
+
+  await Promise.all([
+    usersRepo.updateMcpTokenHash(db, userId, null),
+    env.EPHEMERAL_KV.delete(`mcp_token:${userId}`),
+  ]);
+
+  return Response.redirect(`${env.APP_URL}/profile?toast=MCP+token+reset.+Set+up+a+new+one+when+ready.`, 302);
 }
