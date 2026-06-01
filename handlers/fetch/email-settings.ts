@@ -1,23 +1,39 @@
 import emailModalHtml from "../../templates/email-modal.html";
 import emailScriptHtml from "../../templates/email-script.html";
-import { assertSession, assertUser, assertCsrf } from "../../lib/auth";
+import profileHtml from "../../templates/profile.html";
+import { assertSession, assertUser, assertCsrf, getCsrfToken } from "../../lib/auth";
 import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import * as usersRepo from "../../lib/db/repositories/users";
 import * as userEmailsRepo from "../../lib/db/repositories/user-emails";
-import { renderTemplate, renderIntegrationCard } from "../../lib/responses";
+import { html, renderTemplate, renderIntegrationCard, pageVars } from "../../lib/responses";
 import type { Env, Profile } from "../../lib/types";
+import { buildNotionSection } from "./integration/notion";
+import { buildMcpSection } from "./setup-mcp";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type EmailSectionOptions = {
+  emailValues?: string[];
+  modalRequireSenderMatch?: boolean;
+  error?: string;
+  open?: boolean;
+  primaryEmail?: string;
+};
 
 function buildEmailModal(
   emails: Array<{ email: string }>,
   requireSenderMatch: boolean,
   csrfField: string,
+  options: Pick<EmailSectionOptions, "error" | "open" | "primaryEmail"> = {},
 ): string {
+  let primaryRendered = false;
   const emailList = emails
     .map((e, i) => {
-      const isPrimary = i === 0;
+      const isPrimary = options.primaryEmail
+        ? !primaryRendered && e.email.trim().toLowerCase() === options.primaryEmail
+        : i === 0;
+      if (isPrimary) primaryRendered = true;
       const input = isPrimary
         ? `<input type="email" name="email" value="${escHtml(e.email)}" readonly>`
         : `<input type="email" name="email" value="${escHtml(e.email)}" required>`;
@@ -32,6 +48,8 @@ function buildEmailModal(
     emailList,
     requireSenderMatchChecked: requireSenderMatch ? "checked" : "",
     csrfField,
+    error: escHtml(options.error ?? ""),
+    modalVisibleClass: options.open ? " modal-overlay--visible" : "",
   });
 }
 
@@ -40,10 +58,13 @@ export async function buildEmailSection(
   userId: string,
   env: Env,
   csrfField: string,
+  options: EmailSectionOptions = {},
 ): Promise<{ card: string; modal: string; script: string }> {
-  const db = createDb(env.DB);
-  const emails = await userEmailsRepo.findAllByUserId(db, userId);
+  const emails = options.emailValues
+    ? options.emailValues.map((email) => ({ email }))
+    : await userEmailsRepo.findAllByUserId(createDb(env.DB), userId);
   const { requireSenderMatch } = profile;
+  const modalRequireSenderMatch = options.modalRequireSenderMatch ?? requireSenderMatch;
 
   const badgeClass = requireSenderMatch ? "status-badge--connected" : "status-badge--none";
   const badgeText = requireSenderMatch ? "Restricted" : "Open";
@@ -59,9 +80,55 @@ export async function buildEmailSection(
       description,
       action: `<button class="btn btn--ghost" onclick="openEmailModal()">Manage →</button>`,
     }),
-    modal: buildEmailModal(emails, requireSenderMatch, csrfField),
+    modal: buildEmailModal(emails, modalRequireSenderMatch, csrfField, options),
     script: emailScriptHtml,
   };
+}
+
+async function renderEmailSettingsError(
+  env: Env,
+  profile: Profile,
+  userId: string,
+  sessionHash: string,
+  encryptionKey: string,
+  submittedEmailValues: string[],
+  requireSenderMatch: boolean,
+  primaryEmail: string | undefined,
+  error: string,
+): Promise<Response> {
+  const { username } = profile;
+  const emailAddress = `u_${username}@${env.EMAIL_DOMAIN}`;
+  const csrfToken = await getCsrfToken(sessionHash, encryptionKey);
+  const csrfField = `<input type="hidden" name="_csrf" value="${csrfToken}">`;
+  const emailValues = submittedEmailValues.length > 0 ? submittedEmailValues : [""];
+
+  const [
+    { card: notionCard, modal: notionModal, script: notionScript },
+    { card: mcpCard, modal: mcpModal, script: mcpScript },
+    { card: emailCard, modal: emailModal, script: emailScript },
+  ] = await Promise.all([
+    buildNotionSection(profile, userId, env, csrfField),
+    buildMcpSection(profile, userId, env, encryptionKey, csrfField),
+    buildEmailSection(profile, userId, env, csrfField, {
+      emailValues,
+      modalRequireSenderMatch: requireSenderMatch,
+      error,
+      open: true,
+      primaryEmail,
+    }),
+  ]);
+
+  return html(
+    renderTemplate(profileHtml, pageVars({
+      toast: "",
+      csrfField,
+      notionModal, notionCard, notionScript,
+      mcpModal, mcpCard, mcpScript,
+      emailModal, emailCard, emailScript,
+      username,
+      emailAddress,
+    })),
+  );
 }
 
 export async function handleEmailSettingsSave(request: Request, env: Env): Promise<Response> {
@@ -73,27 +140,70 @@ export async function handleEmailSettingsSave(request: Request, env: Env): Promi
 
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
-  const submitted = (form.getAll("email") as string[])
+  const submittedEmailValues = form
+    .getAll("email")
+    .map((value) => (typeof value === "string" ? value : ""));
+  const submitted = submittedEmailValues
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   const requireSenderMatch = form.get("requireSenderMatch") === "1";
+  const currentEmails = await userEmailsRepo.findAllByUserId(db, userId);
+  const primaryEmail = currentEmails[0]?.email;
 
   if (submitted.length === 0) {
-    return Response.redirect(`${env.APP_URL}/profile?toast=At+least+one+email+is+required`, 302);
+    return renderEmailSettingsError(
+      env,
+      user,
+      userId,
+      sessionHash,
+      encryptionKey,
+      submittedEmailValues,
+      requireSenderMatch,
+      primaryEmail,
+      "At least one email is required.",
+    );
   }
 
   if (!submitted.every((e) => EMAIL_RE.test(e))) {
-    return Response.redirect(`${env.APP_URL}/profile?toast=Invalid+email+address`, 302);
+    return renderEmailSettingsError(
+      env,
+      user,
+      userId,
+      sessionHash,
+      encryptionKey,
+      submittedEmailValues,
+      requireSenderMatch,
+      primaryEmail,
+      "Invalid email address.",
+    );
   }
 
   if (new Set(submitted).size !== submitted.length) {
-    return Response.redirect(`${env.APP_URL}/profile?toast=Duplicate+email+addresses`, 302);
+    return renderEmailSettingsError(
+      env,
+      user,
+      userId,
+      sessionHash,
+      encryptionKey,
+      submittedEmailValues,
+      requireSenderMatch,
+      primaryEmail,
+      "Duplicate email addresses.",
+    );
   }
 
-  const currentEmails = await userEmailsRepo.findAllByUserId(db, userId);
-  const primaryEmail = currentEmails[0]?.email;
   if (primaryEmail && !submitted.includes(primaryEmail)) {
-    return Response.redirect(`${env.APP_URL}/profile?toast=Cannot+remove+primary+email`, 302);
+    return renderEmailSettingsError(
+      env,
+      user,
+      userId,
+      sessionHash,
+      encryptionKey,
+      submittedEmailValues,
+      requireSenderMatch,
+      primaryEmail,
+      "Cannot remove primary email.",
+    );
   }
 
   await Promise.all([
