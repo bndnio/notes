@@ -7,8 +7,15 @@ const PIN_SEND_EMAIL_LIMIT = 5;
 const PIN_SEND_IP_LIMIT = 10;
 
 export function generatePin(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(6));
-  return Array.from(bytes, (b) => b % 10).join("");
+  let pin = "";
+
+  while (pin.length < 6) {
+    const byte = crypto.getRandomValues(new Uint8Array(1))[0];
+    // 250 is the largest multiple of 10 below 256; rejecting 250-255 avoids modulo bias.
+    if (byte < 250) pin += String(byte % 10);
+  }
+
+  return pin;
 }
 
 async function checkAndIncrementSendCount(key: string, limit: number, env: Env): Promise<boolean> {
