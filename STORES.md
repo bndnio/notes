@@ -109,7 +109,6 @@ Production defaults are in `wrangler.toml` `[vars]`. Local dev overrides the sam
 |-----|------------------------------|-------------------------|
 | `EMAIL_DOMAIN` | `notes.bndn.io` | (omit — uses toml default) |
 | `APP_URL` | `https://notes.bndn.io` | `https://localhost:8787` |
-| `DISPLAY_PIN_IN_CONSOLE` | `"false"` | `true` |
 | `NOTION_CLIENT_ID` | `364d872b-594c-81b2-ab69-0037727845d4` | your dev OAuth client id |
 
 ### Local development

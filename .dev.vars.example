@@ -3,7 +3,6 @@
 # matching keys in wrangler.toml [vars].
 
 APP_URL=https://localhost:8787
-DISPLAY_PIN_IN_CONSOLE=true
 
 NOTION_CLIENT_ID=your-notion-oauth-client-id
 

@@ -8,12 +8,6 @@ const PIN_SEND_EMAIL_LIMIT = 5;
 const PIN_SEND_IP_LIMIT = 10;
 const PIN_VERIFY_ATTEMPT_LIMIT = 5;
 
-export function displayPinInConsole(env: Env): boolean {
-  const value = env.DISPLAY_PIN_IN_CONSOLE;
-  if (typeof value === "boolean") return value;
-  return String(value ?? "").toLowerCase() === "true";
-}
-
 export function generatePin(): string {
   let pin = "";
 
@@ -96,8 +90,8 @@ export async function consumePin(
 }
 
 export async function sendPin(to: string, pin: string, env: Env): Promise<void> {
-  if (displayPinInConsole(env)) {
-    console.warn("PIN logged to console instead of email (local dev). Set DISPLAY_PIN_IN_CONSOLE=false to send via Resend.");
+  if (isLocalDev(env)) {
+    console.warn("PIN logged to console instead of email (local dev)")
     console.log(`[dev] PIN for ${to}: ${pin}`);
     return;
   }

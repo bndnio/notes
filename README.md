@@ -50,7 +50,7 @@ bun run dev
 
 Open https://localhost:8787 (accept the browser warning for wrangler’s local certificate). Register a new account or log in with a user that exists in **local** D1 (local data starts empty and is separate from production).
 
-Login/register PINs are logged in the **terminal running wrangler**, not the browser console, when `DISPLAY_PIN_IN_CONSOLE=true` in `.dev.vars`.
+Login/register PINs are logged in the **terminal running wrangler**, not the browser console, when `APP_URL` points at localhost (local dev).
 
 ### What works differently locally
 

@@ -483,7 +483,7 @@ $ bunx wrangler secret put SEC_ENCRYPTION_KEY
 
 Local dev config (secrets **and** non-secret overrides) belongs in `.dev.vars`. Wrangler loads it automatically during `wrangler dev`. Do not split local config across inline `--var` flags, custom wrapper scripts, or duplicate entries scattered in `package.json`.
 
-**Why:** We migrated from Secrets Store to worker secrets and added `[secrets] required` in `wrangler.toml`. That silently stopped Wrangler from loading non-secret keys (`APP_URL`, `DISPLAY_PIN_IN_CONSOLE`, `NOTION_CLIENT_ID`) from `.dev.vars`, so production `[vars]` won locally. Fixes that inlined vars in `package.json` or parsed `.dev.vars` in a custom `scripts/dev.ts` worked but fought the tool instead of using it.
+**Why:** We migrated from Secrets Store to worker secrets and added `[secrets] required` in `wrangler.toml`. That silently stopped Wrangler from loading non-secret keys (`APP_URL`, `NOTION_CLIENT_ID`, etc.) from `.dev.vars`, so production `[vars]` won locally. Fixes that inlined vars in `package.json` or parsed `.dev.vars` in a custom `scripts/dev.ts` worked but fought the tool instead of using it.
 
 **Don't** — filter `.dev.vars` with `[secrets] required` and patch around it:
 ```toml
@@ -494,7 +494,7 @@ required = ["SEC_ENCRYPTION_KEY", "SEC_RESEND_API_KEY", "SEC_NOTION_CLIENT_SECRE
 ```
 ```json
 // package.json — unmaintainable; grows with every local override
-"dev": "wrangler dev --var APP_URL:https://localhost:8787 --var DISPLAY_PIN_IN_CONSOLE:true ..."
+"dev": "wrangler dev --var APP_URL:https://localhost:8787 --var NOTION_CLIENT_ID:..."
 ```
 ```ts
 // scripts/dev.ts — reimplements what Wrangler already does
@@ -508,13 +508,11 @@ for (const [key, value] of Object.entries(parseDevVars(".dev.vars"))) {
 # wrangler.toml — production defaults only
 [vars]
 APP_URL = "https://notes.bndn.io"
-DISPLAY_PIN_IN_CONSOLE = "false"
 NOTION_CLIENT_ID = "364d872b-594c-81b2-ab69-0037727845d4"
 ```
 ```
 # .dev.vars — gitignored; overrides [vars] locally
 APP_URL=https://localhost:8787
-DISPLAY_PIN_IN_CONSOLE=true
 NOTION_CLIENT_ID=your-dev-oauth-client-id
 SEC_ENCRYPTION_KEY=...
 SEC_RESEND_API_KEY=dev-unused
@@ -556,6 +554,18 @@ await sendEmail(env.SEC_RESEND_API_KEY, ...);
 ```
 
 Set production secrets with the `secret-*` npm scripts (`wrangler secret put SEC_*`). Local values go in `.dev.vars` under the same names.
+
+### Use `isLocalDev(env)` for local-only behaviour
+
+`lib/env.ts` exports `isLocalDev(env)` — true when `APP_URL` hostname is `localhost` or `127.0.0.1`. Use it for dev-only shortcuts (PIN logged to wrangler terminal instead of Resend, rate limits disabled). Do not add separate env vars like `DISPLAY_PIN_IN_CONSOLE` for behaviour that already follows from running locally.
+
+```ts
+// lib/pin.ts
+if (isLocalDev(env)) {
+  console.log(`[dev] PIN for ${to}: ${pin}`);
+  return;
+}
+```
 
 ### Local Notion OAuth requires HTTPS
 
