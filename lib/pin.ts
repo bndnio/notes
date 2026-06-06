@@ -1,3 +1,4 @@
+import { isLocalDev } from "./env";
 import { sendEmail } from "./resend";
 import type { Env } from "./types";
 
@@ -5,6 +6,7 @@ const PIN_TTL = 600; // 10 minutes
 const PIN_SEND_WINDOW = 3600; // 1 hour
 const PIN_SEND_EMAIL_LIMIT = 5;
 const PIN_SEND_IP_LIMIT = 10;
+const PIN_VERIFY_ATTEMPT_LIMIT = 5;
 
 export function displayPinInConsole(env: Env): boolean {
   const value = env.DISPLAY_PIN_IN_CONSOLE;
@@ -25,11 +27,26 @@ export function generatePin(): string {
 }
 
 async function checkAndIncrementSendCount(key: string, limit: number, env: Env): Promise<boolean> {
+  if (isLocalDev(env)) return true;
   const raw = await env.EPHEMERAL_KV.get(key);
   const count = parseInt(raw ?? "0", 10);
   if (count >= limit) return false;
   await env.EPHEMERAL_KV.put(key, String(count + 1), { expirationTtl: PIN_SEND_WINDOW });
   return true;
+}
+
+function isPinVerifyLocked(attempts: number, env: Env): boolean {
+  if (isLocalDev(env)) return false;
+  return attempts >= PIN_VERIFY_ATTEMPT_LIMIT;
+}
+
+async function recordPinVerifyAttempt(
+  attemptsKey: string,
+  attempts: number,
+  env: Env,
+): Promise<void> {
+  if (isLocalDev(env)) return;
+  await env.EPHEMERAL_KV.put(attemptsKey, String(attempts + 1), { expirationTtl: PIN_TTL });
 }
 
 export async function checkEmailPinSendRate(email: string, env: Env): Promise<boolean> {
@@ -63,11 +80,11 @@ export async function consumePin(
   if (!raw) return null;
 
   const attempts = parseInt(attemptsRaw ?? "0", 10);
-  if (attempts >= 5) return "locked";
+  if (isPinVerifyLocked(attempts, env)) return "locked";
 
   const data = JSON.parse(raw) as Record<string, unknown>;
   if (data.pin !== pin) {
-    await env.EPHEMERAL_KV.put(attemptsKey, String(attempts + 1), { expirationTtl: PIN_TTL });
+    await recordPinVerifyAttempt(attemptsKey, attempts, env);
     return null;
   }
 
