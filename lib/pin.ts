@@ -6,6 +6,12 @@ const PIN_SEND_WINDOW = 3600; // 1 hour
 const PIN_SEND_EMAIL_LIMIT = 5;
 const PIN_SEND_IP_LIMIT = 10;
 
+export function displayPinInConsole(env: Env): boolean {
+  const value = env.DISPLAY_PIN_IN_CONSOLE;
+  if (typeof value === "boolean") return value;
+  return String(value ?? "").toLowerCase() === "true";
+}
+
 export function generatePin(): string {
   let pin = "";
 
@@ -73,5 +79,10 @@ export async function consumePin(
 }
 
 export async function sendPin(to: string, pin: string, env: Env): Promise<void> {
+  if (displayPinInConsole(env)) {
+    console.warn("PIN logged to console instead of email (local dev). Set DISPLAY_PIN_IN_CONSOLE=false to send via Resend.");
+    console.log(`[dev] PIN for ${to}: ${pin}`);
+    return;
+  }
   await sendEmail(to, "Your verification PIN", `Your PIN is: ${pin}\n\nThis PIN expires in 10 minutes.`, env);
 }

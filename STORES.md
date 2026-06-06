@@ -105,4 +105,5 @@ Short-lived state. All entries expire automatically.
 |-----|-------|
 | `EMAIL_DOMAIN` | `notes.bndn.io` |
 | `APP_URL` | `https://notes.bndn.io` |
+| `DISPLAY_PIN_IN_CONSOLE` | `"false"` in production. Local dev logs PINs when this is `true`. |
 | `NOTION_CLIENT_ID` | `364d872b-594c-81b2-ab69-0037727845d4` |

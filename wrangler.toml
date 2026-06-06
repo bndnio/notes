@@ -85,4 +85,5 @@ secret_name = "NOTION_CLIENT_SECRET"
 [vars]
 EMAIL_DOMAIN = "notes.bndn.io"
 APP_URL = "https://notes.bndn.io"
+DISPLAY_PIN_IN_CONSOLE = "false"
 NOTION_CLIENT_ID = "364d872b-594c-81b2-ab69-0037727845d4"

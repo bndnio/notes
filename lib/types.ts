@@ -24,6 +24,7 @@ export interface Env {
   NOTION_CLIENT_ID: string;
   EMAIL_DOMAIN: string;
   APP_URL: string;
+  DISPLAY_PIN_IN_CONSOLE: string | boolean;
 }
 
 export interface ParsedEmail {
