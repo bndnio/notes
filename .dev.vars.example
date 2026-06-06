@@ -1,5 +1,6 @@
 # Copy to .dev.vars for local development (gitignored).
-# Wrangler loads these automatically during `wrangler dev`.
+# Wrangler loads all keys from this file during `wrangler dev`; values override
+# matching keys in wrangler.toml [vars].
 
 APP_URL=https://localhost:8787
 DISPLAY_PIN_IN_CONSOLE=true

@@ -25,7 +25,7 @@ All notes are saved to R2 as `.md` and posted to a Notion database. Email notes 
 | D1 (`DB`) | SQLite under `.wrangler/` |
 | KV (all namespaces) | Local KV under `.wrangler/` |
 | R2 (`NOTES_BUCKET`) | Local R2 under `.wrangler/` |
-| Secrets | Loaded from `.dev.vars` |
+| Vars & secrets | Loaded from `.dev.vars` (overrides `wrangler.toml` `[vars]`) |
 | Static assets | Served from `./assets` |
 
 That is enough to run the web app locally, but a few **one-time** steps are still required before register/login/profile will work.
@@ -38,7 +38,7 @@ cp .dev.vars.example .dev.vars
 bunx wrangler d1 migrations apply bndnio-notes --local
 ```
 
-**`.dev.vars`** — gitignored local config. Wrangler loads it automatically during `wrangler dev`. Set `APP_URL=http://localhost:8787`, run `bun run gen-key` for `SEC_ENCRYPTION_KEY`, and use dummy values for `SEC_RESEND_API_KEY` / `SEC_NOTION_CLIENT_SECRET` if unused locally.
+**`.dev.vars`** — gitignored local config. Wrangler loads it automatically during `wrangler dev`. Keys here override matching `[vars]` in `wrangler.toml`. Set `APP_URL=https://localhost:8787`, run `bun run gen-key` for `SEC_ENCRYPTION_KEY`, and use dummy values for `SEC_RESEND_API_KEY` / `SEC_NOTION_CLIENT_SECRET` if unused locally.
 
 **D1 migrations** — not applied automatically by `wrangler dev`. Run the command above once (and again after new migrations land).
 

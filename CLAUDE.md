@@ -474,3 +474,99 @@ $ bunx wrangler secret put SEC_ENCRYPTION_KEY
 - `bun run <script>` for package.json scripts; `bunx <bin>` for package binaries (e.g. `bunx wrangler`)
 - `bun add` for dependencies, not `npm install`
 - Wrangler v4+: `wrangler kv key delete` does not accept `--force`; non-interactive callers skip the prompt automatically. Pass the key as a positional via `spawnSync` (not shell interpolation) to avoid injection on keys containing special chars
+
+---
+
+## Local development & Wrangler secrets
+
+### `.dev.vars` is the local config file — load everything from it
+
+Local dev config (secrets **and** non-secret overrides) belongs in `.dev.vars`. Wrangler loads it automatically during `wrangler dev`. Do not split local config across inline `--var` flags, custom wrapper scripts, or duplicate entries scattered in `package.json`.
+
+**Why:** We migrated from Secrets Store to worker secrets and added `[secrets] required` in `wrangler.toml`. That silently stopped Wrangler from loading non-secret keys (`APP_URL`, `DISPLAY_PIN_IN_CONSOLE`, `NOTION_CLIENT_ID`) from `.dev.vars`, so production `[vars]` won locally. Fixes that inlined vars in `package.json` or parsed `.dev.vars` in a custom `scripts/dev.ts` worked but fought the tool instead of using it.
+
+**Don't** — filter `.dev.vars` with `[secrets] required` and patch around it:
+```toml
+# wrangler.toml
+[secrets]
+required = ["SEC_ENCRYPTION_KEY", "SEC_RESEND_API_KEY", "SEC_NOTION_CLIENT_SECRET"]
+# ↑ Wrangler now IGNORES every other key in .dev.vars during dev
+```
+```json
+// package.json — unmaintainable; grows with every local override
+"dev": "wrangler dev --var APP_URL:https://localhost:8787 --var DISPLAY_PIN_IN_CONSOLE:true ..."
+```
+```ts
+// scripts/dev.ts — reimplements what Wrangler already does
+for (const [key, value] of Object.entries(parseDevVars(".dev.vars"))) {
+  if (!key.startsWith("SEC_")) wranglerArgs.push("--var", `${key}:${value}`);
+}
+```
+
+**Do** — omit `[secrets] required`, keep production defaults in `wrangler.toml` `[vars]`, and put all local overrides in `.dev.vars`:
+```toml
+# wrangler.toml — production defaults only
+[vars]
+APP_URL = "https://notes.bndn.io"
+DISPLAY_PIN_IN_CONSOLE = "false"
+NOTION_CLIENT_ID = "364d872b-594c-81b2-ab69-0037727845d4"
+```
+```
+# .dev.vars — gitignored; overrides [vars] locally
+APP_URL=https://localhost:8787
+DISPLAY_PIN_IN_CONSOLE=true
+NOTION_CLIENT_ID=your-dev-oauth-client-id
+SEC_ENCRYPTION_KEY=...
+SEC_RESEND_API_KEY=dev-unused
+SEC_NOTION_CLIENT_SECRET=...
+```
+```json
+"dev": "wrangler dev --local-protocol https"
+```
+
+Merge order during `wrangler dev`: `wrangler.toml` `[vars]` first, then `.dev.vars` overrides matching keys.
+
+### `[secrets] required` and full `.dev.vars` are mutually exclusive
+
+When `[secrets] required` is present, Wrangler **only** loads the listed names from `.dev.vars` (or `.env`). There is no `wrangler.toml` flag to keep deploy validation while also loading other keys from the file. You must choose one model:
+
+| Model | Local `.dev.vars` | Deploy guardrail |
+|-------|-------------------|------------------|
+| **No `[secrets] required`** (this repo) | All keys load; overrides `[vars]` | CI runs `wrangler secret list` before deploy |
+| **`[secrets] required` present** | Only listed `SEC_*` keys load | `wrangler deploy` fails if secrets missing |
+
+Do not reintroduce `[secrets] required` unless you accept that non-secret local config must live elsewhere (e.g. duplicated `[env.*.vars]` bindings, or inline `--var` flags).
+
+### Worker secrets use the `SEC_` prefix
+
+Production worker secrets are `SEC_ENCRYPTION_KEY`, `SEC_RESEND_API_KEY`, and `SEC_NOTION_CLIENT_SECRET`. Access them as plain `env.SEC_*` strings — not Secrets Store bindings, not unprefixed names.
+
+**Why:** Legacy Secrets Store bindings (`ENCRYPTION_KEY`, `RESEND_API_KEY`, `NOTION_CLIENT_SECRET`) still existed on deployed worker versions. `wrangler secret put` on the old names failed with binding-already-in-use (code 10053). The `SEC_` prefix avoids collision with those legacy bindings.
+
+**Don't** — reference unprefixed secret names or call `.get()` on a Secrets Store binding:
+```ts
+const key = await env.ENCRYPTION_KEY.get();
+await env.RESEND_API_KEY.get();
+```
+
+**Do** — read worker secrets directly from `env`:
+```ts
+const key = env.SEC_ENCRYPTION_KEY;
+await sendEmail(env.SEC_RESEND_API_KEY, ...);
+```
+
+Set production secrets with the `secret-*` npm scripts (`wrangler secret put SEC_*`). Local values go in `.dev.vars` under the same names.
+
+### Local Notion OAuth requires HTTPS
+
+`bun run dev` uses `--local-protocol https` → **https://localhost:8787**. Notion redirect URIs must match exactly. `APP_URL` in `.dev.vars` must be `https://localhost:8787`, and that callback URL must be registered in the Notion integration settings.
+
+Token exchange `invalid_client` locally usually means `SEC_NOTION_CLIENT_SECRET` in `.dev.vars` doesn't match the `NOTION_CLIENT_ID` (and redirect URI) in use — not a stale Secrets Store entry (that path is gone).
+
+### Deploy guardrails live in CI, not `[secrets] required`
+
+Without `[secrets] required`, `wrangler deploy` does not fail fast on missing secrets. `.github/workflows/deploy.yml` verifies all three `SEC_*` secrets exist via `wrangler secret list` before deploying. Do not remove that step if `[secrets] required` stays absent from `wrangler.toml`.
+
+When changing secret names or **adding a new `SEC_*` variable**, update every place that enumerates required secrets — including the `for key in ...` loop in `.github/workflows/deploy.yml`. That CI list is the deploy guardrail; if you add `SEC_FOO` to the codebase but not to the workflow, deploy will succeed without it.
+
+Also update: `lib/types.ts`, `.dev.vars.example`, `STORES.md`, and the `secret-*` scripts in `package.json`.

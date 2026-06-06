@@ -65,11 +65,8 @@ id = "9bb4ca36b284453b8899d8068f30837d"
 binding = "EPHEMERAL_KV"
 id = "da30844449de47bbb874342583c9c485"
 
-# ── Secrets (worker-level; local dev loads from .dev.vars) ────────────────────
-[secrets]
-required = ["SEC_ENCRYPTION_KEY", "SEC_RESEND_API_KEY", "SEC_NOTION_CLIENT_SECRET"]
 
-# ── Vars ──────────────────────────────────────────────────────────────────────
+# ── Vars (production defaults; local dev overrides in .dev.vars) ──────────────
 [vars]
 EMAIL_DOMAIN = "notes.bndn.io"
 APP_URL = "https://notes.bndn.io"

@@ -11,6 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify worker secrets
+        run: |
+          for key in SEC_ENCRYPTION_KEY SEC_RESEND_API_KEY SEC_NOTION_CLIENT_SECRET; do
+            bunx wrangler secret list | grep -q "$key" || { echo "Missing worker secret: $key"; exit 1; }
+          done
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy
         run: bunx wrangler deploy
         env:

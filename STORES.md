@@ -103,13 +103,15 @@ Set on the deployed worker via `wrangler secret put` (or the `secret-*` npm scri
 
 ## Plain Vars
 
-| Var | Value |
-|-----|-------|
-| `EMAIL_DOMAIN` | `notes.bndn.io` |
-| `APP_URL` | `https://notes.bndn.io` |
-| `DISPLAY_PIN_IN_CONSOLE` | `"false"` in production. Local dev logs PINs when this is `true`. |
-| `NOTION_CLIENT_ID` | `364d872b-594c-81b2-ab69-0037727845d4` |
+Production defaults are in `wrangler.toml` `[vars]`. Local dev overrides the same keys in `.dev.vars`.
+
+| Var | Production (`wrangler.toml`) | Local dev (`.dev.vars`) |
+|-----|------------------------------|-------------------------|
+| `EMAIL_DOMAIN` | `notes.bndn.io` | (omit — uses toml default) |
+| `APP_URL` | `https://notes.bndn.io` | `https://localhost:8787` |
+| `DISPLAY_PIN_IN_CONSOLE` | `"false"` | `true` |
+| `NOTION_CLIENT_ID` | `364d872b-594c-81b2-ab69-0037727845d4` | your dev OAuth client id |
 
 ### Local development
 
-Copy `.dev.vars.example` to `.dev.vars`. Wrangler loads secrets from there during `wrangler dev` — no separate sync step.
+Copy `.dev.vars.example` to `.dev.vars`. Wrangler loads all keys from there during `wrangler dev` — no separate sync step.
