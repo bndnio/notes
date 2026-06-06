@@ -7,10 +7,9 @@ import { handleProfile } from "./profile";
 import { handleGenerateMcpToken, handleMcpDone, handleResetMcpToken } from "./setup-mcp";
 import { handleEmailSettingsSave } from "./email-settings";
 import { handleIntegration } from "./integration/index";
-import { html, renderTemplate, pageVars, text } from "../../lib/responses";
+import { handleHttpErrorResponse, html, renderTemplate, pageVars, text } from "../../lib/responses";
 import indexHtml from "../../templates/index.html";
 import installMcpScript from "../../templates/install-mcp.txt";
-import { HttpError } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 
 export async function handleFetch(request: Request, env: Env): Promise<Response> {
@@ -31,7 +30,8 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname === "/install-mcp/claude-code") return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
     return new Response("Not found", { status: 404 });
   } catch (e) {
-    if (e instanceof HttpError) return e.response;
+    const response = handleHttpErrorResponse(e);
+    if (response) return response;
     throw e;
   }
 }

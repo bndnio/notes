@@ -1,8 +1,17 @@
 import betaBannerHtml from "../templates/beta-banner.html";
 import integrationCardHtml from "../templates/integration-card.html";
 
-export class HttpError {
-  constructor(public readonly response: Response) {}
+export class HttpError extends Error {
+  constructor(public readonly response: Response) {
+    super(response.status === 302 ? "Redirect" : `HTTP ${response.status}`);
+    this.name = "HttpError";
+  }
+}
+
+export function handleHttpErrorResponse(error: unknown): Response | null {
+  if (error instanceof HttpError) return error.response;
+  if (error instanceof Response) return error;
+  return null;
 }
 
 export function renderTemplate(template: string, vars: Record<string, string>): string {
