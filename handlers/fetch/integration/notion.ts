@@ -2,14 +2,18 @@ import notionRelayHtml from "../../../templates/notion-relay.html";
 import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
 import notionScriptHtml from "../../../templates/notion-script.html";
 import { resolveSession, assertSession, assertUser, assertCsrf } from "../../../lib/auth";
-import { encrypt, generateRandomHex } from "../../../lib/crypto";
+import { decrypt, encrypt, generateRandomHex } from "../../../lib/crypto";
 import { escHtml } from "../../../lib/html";
 import { html, renderTemplate, renderIntegrationCard } from "../../../lib/responses";
 import type { Env, Profile } from "../../../lib/types";
 import { createDb } from "../../../lib/db";
-import { completeNotionSetup, listDatabases, type NotionDatabase } from "./notion-helpers";
+import { completeNotionSetup, listDatabases, validateNotionDatabaseSchema, type NotionDatabase } from "./notion-helpers";
 
-function buildNotionModal(databases: Array<{ id: string; title: string }>, csrfField: string): string {
+function buildNotionModal(
+  databases: Array<{ id: string; title: string }>,
+  csrfField: string,
+  schemaError?: string | null,
+): string {
   const databaseOptions = databases
     .map(
       (db) =>
@@ -18,7 +22,10 @@ function buildNotionModal(databases: Array<{ id: string; title: string }>, csrfF
         `${escHtml(db.title)}</label>`,
     )
     .join("\n");
-  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions, csrfField });
+  const schemaErrorSection = schemaError
+    ? `<div class="warning">${escHtml(schemaError).replace(/\n/g, "<br>")}</div>`
+    : "";
+  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions, csrfField, schemaError: schemaErrorSection });
 }
 
 export async function buildNotionSection(
@@ -47,6 +54,7 @@ export async function buildNotionSection(
   const databases = dbsJson ? (JSON.parse(dbsJson) as Array<{ id: string; title: string }>) : null;
 
   if (databases && databases.length > 0) {
+    const schemaError = await env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`);
     return {
       card: renderIntegrationCard({
         name: "Notion",
@@ -55,7 +63,7 @@ export async function buildNotionSection(
         description: "Notion is authorized — choose which database to save notes to.",
         action: `<button class="btn btn--red" onclick="openNotionModal()">Select database →</button>`,
       }),
-      modal: buildNotionModal(databases, csrfField),
+      modal: buildNotionModal(databases, csrfField, schemaError),
       script,
     };
   }
@@ -173,10 +181,18 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
     return new Response("Invalid database selection.", { status: 400 });
   }
 
+  const accessToken = await decrypt(encryptedToken, encryptionKey);
+  const validation = await validateNotionDatabaseSchema(accessToken, dbId);
+  if (!validation.ok) {
+    await env.EPHEMERAL_KV.put(`notion_schema_error:${userId}`, validation.message, { expirationTtl: 3600 });
+    return Response.redirect(`${env.APP_URL}/profile?modal=notion-select`, 302);
+  }
+
   await Promise.all([
     completeNotionSetup(userId, encryptedToken, dbId, env),
     env.EPHEMERAL_KV.delete(`notion_dbs:${userId}`),
     env.EPHEMERAL_KV.delete(`notion_token:${userId}`),
+    env.EPHEMERAL_KV.delete(`notion_schema_error:${userId}`),
   ]);
 
   return Response.redirect(`${env.APP_URL}/profile?toast=Notion+database+connected`, 302);

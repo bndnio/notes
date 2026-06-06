@@ -7,7 +7,8 @@
     <form method="POST" action="/integration/notion/select">
       {{csrfField}}
       <div class="modal-body">
-        <p class="subtitle">Select which Notion database to save notes to.</p>
+        <p class="subtitle">Your database needs <code>Name</code> (Title), <code>Date</code> (Date), and <code>From</code> (Text) properties.</p>
+        {{schemaError}}
         {{databases}}
       </div>
       <div class="modal-actions">
