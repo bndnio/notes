@@ -9,7 +9,7 @@ import { buildMcpSection } from "./setup-mcp";
 import { buildEmailSection } from "./email-settings";
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);

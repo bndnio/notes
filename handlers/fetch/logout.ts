@@ -6,7 +6,7 @@ export async function handleLogout(request: Request, env: Env): Promise<Response
     return new Response("Method not allowed", { status: 405 });
   }
 
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const session = await resolveSessionWithHash(request, env, encryptionKey);
   if (session) {
     const form = await request.formData();

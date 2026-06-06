@@ -38,7 +38,7 @@ cp .dev.vars.example .dev.vars
 bunx wrangler d1 migrations apply bndnio-notes --local
 ```
 
-**`.dev.vars`** — gitignored local config. Wrangler loads it automatically during `wrangler dev`. Set `APP_URL=http://localhost:8787`, run `bun run gen-key` for `ENCRYPTION_KEY`, and use dummy values for `RESEND_API_KEY` / `NOTION_CLIENT_SECRET` if unused locally.
+**`.dev.vars`** — gitignored local config. Wrangler loads it automatically during `wrangler dev`. Set `APP_URL=http://localhost:8787`, run `bun run gen-key` for `SEC_ENCRYPTION_KEY`, and use dummy values for `SEC_RESEND_API_KEY` / `SEC_NOTION_CLIENT_SECRET` if unused locally.
 
 **D1 migrations** — not applied automatically by `wrangler dev`. Run the command above once (and again after new migrations land).
 
@@ -164,7 +164,7 @@ This worker exposes a Remote MCP server at `/mcp` so AI agents (Claude Code, etc
 Register at `/profile` → **MCP Server** → **Setup**, or generate a token from the CLI:
 
 ```bash
-ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>
+SEC_ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>
 ```
 
 Add the token to your shell as `NOTES_MCP_TOKEN` and register with Claude Code — see the setup modal on `/profile` for the exact command.

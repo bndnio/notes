@@ -1,5 +1,5 @@
 // Add a new user: registers email → userId, stores profile, encrypts + stores Notion token, and generates an MCP token.
-// Usage: ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
+// Usage: SEC_ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
 
 import { encrypt, hmacToken } from "../lib/crypto";
 import { execSync } from "child_process";
@@ -29,13 +29,13 @@ async function generateUniqueUserId(): Promise<string> {
 const [, , email, username, notionDbId, notionToken] = process.argv;
 
 if (!email || !username || !notionDbId || !notionToken) {
-  console.error("Usage: ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>");
+  console.error("Usage: SEC_ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>");
   process.exit(1);
 }
 
-const encryptionKey = process.env.ENCRYPTION_KEY;
+const encryptionKey = process.env.SEC_ENCRYPTION_KEY;
 if (!encryptionKey) {
-  console.error("ENCRYPTION_KEY env var is required");
+  console.error("SEC_ENCRYPTION_KEY env var is required");
   process.exit(1);
 }
 

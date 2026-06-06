@@ -65,7 +65,7 @@ export async function buildEmailSection(
 }
 
 export async function handleEmailSettingsSave(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);

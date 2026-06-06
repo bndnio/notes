@@ -56,7 +56,7 @@ export async function buildMcpSection(
 }
 
 export async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
@@ -85,7 +85,7 @@ export async function handleGenerateMcpToken(request: Request, env: Env): Promis
 }
 
 export async function handleMcpDone(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
@@ -108,7 +108,7 @@ export async function handleMcpDone(request: Request, env: Env): Promise<Respons
 }
 
 export async function handleResetMcpToken(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);

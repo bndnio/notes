@@ -95,9 +95,9 @@ Set on the deployed worker via `wrangler secret put` (or the `secret-*` npm scri
 
 | Secret | Purpose |
 |---------|---------|
-| `ENCRYPTION_KEY` | Base64-encoded 256-bit key. Used for AES-GCM encrypt/decrypt (Notion tokens, MCP tokens) and HMAC-SHA256 (session hashes, MCP token hashes). |
-| `RESEND_API_KEY` | Resend API key for sending PIN emails. |
-| `NOTION_CLIENT_SECRET` | Notion OAuth app client secret. Used in the token exchange during OAuth callback. |
+| `SEC_ENCRYPTION_KEY` | Base64-encoded 256-bit key. Used for AES-GCM encrypt/decrypt (Notion tokens, MCP tokens) and HMAC-SHA256 (session hashes, MCP token hashes). |
+| `SEC_RESEND_API_KEY` | Resend API key for sending PIN emails. |
+| `SEC_NOTION_CLIENT_SECRET` | Notion OAuth app client secret. Used in the token exchange during OAuth callback. |
 
 ---
 

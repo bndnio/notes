@@ -6,6 +6,6 @@ DISPLAY_PIN_IN_CONSOLE=true
 
 NOTION_CLIENT_ID=your-notion-oauth-client-id
 
-ENCRYPTION_KEY=replace-with-output-of-bun-run-gen-key
-RESEND_API_KEY=dev-unused
-NOTION_CLIENT_SECRET=your-notion-oauth-client-secret
+SEC_ENCRYPTION_KEY=replace-with-output-of-bun-run-gen-key
+SEC_RESEND_API_KEY=dev-unused
+SEC_NOTION_CLIENT_SECRET=your-notion-oauth-client-secret

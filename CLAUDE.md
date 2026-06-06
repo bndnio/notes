@@ -193,7 +193,7 @@ async function handleSelectPost(request, env) {
 **Do** — use the assert helpers as the first lines of every handler:
 ```ts
 async function handleSelectPost(request, env) {
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
@@ -457,12 +457,12 @@ $ bun run secret-encryption-key
 
 **Do** — pipe directly without ever rendering the value:
 ```bash
-$ bun run gen-key | bunx wrangler secret put ENCRYPTION_KEY
+$ bun run gen-key | bunx wrangler secret put SEC_ENCRYPTION_KEY
 ```
 
 Or use the tool's interactive prompt (terminal does not echo):
 ```bash
-$ bunx wrangler secret put ENCRYPTION_KEY
+$ bunx wrangler secret put SEC_ENCRYPTION_KEY
 ? Enter the secret text: [hidden input]
 ```
 

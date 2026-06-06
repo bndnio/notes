@@ -18,9 +18,9 @@ export interface Env {
   PROFILE_KV: KVNamespace;
   NOTION_TOKEN_KV: KVNamespace;
   EPHEMERAL_KV: KVNamespace;
-  RESEND_API_KEY: string;
-  ENCRYPTION_KEY: string;
-  NOTION_CLIENT_SECRET: string;
+  SEC_RESEND_API_KEY: string;
+  SEC_ENCRYPTION_KEY: string;
+  SEC_NOTION_CLIENT_SECRET: string;
   NOTION_CLIENT_ID: string;
   EMAIL_DOMAIN: string;
   APP_URL: string;

@@ -7,7 +7,7 @@
 # First-time setup:
 #   1. Generate an encryption key:    bun run gen-key
 #   2. Set worker secrets:            bun run secret-encryption-key (and other secret-* scripts)
-#   3. Add a user (all-in-one):       ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
+#   3. Add a user (all-in-one):       SEC_ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
 #   4. Add more emails to a user:     bun run add-email <email> <username>
 
 name = "bndnio-notes"
@@ -67,7 +67,7 @@ id = "da30844449de47bbb874342583c9c485"
 
 # ── Secrets (worker-level; local dev loads from .dev.vars) ────────────────────
 [secrets]
-required = ["ENCRYPTION_KEY", "RESEND_API_KEY", "NOTION_CLIENT_SECRET"]
+required = ["SEC_ENCRYPTION_KEY", "SEC_RESEND_API_KEY", "SEC_NOTION_CLIENT_SECRET"]
 
 # ── Vars ──────────────────────────────────────────────────────────────────────
 [vars]

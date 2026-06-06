@@ -1,5 +1,5 @@
 // Generate a per-user MCP Bearer token and store its HMAC in MCP_TOKEN_KV.
-// Usage: ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>
+// Usage: SEC_ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>
 
 import { hmacToken } from "../lib/crypto";
 import { execSync } from "child_process";
@@ -10,13 +10,13 @@ const MCP_TOKEN_KV_ID = "dfae73f4893d406095ebb95b26e30563";
 const [, , username] = process.argv;
 
 if (!username) {
-  console.error("Usage: ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>");
+  console.error("Usage: SEC_ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>");
   process.exit(1);
 }
 
-const encryptionKey = process.env.ENCRYPTION_KEY;
+const encryptionKey = process.env.SEC_ENCRYPTION_KEY;
 if (!encryptionKey) {
-  console.error("ENCRYPTION_KEY env var is required");
+  console.error("SEC_ENCRYPTION_KEY env var is required");
   process.exit(1);
 }
 

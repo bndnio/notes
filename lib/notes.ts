@@ -43,7 +43,7 @@ export async function saveNote(input: SaveNoteInput, env: Env, profile: Profile)
 
   let notionWrite: Promise<unknown>;
   if (profile.notion) {
-    const encryptionKey = env.ENCRYPTION_KEY;
+    const encryptionKey = env.SEC_ENCRYPTION_KEY;
     const notionToken = await decrypt(profile.notion.accessTokenEncrypted, encryptionKey);
     notionWrite = postToNotion(note, notionToken, profile.notion.databaseId);
   } else {

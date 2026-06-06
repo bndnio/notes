@@ -54,7 +54,7 @@ export async function completeRegistration(
 
   const db = createDb(env.DB);
   const userId = generateRandomHex(6);
-  const encryptionKey = env.ENCRYPTION_KEY;
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const sessionToken = generateRandomHex(32);
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
   const now = Date.now();
