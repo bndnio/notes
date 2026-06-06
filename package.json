@@ -1,7 +1,7 @@
 {
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local-protocol https",
     "test": "bun test --env-file .env.test test/integration.test.ts",
     "typecheck": "tsc --noEmit",
     "logs": "wrangler tail",

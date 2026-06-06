@@ -18,7 +18,7 @@ All notes are saved to R2 as `.md` and posted to a Notion database. Email notes 
 
 ## Local development
 
-`bun run dev` runs `wrangler dev`, which starts a local Worker on **http://localhost:8787** and emulates your Cloudflare bindings from `wrangler.toml`:
+`bun run dev` runs `wrangler dev --local-protocol https`, which starts a local Worker on **https://localhost:8787** and emulates your Cloudflare bindings from `wrangler.toml`:
 
 | Binding | Local behavior |
 |---------|----------------|
@@ -48,7 +48,7 @@ bunx wrangler d1 migrations apply bndnio-notes --local
 bun run dev
 ```
 
-Open http://localhost:8787. Register a new account or log in with a user that exists in **local** D1 (local data starts empty and is separate from production).
+Open https://localhost:8787 (accept the browser warning for wrangler’s local certificate). Register a new account or log in with a user that exists in **local** D1 (local data starts empty and is separate from production).
 
 Login/register PINs are logged in the **terminal running wrangler**, not the browser console, when `DISPLAY_PIN_IN_CONSOLE=true` in `.dev.vars`.
 
@@ -56,7 +56,7 @@ Login/register PINs are logged in the **terminal running wrangler**, not the bro
 
 - **Inbound email** — Cloudflare Email Routing only hits the deployed worker, not localhost.
 - **Resend** — skipped when running on localhost; PINs go to the wrangler terminal instead.
-- **Notion OAuth** — add `http://localhost:8787/integration/notion/callback` as a redirect URI in your Notion integration settings if you test the connect flow locally.
+- **Notion OAuth** — Notion requires HTTPS redirect URIs. Add `https://localhost:8787/integration/notion/callback` in your Notion integration settings. `APP_URL` in `.dev.vars` must use the same origin.
 
 ### Local vs remote dev
 

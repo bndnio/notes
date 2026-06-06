@@ -1,7 +1,11 @@
 # Copy to .dev.vars for local development (gitignored).
+# Wrangler loads these automatically during `wrangler dev`.
 
-APP_URL=http://localhost:8787
+APP_URL=https://localhost:8787
+DISPLAY_PIN_IN_CONSOLE=true
+
+NOTION_CLIENT_ID=your-notion-oauth-client-id
 
 ENCRYPTION_KEY=replace-with-output-of-bun-run-gen-key
 RESEND_API_KEY=dev-unused
-NOTION_CLIENT_SECRET=dev-unused
+NOTION_CLIENT_SECRET=your-notion-oauth-client-secret
