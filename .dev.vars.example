@@ -1,0 +1,7 @@
+# Copy to .dev.vars for local development (gitignored).
+
+APP_URL=http://localhost:8787
+
+ENCRYPTION_KEY=replace-with-output-of-bun-run-gen-key
+RESEND_API_KEY=dev-unused
+NOTION_CLIENT_SECRET=dev-unused

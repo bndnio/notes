@@ -2,6 +2,7 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
+    "setup-dev": "bun run scripts/setup-dev-secrets.ts",
     "test": "bun test --env-file .env.test test/integration.test.ts",
     "typecheck": "tsc --noEmit",
     "logs": "wrangler tail",
