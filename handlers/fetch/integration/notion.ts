@@ -13,12 +13,13 @@ function buildNotionModal(
   databases: Array<{ id: string; title: string }>,
   csrfField: string,
   schemaError?: string | null,
+  selectedDbId?: string,
 ): string {
   const databaseOptions = databases
     .map(
       (db) =>
         `<label class="checkbox-label">` +
-        `<input type="radio" name="dbId" value="${escHtml(db.id)}" required> ` +
+        `<input type="radio" name="dbId" value="${escHtml(db.id)}" required${db.id === selectedDbId ? " checked" : ""}> ` +
         `${escHtml(db.title)}</label>`,
     )
     .join("\n");
@@ -26,6 +27,20 @@ function buildNotionModal(
     ? `<div class="warning">${escHtml(schemaError).replace(/\n/g, "<br>")}</div>`
     : "";
   return renderTemplate(notionSelectModalHtml, { databases: databaseOptions, csrfField, schemaError: schemaErrorSection });
+}
+
+async function storeDatabasePicker(
+  userId: string,
+  accessToken: string,
+  databases: NotionDatabase[],
+  encryptionKey: string,
+  env: Env,
+): Promise<void> {
+  const encrypted = await encrypt(accessToken, encryptionKey);
+  await Promise.all([
+    env.EPHEMERAL_KV.put(`notion_token:${userId}`, encrypted, { expirationTtl: 3600 }),
+    env.EPHEMERAL_KV.put(`notion_dbs:${userId}`, JSON.stringify(databases), { expirationTtl: 3600 }),
+  ]);
 }
 
 export async function buildNotionSection(
@@ -37,15 +52,21 @@ export async function buildNotionSection(
   const script = notionScriptHtml;
 
   if (profile.notion?.databaseId) {
+    const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
+    const databases = dbsJson ? (JSON.parse(dbsJson) as NotionDatabase[]) : null;
+    const schemaError = await env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`);
+
     return {
       card: renderIntegrationCard({
         name: "Notion",
         badgeClass: "status-badge--connected",
         badgeText: "Connected",
         description: "Notes are being saved to your Notion database.",
-        action: "",
+        action: `<a class="btn btn--ghost btn--sm" href="/integration/notion/select">Select database →</a>`,
       }),
-      modal: "",
+      modal: databases?.length
+        ? buildNotionModal(databases, csrfField, schemaError, profile.notion.databaseId)
+        : "",
       script,
     };
   }
@@ -61,7 +82,7 @@ export async function buildNotionSection(
         badgeClass: "status-badge--pending",
         badgeText: "Pending",
         description: "Notion is authorized — choose which database to save notes to.",
-        action: `<button class="btn btn--red" onclick="openNotionModal()">Select database →</button>`,
+        action: `<a class="btn btn--red" href="/integration/notion/select">Select database →</a>`,
       }),
       modal: buildNotionModal(databases, csrfField, schemaError),
       script,
@@ -134,26 +155,65 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
 
   const tokenData = (await tokenRes.json()) as { access_token: string };
   const accessToken = tokenData.access_token;
-  const databases = await listDatabases(accessToken);
 
-  if (databases.length === 0) {
-    const error = encodeURIComponent("No databases found. Share a Notion database with this integration and try again.");
-    return Response.redirect(`${env.APP_URL}/integration/notion/relay?error=${error}`, 302);
-  }
+  await env.EPHEMERAL_KV.put(
+    `notion_token:${userId}`,
+    await encrypt(accessToken, encryptionKey),
+    { expirationTtl: 3600 },
+  );
 
-  const encrypted = await encrypt(accessToken, encryptionKey);
-
-  await Promise.all([
-    env.EPHEMERAL_KV.put(`notion_token:${userId}`, encrypted, { expirationTtl: 3600 }),
-    env.EPHEMERAL_KV.put(`notion_dbs:${userId}`, JSON.stringify(databases), { expirationTtl: 3600 }),
-  ]);
-
-  return Response.redirect(`${env.APP_URL}/integration/notion/relay`, 302);
+  return Response.redirect(`${env.APP_URL}/integration/notion/select?relay=1`, 302);
 }
 
 function handleRelay(request: Request, env: Env): Response {
   const error = new URL(request.url).searchParams.get("error") ?? "";
   return html(renderTemplate(notionRelayHtml, { appUrl: env.APP_URL, error: escHtml(error) }));
+}
+
+async function handleSelectGet(request: Request, env: Env): Promise<Response> {
+  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const { userId } = await assertSession(request, env, encryptionKey);
+  const { searchParams } = new URL(request.url);
+  const viaRelay = searchParams.get("relay") === "1";
+
+  const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
+  if (dbsJson) {
+    return Response.redirect(
+      viaRelay ? `${env.APP_URL}/integration/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
+      302,
+    );
+  }
+
+  const db = createDb(env.DB);
+  const profile = await assertUser(db, userId, env.APP_URL);
+
+  let accessToken: string | null = null;
+  const encryptedToken = await env.EPHEMERAL_KV.get(`notion_token:${userId}`);
+  if (encryptedToken) {
+    accessToken = await decrypt(encryptedToken, encryptionKey);
+  } else if (profile.notion) {
+    accessToken = await decrypt(profile.notion.accessTokenEncrypted, encryptionKey);
+  }
+
+  if (!accessToken) {
+    return Response.redirect(`${env.APP_URL}/integration/notion/connect`, 302);
+  }
+
+  const databases = await listDatabases(accessToken);
+  if (databases.length === 0) {
+    const error = encodeURIComponent("No databases found. Share a Notion database with this integration and try again.");
+    if (viaRelay) {
+      return Response.redirect(`${env.APP_URL}/integration/notion/relay?error=${error}`, 302);
+    }
+    return Response.redirect(`${env.APP_URL}/profile?toast=${error}`, 302);
+  }
+
+  await storeDatabasePicker(userId, accessToken, databases, encryptionKey, env);
+
+  return Response.redirect(
+    viaRelay ? `${env.APP_URL}/integration/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
+    302,
+  );
 }
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
@@ -173,7 +233,7 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   ]);
 
   if (!dbsJson || !encryptedToken) {
-    return Response.redirect(`${env.APP_URL}/profile?toast=Notion+authorization+expired,+please+reconnect`, 302);
+    return Response.redirect(`${env.APP_URL}/integration/notion/select`, 302);
   }
 
   const databases = JSON.parse(dbsJson) as NotionDatabase[];
@@ -195,7 +255,7 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
     env.EPHEMERAL_KV.delete(`notion_schema_error:${userId}`),
   ]);
 
-  return Response.redirect(`${env.APP_URL}/profile?toast=Notion+database+connected`, 302);
+  return Response.redirect(`${env.APP_URL}/profile?toast=Notion+database+saved`, 302);
 }
 
 export async function handleNotionIntegration(request: Request, env: Env): Promise<Response> {
@@ -209,6 +269,9 @@ export async function handleNotionIntegration(request: Request, env: Env): Promi
   }
   if (pathname === "/integration/notion/relay" && request.method === "GET") {
     return handleRelay(request, env);
+  }
+  if (pathname === "/integration/notion/select" && request.method === "GET") {
+    return handleSelectGet(request, env);
   }
   if (pathname === "/integration/notion/select" && request.method === "POST") {
     return handleSelectPost(request, env);
