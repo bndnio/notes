@@ -193,7 +193,7 @@ async function handleSelectPost(request, env) {
 **Do** — use the assert helpers as the first lines of every handler:
 ```ts
 async function handleSelectPost(request, env) {
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const encryptionKey = env.ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
@@ -451,17 +451,18 @@ Don't print tokens, keys, or PINs in shell commands, error messages, or stdout. 
 ```bash
 $ bun run gen-key
 abc123def456...
-$ bunx wrangler secrets-store secret create ... --value "abc123def456..."
+$ bun run secret-encryption-key
+# paste abc123def456... when prompted
 ```
 
 **Do** — pipe directly without ever rendering the value:
 ```bash
-$ bun run gen-key | bunx wrangler secrets-store secret create ... --stdin
+$ bun run gen-key | bunx wrangler secret put ENCRYPTION_KEY
 ```
 
 Or use the tool's interactive prompt (terminal does not echo):
 ```bash
-$ bunx wrangler secret put MCP_AUTH_TOKEN
+$ bunx wrangler secret put ENCRYPTION_KEY
 ? Enter the secret text: [hidden input]
 ```
 

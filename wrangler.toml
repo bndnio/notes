@@ -6,7 +6,7 @@
 #
 # First-time setup:
 #   1. Generate an encryption key:    bun run gen-key
-#   2. Store it in Secrets Store:     bun run secret-encryption-key
+#   2. Set worker secrets:            bun run secret-encryption-key (and other secret-* scripts)
 #   3. Add a user (all-in-one):       ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
 #   4. Add more emails to a user:     bun run add-email <email> <username>
 
@@ -65,21 +65,9 @@ id = "9bb4ca36b284453b8899d8068f30837d"
 binding = "EPHEMERAL_KV"
 id = "da30844449de47bbb874342583c9c485"
 
-# ── Secrets Store ─────────────────────────────────────────────────────────────
-[[secrets_store_secrets]]
-binding = "RESEND_API_KEY"
-store_id = "065d291326ea4a1d8181859d83f313be"
-secret_name = "RESEND_API_KEY"
-
-[[secrets_store_secrets]]
-binding = "ENCRYPTION_KEY"
-store_id = "065d291326ea4a1d8181859d83f313be"
-secret_name = "ENCRYPTION_KEY"
-
-[[secrets_store_secrets]]
-binding = "NOTION_CLIENT_SECRET"
-store_id = "065d291326ea4a1d8181859d83f313be"
-secret_name = "NOTION_CLIENT_SECRET"
+# ── Secrets (worker-level; local dev loads from .dev.vars) ────────────────────
+[secrets]
+required = ["ENCRYPTION_KEY", "RESEND_API_KEY", "NOTION_CLIENT_SECRET"]
 
 # ── Vars ──────────────────────────────────────────────────────────────────────
 [vars]

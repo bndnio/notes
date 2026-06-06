@@ -103,7 +103,7 @@ export async function buildNotionSection(
 }
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const encryptionKey = env.ENCRYPTION_KEY;
   const { userId } = await assertSession(request, env, encryptionKey);
 
   const state = generateRandomHex(32);
@@ -125,7 +125,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
   const userId = await env.EPHEMERAL_KV.get(`notion_state:${state}`);
   if (!userId) return new Response("Link expired or invalid.", { status: 404 });
 
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const encryptionKey = env.ENCRYPTION_KEY;
   const sessionUserId = await resolveSession(request, env, encryptionKey);
   if (sessionUserId !== userId) {
     return Response.redirect(`${env.APP_URL}/login`, 302);
@@ -133,7 +133,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
 
   await env.EPHEMERAL_KV.delete(`notion_state:${state}`);
 
-  const clientSecret = await env.NOTION_CLIENT_SECRET.get();
+  const clientSecret = env.NOTION_CLIENT_SECRET;
   const credentials = btoa(`${env.NOTION_CLIENT_ID}:${clientSecret}`);
   const tokenRes = await fetch("https://api.notion.com/v1/oauth/token", {
     method: "POST",
@@ -171,7 +171,7 @@ function handleRelay(request: Request, env: Env): Response {
 }
 
 async function handleSelectGet(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const encryptionKey = env.ENCRYPTION_KEY;
   const { userId } = await assertSession(request, env, encryptionKey);
   const { searchParams } = new URL(request.url);
   const viaRelay = searchParams.get("relay") === "1";
@@ -217,7 +217,7 @@ async function handleSelectGet(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleSelectPost(request: Request, env: Env): Promise<Response> {
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const encryptionKey = env.ENCRYPTION_KEY;
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);

@@ -15,7 +15,7 @@ export function clearSessionCookieHeader(): string {
 
 export async function resolveProfile(token: string, env: Env): Promise<Profile | null> {
   const db = createDb(env.DB);
-  const encryptionKey = await env.ENCRYPTION_KEY.get();
+  const encryptionKey = env.ENCRYPTION_KEY;
   const hash = await hmacToken(token, encryptionKey);
   return (await usersRepo.findByMcpTokenHash(db, hash)) ?? null;
 }

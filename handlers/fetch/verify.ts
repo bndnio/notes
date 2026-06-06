@@ -45,7 +45,7 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
 
     if (data.type === "login") {
       const sessionToken = generateRandomHex(32);
-      const encryptionKey = await env.ENCRYPTION_KEY.get();
+      const encryptionKey = env.ENCRYPTION_KEY;
       const sessionHash = await hmacToken(sessionToken, encryptionKey);
       await env.EPHEMERAL_KV.put(`session:${sessionHash}`, data.userId as string, {
         expirationTtl: 604800,
