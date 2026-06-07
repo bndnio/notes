@@ -55,7 +55,7 @@ await env.EPHEMERAL_KV.put(`pin_attempts:${email}`, "0", { expirationTtl: 600 })
 | `pin_attempts:<email>` | attempt count (string) | 10 min |
 ```
 
-Schema changes that require a STORES.md update include: adding/removing a KV key prefix, adding/removing a KV namespace, changing the shape of a stored JSON value, adding/removing a secret binding, changing R2 path structure.
+Schema changes that require a STORES.md update include: adding/removing a KV key prefix, adding/removing a KV namespace, changing a D1 table or column, changing the shape of a stored JSON value, adding/removing a secret binding, changing R2 path structure.
 
 ### Pending/transient state belongs in TTL'd ephemeral storage
 
@@ -63,12 +63,10 @@ If a flag would be cleared "soon" or "after some action", put it in EPHEMERAL_KV
 
 **Why:** User asked, *"Is there another place we could put the notion pending key? It seems off on the profile?"* Pending state on a permanent record requires manual cleanup and pollutes the schema.
 
-**Don't** — store pending state on the durable profile:
+**Don't** — store pending state on the durable user record:
 ```ts
-await env.PROFILE_KV.put(userId, JSON.stringify({
-  ...profile,
-  notionPending: true,  // ← who clears this? when?
-}));
+await db.update(users).set({ notionPending: true }).where(eq(users.id, userId));
+// ← who clears this? when?
 ```
 
 **Do** — use a TTL'd key whose existence IS the pending state:
@@ -156,10 +154,10 @@ Don't pre-generate tokens during signup or initial setup. Create them when the u
 **Don't** — generate during registration to "have it ready":
 ```ts
 export async function completeRegistration(env, email, pending) {
-  const userId = await generateUniqueUserId(env.PROFILE_KV);
+  const userId = await createUser(db, ...);
   const mcpToken = generateRandomHex(32);            // ← may never be used
   const mcpTokenHash = await hmacToken(mcpToken, encryptionKey);
-  await env.MCP_TOKEN_KV.put(mcpTokenHash, userId);  // ← orphaned credential
+  await usersRepo.updateMcpTokenHash(db, userId, mcpTokenHash);  // ← orphaned credential
   return { sessionToken, mcpToken };
 }
 ```
@@ -373,7 +371,7 @@ When asked to review or audit, walk through these categories in order. The initi
 3. **Reflected XSS** — URL/form params rendered into templates without escaping (was: `{{email}}` in `verify.html` unescaped)
 4. **OAuth state binding** — callback must verify the session matches the state's user (was: state mapped to userId with no session check — victim could complete attacker's OAuth flow)
 5. **Rate limiting** — brute-force surface on PINs, tokens, login (was: 6-digit PIN with 10-min window and no attempt counter)
-6. **Data lifecycle** — orphaned credentials on regenerate, expired pending state, double-writes (was: `MCP_TOKEN_KV` old entry only deleted on `regenerate=1`, leaving two active tokens after lapsed setup)
+6. **Data lifecycle** — orphaned credentials on regenerate, expired pending state, double-writes (was: old MCP hash left active after lapsed setup before pending-token flow)
 
 ---
 
@@ -416,16 +414,16 @@ When editing code, never remove existing `console.log`/`console.warn`/`console.e
 **Don't** — drop logs during a refactor because the new code "makes them obvious":
 ```ts
 // before
-const userId = await lookupUserId(env.USER_INDEX_KV, username);
-if (!userId) {
+const profile = await usersRepo.findByUsername(db, username);
+if (!profile) {
   console.warn(`Rejected email to unknown username: ${username}`);
   message.setReject("Address not found");
   return;
 }
 
 // after (refactor) — log gone
-const userId = await lookupUserId(env.USER_INDEX_KV, username);
-if (!userId) {
+const profile = await usersRepo.findByUsername(db, username);
+if (!profile) {
   message.setReject("Address not found");
   return;
 }
@@ -433,8 +431,8 @@ if (!userId) {
 
 **Do** — port the log forward, improving it if helpful:
 ```ts
-const userId = await lookupUserId(env.USER_INDEX_KV, username);
-if (!userId) {
+const profile = await usersRepo.findByUsername(db, username);
+if (!profile) {
   console.warn(`Rejected email to unknown username: ${username}`);
   message.setReject("Address not found");
   return;

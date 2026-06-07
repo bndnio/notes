@@ -7,8 +7,8 @@
 # First-time setup:
 #   1. Generate an encryption key:    bun run gen-key
 #   2. Set worker secrets:            bun run secret-encryption-key (and other secret-* scripts)
-#   3. Add a user (all-in-one):       SEC_ENCRYPTION_KEY=<key> bun run add-user <email> <username> <notionDbId> <notionToken>
-#   4. Add more emails to a user:     bun run add-email <email> <username>
+#   3. Apply D1 migrations:           bunx wrangler d1 migrations apply bndnio-notes --remote
+#   4. Deploy and register at /register
 
 name = "bndnio-notes"
 main = "worker.ts"
@@ -38,26 +38,6 @@ bucket_name = "bndnio-notes"
 binding = "DB"
 database_name = "bndnio-notes"
 database_id = "512d5056-9718-4afd-b2d0-4c6b88e6c2be"
-
-# ── KV: hmac(mcpToken) → userId ──────────────────────────────────────────────
-[[kv_namespaces]]
-binding = "MCP_TOKEN_KV"
-id = "dfae73f4893d406095ebb95b26e30563"
-
-# ── KV: email or username → userId ───────────────────────────────────────────
-[[kv_namespaces]]
-binding = "USER_INDEX_KV"
-id = "3bc2721c49b44e21bc5e028c7cef54c3"
-
-# ── KV: user profiles (notionDbId), keyed by username ────────────────────────
-[[kv_namespaces]]
-binding = "PROFILE_KV"
-id = "6efa814a66e041008f334fd9b83ca30f"
-
-# ── KV: AES-GCM encrypted Notion tokens, keyed by username ───────────────────
-[[kv_namespaces]]
-binding = "NOTION_TOKEN_KV"
-id = "9bb4ca36b284453b8899d8068f30837d"
 
 # ── KV: short-lived ephemeral tokens (OAuth state, OTP codes) ─────────────────
 # Create with: bunx wrangler kv namespace create EPHEMERAL_KV

@@ -1,58 +1,40 @@
 # Storage Reference
 
+## D1 Database
+
+Binding: `DB` (`bndnio-notes`)
+
+### `users`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | text PK | 8-char hex user id |
+| `username` | text unique | Login handle; email routing uses `u_<username>@<EMAIL_DOMAIN>` |
+| `require_sender_match` | boolean | When true, inbound email must come from a registered address |
+| `mcp_token_hash` | text unique nullable | HMAC-SHA256 of active MCP bearer token |
+| `created_at` | integer | Unix ms |
+
+### `user_emails`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `email` | text PK | Lowercase email address |
+| `user_id` | text FK → `users.id` | |
+| `created_at` | integer | Earliest row is the primary email |
+
+### `notion_integrations`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | text PK FK → `users.id` | |
+| `database_id` | text | Selected Notion database id |
+| `access_token_encrypted` | text | AES-GCM encrypted OAuth access token (base64) |
+| `created_at` | integer | |
+| `updated_at` | integer | |
+
+---
+
 ## KV Namespaces
-
-### MCP_TOKEN_KV `dfae73f4893d406095ebb95b26e30563`
-Maps MCP auth tokens to users. Looked up on every MCP request.
-
-| Key | Value | TTL |
-|-----|-------|-----|
-| `<hmac-sha256(mcpToken)>` | `userId` | permanent |
-
-Entries are created on token generation and deleted when a new token is generated for the same user.
-
----
-
-### USER_INDEX_KV `3bc2721c49b44e21bc5e028c7cef54c3`
-Reverse-lookup index for finding a userId by email or username.
-
-| Key | Value | TTL |
-|-----|-------|-----|
-| `<email>` | `userId` | permanent |
-| `<username>` | `userId` | permanent |
-
----
-
-### PROFILE_KV `6efa814a66e041008f334fd9b83ca30f`
-User profile records.
-
-| Key | Value | TTL |
-|-----|-------|-----|
-| `<userId>` | JSON `Profile` | permanent |
-
-`Profile` shape:
-```ts
-{
-  userId: string
-  username: string
-  notionDbId?: string       // set after Notion DB is selected
-  mcpTokenHash?: string     // hmac of current active MCP token
-  requireSenderMatch?: boolean
-}
-```
-
----
-
-### NOTION_TOKEN_KV `9bb4ca36b284453b8899d8068f30837d`
-Encrypted Notion OAuth access tokens.
-
-| Key | Value | TTL |
-|-----|-------|-----|
-| `<userId>` | AES-GCM encrypted Notion access token (base64) | permanent |
-
-Written during Notion OAuth callback. Overwritten if user reconnects.
-
----
 
 ### EPHEMERAL_KV `da30844449de47bbb874342583c9c485`
 Short-lived state. All entries expire automatically.
@@ -65,6 +47,7 @@ Short-lived state. All entries expire automatically.
 | `pin_send_count:<email>` | send count (string) | 1 hr |
 | `pin_send_count_ip:<ip>` | send count (string) | 1 hr |
 | `notion_state:<randomHex32>` | `userId` | 15 min |
+| `notion_token:<userId>` | AES-GCM encrypted OAuth token (base64), pending DB selection | 1 hr |
 | `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr |
 | `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr |
 

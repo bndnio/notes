@@ -23,7 +23,7 @@ All notes are saved to R2 as `.md` and posted to a Notion database. Email notes 
 | Binding | Local behavior |
 |---------|----------------|
 | D1 (`DB`) | SQLite under `.wrangler/` |
-| KV (all namespaces) | Local KV under `.wrangler/` |
+| KV (`EPHEMERAL_KV`) | Local KV under `.wrangler/` |
 | R2 (`NOTES_BUCKET`) | Local R2 under `.wrangler/` |
 | Vars & secrets | Loaded from `.dev.vars` (overrides `wrangler.toml` `[vars]`) |
 | Static assets | Served from `./assets` |
@@ -96,24 +96,24 @@ bun run bucket
 
 ---
 
-## Step 4 — Set up Notion
+## Step 4 — Set up Notion OAuth
 
-1. Go to https://www.notion.so/my-integrations → **New integration**
+1. Go to https://www.notion.so/my-integrations → **New integration** (type: **Public**)
    - Name it "Notes Capture"
-   - Select your workspace
-   - Copy the **Internal Integration Secret** (starts with `secret_...`)
+   - Add redirect URI: `https://notes.bndn.io/integration/notion/callback`
+   - Copy the **OAuth client ID** and **OAuth client secret**
 
-2. Create a new **full-page database** in Notion called "Notes"
-   Add these properties:
-   - `Name` — Title (already exists by default)
+2. Set `NOTION_CLIENT_ID` in `wrangler.toml` `[vars]` (or override in `.dev.vars` for local dev)
+
+3. Set the client secret as a worker secret:
+   ```bash
+   bun run secret-notion-client-secret
+   ```
+
+4. After registering at `/register`, connect Notion from `/profile` → **Notion** → **Connect**. You'll pick a database with these properties:
+   - `Name` — Title (default)
    - `Date` — Date
    - `From` — Text
-
-3. Open the database → click `...` menu → **Add connections** → select "Notes Capture"
-
-4. Copy the database ID from the URL:
-   `https://notion.so/yourworkspace/`**`THIS-PART-IS-THE-ID`**`?v=...`
-   (32-char hex string, with or without hyphens)
 
 ---
 
@@ -161,11 +161,7 @@ Check:
 
 This worker exposes a Remote MCP server at `/mcp` so AI agents (Claude Code, etc.) can save notes directly without email.
 
-Register at `/profile` → **MCP Server** → **Setup**, or generate a token from the CLI:
-
-```bash
-SEC_ENCRYPTION_KEY=<key> bun run generate-mcp-token <username>
-```
+Register at `/profile` → **MCP Server** → **Setup**. Save the token when shown — it won't be displayed again.
 
 Add the token to your shell as `NOTES_MCP_TOKEN` and register with Claude Code — see the setup modal on `/profile` for the exact command.
 
