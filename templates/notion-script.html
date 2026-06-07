@@ -1,53 +1,33 @@
 <script>
-  // Notion connect button: loading state while popup is open
-  var notionConnectBtn = document.getElementById('notion-connect-btn');
-  if (notionConnectBtn) {
-    notionConnectBtn.addEventListener('click', function () {
-      notionConnectBtn.disabled = true;
-      var spinner = document.createElement('span');
-      spinner.className = 'btn-spinner';
-      notionConnectBtn.appendChild(spinner);
-
-      var timeoutId;
-      function done() {
-        window.removeEventListener('message', handler);
-        clearTimeout(timeoutId);
-        notionConnectBtn.disabled = false;
-        var s = notionConnectBtn.querySelector('.btn-spinner');
-        if (s) s.remove();
-      }
-      function handler(e) {
-        if (e.origin !== window.location.origin) return;
-        done();
-      }
-      window.addEventListener('message', handler);
-      timeoutId = setTimeout(done, 300000);
-    });
-  }
-
   function openNotionPopup() {
+    var btn = document.getElementById('notion-connect-btn');
+    if (btn) {
+      btn.disabled = true;
+      if (!btn.querySelector('.btn-spinner')) {
+        var spinner = document.createElement('span');
+        spinner.className = 'btn-spinner';
+        btn.appendChild(spinner);
+      }
+    }
+
     var popup = window.open('/integration/notion/connect', 'notion-oauth', 'width=600,height=700,menubar=no,toolbar=no,location=no');
     if (!popup) {
-      window.location.href = '/integration/notion/connect';
-      return;
-    }
-    var timeoutId;
-    function handler(e) {
-      if (e.origin !== window.location.origin) return;
-      window.removeEventListener('message', handler);
-      clearTimeout(timeoutId);
-      if (e.data === 'notion-pending') {
-        window.location.href = '/profile?modal=notion-select';
-      } else if (e.data && e.data.type === 'notion-error') {
-        window.location.href = '/profile?toast=' + encodeURIComponent(e.data.message);
+      if (btn) {
+        btn.disabled = false;
+        var s = btn.querySelector('.btn-spinner');
+        if (s) s.remove();
       }
+      window.location.href = '/integration/notion/connect';
     }
-    window.addEventListener('message', handler);
-    timeoutId = setTimeout(function() { window.removeEventListener('message', handler); }, 300000);
   }
 
   function openNotionModal() {
-    document.getElementById('notion-modal-overlay').classList.add('modal-overlay--visible');
+    var overlay = document.getElementById('notion-modal-overlay');
+    if (!overlay) {
+      window.location.href = '/integration/notion/select';
+      return;
+    }
+    overlay.classList.add('modal-overlay--visible');
   }
   function closeNotionModal() {
     document.getElementById('notion-modal-overlay').classList.remove('modal-overlay--visible');

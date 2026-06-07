@@ -3,6 +3,7 @@ import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
 import notionScriptHtml from "../../../templates/notion-script.html";
 import { resolveSession, assertSession, assertUser, assertCsrf } from "../../../lib/auth";
 import { decrypt, encrypt, generateRandomHex } from "../../../lib/crypto";
+import { isLocalDev } from "../../../lib/env";
 import { escHtml } from "../../../lib/html";
 import { html, renderTemplate, renderIntegrationCard } from "../../../lib/responses";
 import type { Env, Profile } from "../../../lib/types";
@@ -43,6 +44,11 @@ async function storeDatabasePicker(
   ]);
 }
 
+function notionSelectButton(variant: "primary" | "ghost", text: string): string {
+  const classes = variant === "primary" ? "btn btn--red" : "btn btn--ghost btn--sm";
+  return `<button type="button" class="${classes}" onclick="openNotionModal()">${text} →</button>`;
+}
+
 export async function buildNotionSection(
   profile: Profile,
   userId: string,
@@ -51,40 +57,40 @@ export async function buildNotionSection(
 ): Promise<{ card: string; modal: string; script: string }> {
   const script = notionScriptHtml;
 
-  if (profile.notion?.databaseId) {
-    const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
-    const databases = dbsJson ? (JSON.parse(dbsJson) as NotionDatabase[]) : null;
-    const schemaError = await env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`);
+  const [dbsJson, schemaError, pendingToken] = await Promise.all([
+    env.EPHEMERAL_KV.get(`notion_dbs:${userId}`),
+    env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`),
+    env.EPHEMERAL_KV.get(`notion_token:${userId}`),
+  ]);
+  const databases = dbsJson ? (JSON.parse(dbsJson) as NotionDatabase[]) : null;
+  const modal = databases?.length
+    ? buildNotionModal(databases, csrfField, schemaError, profile.notion?.databaseId)
+    : "";
 
+  if (profile.notion?.databaseId) {
     return {
       card: renderIntegrationCard({
         name: "Notion",
         badgeClass: "status-badge--connected",
         badgeText: "Connected",
         description: "Notes are being saved to your Notion database.",
-        action: `<a class="btn btn--ghost btn--sm" href="/integration/notion/select">Select database →</a>`,
+        action: notionSelectButton("ghost", "Change database"),
       }),
-      modal: databases?.length
-        ? buildNotionModal(databases, csrfField, schemaError, profile.notion.databaseId)
-        : "",
+      modal,
       script,
     };
   }
 
-  const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
-  const databases = dbsJson ? (JSON.parse(dbsJson) as Array<{ id: string; title: string }>) : null;
-
-  if (databases && databases.length > 0) {
-    const schemaError = await env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`);
+  if (databases?.length || pendingToken) {
     return {
       card: renderIntegrationCard({
         name: "Notion",
         badgeClass: "status-badge--pending",
         badgeText: "Pending",
         description: "Notion is authorized — choose which database to save notes to.",
-        action: `<a class="btn btn--red" href="/integration/notion/select">Select database →</a>`,
+        action: notionSelectButton("primary", "Select database"),
       }),
-      modal: buildNotionModal(databases, csrfField, schemaError),
+      modal,
       script,
     };
   }
@@ -100,6 +106,18 @@ export async function buildNotionSection(
     modal: "",
     script,
   };
+}
+
+function handleRelay(request: Request, env: Env): Response {
+  const error = new URL(request.url).searchParams.get("error") ?? "";
+  const profileUrl = new URL("/profile", env.APP_URL);
+  if (error) {
+    profileUrl.searchParams.set("toast", error);
+  } else {
+    profileUrl.searchParams.set("modal", "notion-select");
+    profileUrl.searchParams.set("toast", "Notion authorized — choose a database.");
+  }
+  return html(renderTemplate(notionRelayHtml, { redirectUrl: profileUrl.toString() }));
 }
 
 async function handleConnect(request: Request, env: Env): Promise<Response> {
@@ -150,7 +168,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
 
   if (!tokenRes.ok) {
     const err = await tokenRes.text();
-    return new Response(`Notion token exchange failed: ${err}`, { status: 502 });
+        return new Response(`Notion token exchange failed: ${err}`, { status: 502 });
   }
 
   const tokenData = (await tokenRes.json()) as { access_token: string };
@@ -163,11 +181,6 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
   );
 
   return Response.redirect(`${env.APP_URL}/integration/notion/select?relay=1`, 302);
-}
-
-function handleRelay(request: Request, env: Env): Response {
-  const error = new URL(request.url).searchParams.get("error") ?? "";
-  return html(renderTemplate(notionRelayHtml, { appUrl: env.APP_URL, error: escHtml(error) }));
 }
 
 async function handleSelectGet(request: Request, env: Env): Promise<Response> {
@@ -255,7 +268,7 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
     env.EPHEMERAL_KV.delete(`notion_schema_error:${userId}`),
   ]);
 
-  return Response.redirect(`${env.APP_URL}/profile?toast=Notion+database+saved`, 302);
+  return Response.redirect(`${env.APP_URL}/profile?toast=Notion+connected`, 302);
 }
 
 export async function handleNotionIntegration(request: Request, env: Env): Promise<Response> {
