@@ -1,4 +1,4 @@
-<div class="modal-overlay" id="email-modal-overlay" onclick="if(event.target===this)closeEmailModal()">
+<div class="modal-overlay{{modalVisibleClass}}" id="email-modal-overlay" onclick="if(event.target===this)closeEmailModal()">
   <div class="modal">
     <div class="modal-header">
       <h2>Manage email</h2>
@@ -6,7 +6,7 @@
     </div>
     <form id="email-settings-form" method="POST" action="/settings/email">
       {{csrfField}}
-      <p class="error" id="email-form-error"></p>
+      <p class="error" id="email-form-error">{{error}}</p>
       <div class="modal-body">
         <div id="email-list">{{emailList}}</div>
         <button type="button" class="btn btn--ghost btn--sm" onclick="addEmailRow()">+ Add</button>
