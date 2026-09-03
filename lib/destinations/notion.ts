@@ -1,16 +1,7 @@
 import { decrypt } from "../crypto";
 import type { Sink, SinkContext, SinkResult } from "../sink";
 import type { Content } from "../types";
-
-export async function fetchNotion(path: string, token: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(`https://api.notion.com/v1${path}`, {
-    ...options,
-    headers: {
-      ...notionHeaders(token),
-      ...(options.headers as Record<string, string> | undefined),
-    },
-  });
-}
+import { fetchNotion } from "../notion-api";
 
 function toNotionPage(content: Content, databaseId: string) {
   const subject = content.subject || "(no subject)";
@@ -47,14 +38,6 @@ async function postToNotion(content: Content, notionToken: string, notionDbId: s
     const err = await res.text();
     throw new Error(`Notion API error ${res.status}: ${err}`);
   }
-}
-
-function notionHeaders(token: string): Record<string, string> {
-  return {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    "Notion-Version": "2022-06-28",
-  };
 }
 
 function chunkBody(text: string, size = 1900): string[] {

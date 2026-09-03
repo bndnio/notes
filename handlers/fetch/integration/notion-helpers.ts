@@ -1,4 +1,4 @@
-import { fetchNotion } from "../../../lib/destinations/notion";
+import { fetchNotion } from "../../../lib/notion-api";
 import { createDb } from "../../../lib/db";
 import * as notionIntegrations from "../../../lib/db/repositories/notion-integrations";
 import type { Env } from "../../../lib/types";
