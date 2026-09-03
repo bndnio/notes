@@ -1,5 +1,5 @@
 import { streamToText, parseEmail } from "../lib/email";
-import { saveNote } from "../lib/notes";
+import { hasEnabledSink, saveNote } from "../lib/notes";
 import { createDb } from "../lib/db";
 import * as usersRepo from "../lib/db/repositories/users";
 import type { Content, Env } from "../lib/types";
@@ -28,6 +28,12 @@ export async function handleEmail(message: ForwardableEmailMessage, env: Env): P
       message.setReject("Sender not authorised");
       return;
     }
+  }
+
+  if (!hasEnabledSink(profile)) {
+    console.warn(`Rejected email — no output configured: ${username}`);
+    message.setReject("No output destination configured");
+    return;
   }
 
   const rawEmail = await streamToText(message.raw);

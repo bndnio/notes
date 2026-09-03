@@ -7,6 +7,10 @@ const sinks: Sink[] = [r2Sink, notionSink];
 
 export type SaveNoteResult = Record<string, SinkResult>;
 
+export function hasEnabledSink(profile: Profile): boolean {
+  return sinks.some((sink) => sink.enabled(profile));
+}
+
 export async function saveNote(
   content: Content,
   env: Env,

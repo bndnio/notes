@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
-import { saveNote, type SaveNoteResult } from "../../lib/notes";
+import { hasEnabledSink, saveNote, type SaveNoteResult } from "../../lib/notes";
 import { resolveProfile } from "../../lib/auth";
 import type { Content, Env, Profile } from "../../lib/types";
 
@@ -18,6 +18,15 @@ function makeMcpServer(env: Env, profile: Profile): McpServer {
   const server = new McpServer({ name: "notes", version: "1.0.0" });
 
   async function saveNoteTool(subject: string, body: string) {
+    if (!hasEnabledSink(profile)) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: `No destinations configured — visit ${env.APP_URL}/profile`,
+        }],
+        isError: true,
+      };
+    }
     const content: Content = {
       timestamp: new Date().toISOString(),
       from: "mcp",
@@ -27,15 +36,6 @@ function makeMcpServer(env: Env, profile: Profile): McpServer {
     };
     const results = await saveNote(content, env, profile);
     const ran = Object.values(results);
-    if (ran.length === 0) {
-      return {
-        content: [{
-          type: "text" as const,
-          text: `No destinations configured — visit ${env.APP_URL}/profile`,
-        }],
-        isError: true,
-      };
-    }
     return {
       content: [{ type: "text" as const, text: formatResults(results) }],
       isError: ran.every((r) => !r.ok),
