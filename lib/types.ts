@@ -27,11 +27,10 @@ export interface ParsedEmail {
   body: string;
 }
 
-export interface Note {
+export interface Content {
   timestamp: string;
   from: string;
   to: string;
   subject: string;
   body: string;
-  emlKey?: string;
 }

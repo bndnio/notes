@@ -1,4 +1,4 @@
-import { handleMcp } from "./mcp";
+import { handleMcp } from "../../sources/mcp/handler";
 import { handleRegistration } from "./registration";
 import { handleLogin } from "./login";
 import { handleLogout } from "./logout";

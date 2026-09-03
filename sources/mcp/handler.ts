@@ -1,31 +1,51 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
-import { computeKeys, saveNote } from "../../lib/notes";
+import { hasEnabledSink, saveNote, type SaveNoteResult } from "../../pipeline";
 import { resolveProfile } from "../../lib/auth";
-import type { Env, Profile } from "../../lib/types";
+import type { Content, Env, Profile } from "../../lib/types";
+
+function formatResults(results: SaveNoteResult): string {
+  return Object.entries(results)
+    .map(([id, result]) => {
+      if (!result.ok) return `${id}: failed`;
+      return result.detail ? `${id}: ${result.detail}` : `${id}: ok`;
+    })
+    .join(". ");
+}
 
 function makeMcpServer(env: Env, profile: Profile): McpServer {
   const server = new McpServer({ name: "notes", version: "1.0.0" });
 
   async function saveNoteTool(subject: string, body: string) {
-    const timestamp = new Date().toISOString();
-    const { mdKey } = computeKeys(subject, profile.id, timestamp);
-    const result = await saveNote({ mdKey, timestamp, subject, body }, env, profile);
-    const notionStatus = result.notionOk
-      ? "ok"
-      : profile.notion?.databaseId
-        ? "failed"
-        : `not connected — visit ${env.APP_URL}/integration/notion/connect to link Notion`;
+    if (!hasEnabledSink(profile)) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: `No destinations configured — visit ${env.APP_URL}/profile`,
+        }],
+        isError: true,
+      };
+    }
+    const content: Content = {
+      timestamp: new Date().toISOString(),
+      from: "mcp",
+      to: "",
+      subject,
+      body,
+    };
+    const results = await saveNote(content, env, profile);
+    const ran = Object.values(results);
     return {
-      content: [{ type: "text" as const, text: `Saved: ${mdKey}. Notion: ${notionStatus}` }],
+      content: [{ type: "text" as const, text: formatResults(results) }],
+      isError: ran.every((r) => !r.ok),
     };
   }
 
   server.registerTool(
     "save_note",
     {
-      description: "Save a note to R2 and Notion",
+      description: "Save a note to the user's configured destinations",
       inputSchema: {
         subject: z.string().describe("Note title"),
         body: z.string().describe("Note body (plain text or markdown)"),
