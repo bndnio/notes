@@ -1,4 +1,4 @@
-import type { Content, Env, Profile } from "./types";
+import type { Content, Env, Profile } from "../lib/types";
 
 export type SinkResult =
   | { ok: true; detail?: string }

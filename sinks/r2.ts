@@ -1,5 +1,5 @@
-import type { Content } from "../types";
-import type { Sink, SinkContext, SinkResult } from "../sink";
+import type { Content } from "../lib/types";
+import type { Sink, SinkContext, SinkResult } from "./types";
 
 function slugify(text: string): string {
   return text

@@ -1,7 +1,7 @@
-import { decrypt } from "../crypto";
-import type { Sink, SinkContext, SinkResult } from "../sink";
-import type { Content } from "../types";
-import { fetchNotion } from "../notion-api";
+import { decrypt } from "../lib/crypto";
+import type { Sink, SinkContext, SinkResult } from "./types";
+import type { Content } from "../lib/types";
+import { fetchNotion } from "../lib/notion-api";
 
 function toNotionPage(content: Content, databaseId: string) {
   const subject = content.subject || "(no subject)";

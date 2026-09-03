@@ -1,9 +1,6 @@
-import { notionSink } from "./destinations/notion";
-import { r2Sink } from "./destinations/r2";
-import type { Sink, SinkContext, SinkResult } from "./sink";
-import type { Content, Env, Profile } from "./types";
-
-const sinks: Sink[] = [r2Sink, notionSink];
+import { sinks } from "./sinks";
+import type { SinkContext, SinkResult } from "./sinks/types";
+import type { Content, Env, Profile } from "./lib/types";
 
 export type SaveNoteResult = Record<string, SinkResult>;
 
