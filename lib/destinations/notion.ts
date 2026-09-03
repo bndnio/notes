@@ -1,4 +1,4 @@
-import type { Note } from "../types";
+import type { Content } from "../types";
 
 export async function fetchNotion(path: string, token: string, options: RequestInit = {}): Promise<Response> {
   return fetch(`https://api.notion.com/v1${path}`, {
@@ -10,21 +10,21 @@ export async function fetchNotion(path: string, token: string, options: RequestI
   });
 }
 
-export async function postToNotion(note: Note, notionToken: string, notionDbId: string): Promise<void> {
+export async function postToNotion(content: Content, notionToken: string, notionDbId: string): Promise<void> {
   const body = {
     parent: { database_id: notionDbId },
     properties: {
       Name: {
-        title: [{ text: { content: note.subject } }],
+        title: [{ text: { content: content.subject } }],
       },
       Date: {
-        date: { start: note.timestamp },
+        date: { start: content.timestamp },
       },
       From: {
-        rich_text: [{ text: { content: note.from } }],
+        rich_text: [{ text: { content: content.from } }],
       },
     },
-    children: chunkBody(note.body).map((chunk) => ({
+    children: chunkBody(content.body).map((chunk) => ({
       object: "block",
       type: "paragraph",
       paragraph: {

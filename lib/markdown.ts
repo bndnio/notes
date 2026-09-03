@@ -1,15 +1,15 @@
-import type { Note } from "./types";
+import type { Content } from "./types";
 
-export function toMarkdown(note: Note): string {
+export function toMarkdown(content: Content, emlKey?: string): string {
   return `---
-timestamp: ${note.timestamp}
-from: ${note.from}
-to: ${note.to}
-subject: ${note.subject}
-${note.emlKey ? `emlKey: ${note.emlKey}` : ""}
+timestamp: ${content.timestamp}
+from: ${content.from}
+to: ${content.to}
+subject: ${content.subject}
+${emlKey ? `emlKey: ${emlKey}` : ""}
 ---
 
-${note.body || "(empty)"}
+${content.body || "(empty)"}
 `;
 }
 
