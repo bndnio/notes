@@ -1,3 +1,5 @@
+import { decrypt } from "../crypto";
+import type { Sink, SinkContext, SinkResult } from "../sink";
 import type { Content } from "../types";
 
 export async function fetchNotion(path: string, token: string, options: RequestInit = {}): Promise<Response> {
@@ -10,12 +12,13 @@ export async function fetchNotion(path: string, token: string, options: RequestI
   });
 }
 
-export async function postToNotion(content: Content, notionToken: string, notionDbId: string): Promise<void> {
-  const body = {
-    parent: { database_id: notionDbId },
+function toNotionPage(content: Content, databaseId: string) {
+  const subject = content.subject || "(no subject)";
+  return {
+    parent: { database_id: databaseId },
     properties: {
       Name: {
-        title: [{ text: { content: content.subject } }],
+        title: [{ text: { content: subject } }],
       },
       Date: {
         date: { start: content.timestamp },
@@ -32,8 +35,13 @@ export async function postToNotion(content: Content, notionToken: string, notion
       },
     })),
   };
+}
 
-  const res = await fetchNotion("/pages", notionToken, { method: "POST", body: JSON.stringify(body) });
+async function postToNotion(content: Content, notionToken: string, notionDbId: string): Promise<void> {
+  const res = await fetchNotion("/pages", notionToken, {
+    method: "POST",
+    body: JSON.stringify(toNotionPage(content, notionDbId)),
+  });
 
   if (!res.ok) {
     const err = await res.text();
@@ -57,3 +65,23 @@ function chunkBody(text: string, size = 1900): string[] {
   }
   return chunks;
 }
+
+export const notionSink: Sink = {
+  id: "notion",
+  enabled: (profile) => profile.notion !== null,
+
+  async write(content: Content, ctx: SinkContext): Promise<SinkResult> {
+    const notion = ctx.profile.notion;
+    if (!notion) return { ok: false, error: "not configured" };
+    try {
+      const token = await decrypt(notion.accessTokenEncrypted, ctx.env.SEC_ENCRYPTION_KEY);
+      await postToNotion(content, token, notion.databaseId);
+      console.log("Saved to Notion");
+      return { ok: true };
+    } catch (e) {
+      const error = e instanceof Error ? e.message : String(e);
+      console.error(`Notion write failed: ${error}`);
+      return { ok: false, error };
+    }
+  },
+};

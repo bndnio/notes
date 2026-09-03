@@ -41,12 +41,5 @@ export async function handleEmail(message: ForwardableEmailMessage, env: Env): P
     body: parsed.body,
   };
 
-  try {
-    const result = await saveNote(content, env, profile, { rawEmail });
-    console.log(`Saved md: ${result.mdKey}`);
-    if (!result.notionOk) console.error("Notion write failed (md saved successfully)");
-    else console.log("Saved to Notion");
-  } catch (e) {
-    console.error(`R2 md write failed (Notion status unknown): ${e}`);
-  }
+  await saveNote(content, env, profile, { rawEmail });
 }
