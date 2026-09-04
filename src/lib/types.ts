@@ -2,6 +2,7 @@ export interface Profile {
   id: string;
   username: string;
   requireSenderMatch: boolean;
+  storageEnabled: boolean;
   mcpTokenHash: string | null;
   createdAt: number;
   notion: {

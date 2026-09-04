@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `storage_enabled` integer DEFAULT false NOT NULL;

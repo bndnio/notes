@@ -11,6 +11,7 @@ Binding: `DB` (`bndnio-notes`)
 | `id` | text PK | 8-char hex user id |
 | `username` | text unique | Login handle; email routing uses `u_<username>@<EMAIL_DOMAIN>` |
 | `require_sender_match` | boolean | When true, inbound email must come from a registered address |
+| `storage_enabled` | boolean | When true, notes are archived to R2 (`NOTES_BUCKET`); default false |
 | `mcp_token_hash` | text unique nullable | HMAC-SHA256 of active MCP bearer token |
 | `created_at` | integer | Unix ms |
 
@@ -64,6 +65,8 @@ Short-lived state. All entries expire automatically.
 ## R2 Bucket
 
 ### NOTES_BUCKET `bndnio-notes`
+
+Opt-in per user via `users.storage_enabled`. Disabling storage deletes all objects under `<userId>/`.
 
 | Key pattern | Content type |
 |-------------|-------------|

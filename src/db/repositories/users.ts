@@ -47,3 +47,7 @@ export async function updateMcpTokenHash(db: Db, id: string, hash: string | null
 export async function updateRequireSenderMatch(db: Db, id: string, value: boolean): Promise<void> {
   await db.update(users).set({ requireSenderMatch: value }).where(eq(users.id, id));
 }
+
+export async function updateStorageEnabled(db: Db, id: string, value: boolean): Promise<void> {
+  await db.update(users).set({ storageEnabled: value }).where(eq(users.id, id));
+}

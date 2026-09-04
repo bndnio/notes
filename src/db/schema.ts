@@ -5,6 +5,7 @@ export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   username: text("username").notNull().unique(),
   requireSenderMatch: integer("require_sender_match", { mode: "boolean" }).notNull().default(true),
+  storageEnabled: integer("storage_enabled", { mode: "boolean" }).notNull().default(false),
   mcpTokenHash: text("mcp_token_hash").unique(),
   createdAt: integer("created_at").notNull(),
 });

@@ -34,7 +34,7 @@ ${content.body || "(empty)"}
 
 export const r2Sink: Sink = {
   id: "r2",
-  enabled: () => true,
+  enabled: (profile) => profile.storageEnabled,
 
   async write(content: Content, ctx: SinkContext): Promise<SinkResult> {
     try {
