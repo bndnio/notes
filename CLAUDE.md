@@ -232,7 +232,7 @@ export async function assertSession(...): Promise<{ userId: string; sessionHash:
   return session;
 }
 
-// handlers/fetch/index.ts — one place
+// routes/index.ts — one place
 try {
   return await handler(request, env);
 } catch (e) {

@@ -4,9 +4,9 @@ import { escHtml } from "../../lib/html";
 import { createDb } from "../../lib/db";
 import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
-import { buildNotionSection } from "./integration/notion";
-import { buildMcpSection } from "./setup-mcp";
-import { buildEmailSection } from "./email-settings";
+import { buildNotionSection } from "./sections/notion";
+import { buildMcpSection } from "./sections/mcp";
+import { buildEmailSection } from "./sections/email";
 
 export async function handleProfile(request: Request, env: Env): Promise<Response> {
   const encryptionKey = env.SEC_ENCRYPTION_KEY;

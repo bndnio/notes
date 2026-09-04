@@ -10,6 +10,13 @@ export interface Profile {
   } | null;
 }
 
+/** Profile page fragment contributed by one integration. Composed by routes/ui/profile.ts. */
+export interface Section {
+  card: string;
+  modal: string;
+  script: string;
+}
+
 export interface Env {
   DB: D1Database;
   NOTES_BUCKET: R2Bucket;

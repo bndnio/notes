@@ -1,7 +1,7 @@
 import { decrypt } from "../lib/crypto";
 import type { Sink, SinkContext, SinkResult } from "./types";
 import type { Content } from "../lib/types";
-import { fetchNotion } from "../lib/notion-api";
+import { fetchNotion } from "../lib/notion-client";
 
 function toNotionPage(content: Content, databaseId: string) {
   const subject = content.subject || "(no subject)";

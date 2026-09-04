@@ -1,34 +1,11 @@
-import notionRelayHtml from "../../../templates/notion-relay.html";
-import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
-import notionScriptHtml from "../../../templates/notion-script.html";
-import { resolveSession, assertSession, assertUser, assertCsrf } from "../../../lib/auth";
-import { decrypt, encrypt, generateRandomHex } from "../../../lib/crypto";
-import { isLocalDev } from "../../../lib/env";
-import { escHtml } from "../../../lib/html";
-import { html, renderTemplate, renderIntegrationCard } from "../../../lib/responses";
-import type { Env, Profile } from "../../../lib/types";
-import { createDb } from "../../../lib/db";
-import { completeNotionSetup, listDatabases, validateNotionDatabaseSchema, type NotionDatabase } from "./notion-helpers";
-
-function buildNotionModal(
-  databases: Array<{ id: string; title: string }>,
-  csrfField: string,
-  schemaError?: string | null,
-  selectedDbId?: string,
-): string {
-  const databaseOptions = databases
-    .map(
-      (db) =>
-        `<label class="checkbox-label">` +
-        `<input type="radio" name="dbId" value="${escHtml(db.id)}" required${db.id === selectedDbId ? " checked" : ""}> ` +
-        `${escHtml(db.title)}</label>`,
-    )
-    .join("\n");
-  const schemaErrorSection = schemaError
-    ? `<div class="warning">${escHtml(schemaError).replace(/\n/g, "<br>")}</div>`
-    : "";
-  return renderTemplate(notionSelectModalHtml, { databases: databaseOptions, csrfField, schemaError: schemaErrorSection });
-}
+import notionRelayHtml from "../../templates/notion-relay.html";
+import { resolveSession, assertSession, assertUser, assertCsrf } from "../../lib/auth";
+import { decrypt, encrypt, generateRandomHex } from "../../lib/crypto";
+import { html, renderTemplate } from "../../lib/responses";
+import { listDatabases, validateNotionDatabaseSchema, type NotionDatabase } from "../../lib/notion-client";
+import { createDb } from "../../lib/db";
+import * as notionIntegrations from "../../lib/db/repositories/notion-integrations";
+import type { Env } from "../../lib/types";
 
 async function storeDatabasePicker(
   userId: string,
@@ -44,68 +21,9 @@ async function storeDatabasePicker(
   ]);
 }
 
-function notionSelectButton(variant: "primary" | "ghost", text: string): string {
-  const classes = variant === "primary" ? "btn btn--red" : "btn btn--ghost btn--sm";
-  return `<button type="button" class="${classes}" onclick="openNotionModal()">${text} →</button>`;
-}
-
-export async function buildNotionSection(
-  profile: Profile,
-  userId: string,
-  env: Env,
-  csrfField: string,
-): Promise<{ card: string; modal: string; script: string }> {
-  const script = notionScriptHtml;
-
-  const [dbsJson, schemaError, pendingToken] = await Promise.all([
-    env.EPHEMERAL_KV.get(`notion_dbs:${userId}`),
-    env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`),
-    env.EPHEMERAL_KV.get(`notion_token:${userId}`),
-  ]);
-  const databases = dbsJson ? (JSON.parse(dbsJson) as NotionDatabase[]) : null;
-  const modal = databases?.length
-    ? buildNotionModal(databases, csrfField, schemaError, profile.notion?.databaseId)
-    : "";
-
-  if (profile.notion?.databaseId) {
-    return {
-      card: renderIntegrationCard({
-        name: "Notion",
-        badgeClass: "status-badge--connected",
-        badgeText: "Connected",
-        description: "Notes are being saved to your Notion database.",
-        action: notionSelectButton("ghost", "Change database"),
-      }),
-      modal,
-      script,
-    };
-  }
-
-  if (databases?.length || pendingToken) {
-    return {
-      card: renderIntegrationCard({
-        name: "Notion",
-        badgeClass: "status-badge--pending",
-        badgeText: "Pending",
-        description: "Notion is authorized — choose which database to save notes to.",
-        action: notionSelectButton("primary", "Select database"),
-      }),
-      modal,
-      script,
-    };
-  }
-
-  return {
-    card: renderIntegrationCard({
-      name: "Notion",
-      badgeClass: "status-badge--none",
-      badgeText: "Not connected",
-      description: "Connect Notion to save notes to your workspace.",
-      action: `<button id="notion-connect-btn" class="btn btn--red" onclick="openNotionPopup()">Connect →</button>`,
-    }),
-    modal: "",
-    script,
-  };
+async function completeNotionSetup(userId: string, accessTokenEncrypted: string, dbId: string, env: Env): Promise<void> {
+  const db = createDb(env.DB);
+  await notionIntegrations.upsert(db, { userId, databaseId: dbId, accessTokenEncrypted });
 }
 
 function handleRelay(request: Request, env: Env): Response {
@@ -168,7 +86,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
 
   if (!tokenRes.ok) {
     const err = await tokenRes.text();
-        return new Response(`Notion token exchange failed: ${err}`, { status: 502 });
+    return new Response(`Notion token exchange failed: ${err}`, { status: 502 });
   }
 
   const tokenData = (await tokenRes.json()) as { access_token: string };
@@ -271,7 +189,7 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   return Response.redirect(`${env.APP_URL}/profile?toast=Notion+connected`, 302);
 }
 
-export async function handleNotionIntegration(request: Request, env: Env): Promise<Response> {
+export async function handleNotionRoutes(request: Request, env: Env): Promise<Response> {
   const { pathname, searchParams } = new URL(request.url);
 
   if (pathname === "/integration/notion/connect" && request.method === "GET") {

@@ -1,8 +1,3 @@
-import { fetchNotion } from "../../../lib/notion-api";
-import { createDb } from "../../../lib/db";
-import * as notionIntegrations from "../../../lib/db/repositories/notion-integrations";
-import type { Env } from "../../../lib/types";
-
 export interface NotionDatabase {
   id: string;
   title: string;
@@ -18,12 +13,6 @@ interface NotionSearchResponse {
   next_cursor: string | null;
 }
 
-const REQUIRED_PROPERTIES = [
-  { name: "Name", type: "title", label: "Title" },
-  { name: "Date", type: "date", label: "Date" },
-  { name: "From", type: "rich_text", label: "Text" },
-] as const;
-
 interface NotionDatabaseSchema {
   properties: Record<string, { type: string }>;
 }
@@ -31,6 +20,30 @@ interface NotionDatabaseSchema {
 export type NotionSchemaValidation =
   | { ok: true }
   | { ok: false; message: string };
+
+const REQUIRED_PROPERTIES = [
+  { name: "Name", type: "title", label: "Title" },
+  { name: "Date", type: "date", label: "Date" },
+  { name: "From", type: "rich_text", label: "Text" },
+] as const;
+
+export async function fetchNotion(path: string, token: string, options: RequestInit = {}): Promise<Response> {
+  return fetch(`https://api.notion.com/v1${path}`, {
+    ...options,
+    headers: {
+      ...notionHeaders(token),
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  });
+}
+
+function notionHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "Notion-Version": "2022-06-28",
+  };
+}
 
 export async function validateNotionDatabaseSchema(
   accessToken: string,
@@ -69,11 +82,6 @@ export async function validateNotionDatabaseSchema(
     ok: false,
     message: `This database is missing required properties. In Notion, add or fix:\n\n• ${issues.join("\n• ")}`,
   };
-}
-
-export async function completeNotionSetup(userId: string, accessTokenEncrypted: string, dbId: string, env: Env): Promise<void> {
-  const db = createDb(env.DB);
-  await notionIntegrations.upsert(db, { userId, databaseId: dbId, accessTokenEncrypted });
 }
 
 export async function listDatabases(accessToken: string): Promise<NotionDatabase[]> {
