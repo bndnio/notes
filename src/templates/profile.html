@@ -11,6 +11,7 @@
   {{betaBanner}}
   {{toast}}
   {{notionModal}}
+  {{storageModal}}
   {{mcpModal}}
   {{emailModal}}
 
@@ -45,8 +46,12 @@
 
     <section class="integration-group">
       <h2>Output</h2>
+      <div class="warning outputs-banner" {{outputsBannerHidden}}>
+        No output configured — enable Platform storage or connect Notion to save notes.
+      </div>
       <div class="cards">
         {{notionCard}}
+        {{storageCard}}
       </div>
     </section>
   </div>
@@ -59,6 +64,7 @@
     }
   </script>
   {{notionScript}}
+  {{storageScript}}
   {{mcpScript}}
   {{emailScript}}
 </body>

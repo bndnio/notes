@@ -1,0 +1,37 @@
+<script>
+  function openStorageModal() {
+    document.getElementById('storage-modal-overlay').classList.add('modal-overlay--visible');
+  }
+
+  function closeStorageModal() {
+    document.getElementById('storage-modal-overlay').classList.remove('modal-overlay--visible');
+    const url = new URL(window.location);
+    url.searchParams.delete('modal');
+    history.replaceState(null, '', url);
+  }
+
+  (function () {
+    var checkbox = document.getElementById('storage-enabled');
+    var warning = document.getElementById('storage-disable-warning');
+
+    function syncWarning() {
+      var wasEnabled = checkbox.dataset.wasEnabled === 'true';
+      warning.hidden = !(wasEnabled && !checkbox.checked);
+    }
+
+    checkbox.addEventListener('change', syncWarning);
+    syncWarning();
+
+    document.getElementById('storage-settings-form').addEventListener('submit', function (event) {
+      var wasEnabled = checkbox.dataset.wasEnabled === 'true';
+      if (wasEnabled && !checkbox.checked &&
+          !confirm('Turning off storage will permanently delete all your saved notes. Continue?')) {
+        event.preventDefault();
+      }
+    });
+  })();
+
+  if (new URLSearchParams(window.location.search).get('modal') === 'storage-manage') {
+    openStorageModal();
+  }
+</script>

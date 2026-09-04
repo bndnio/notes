@@ -1,0 +1,14 @@
+<div class="card">
+  <div class="card-left">
+    <h3 class="card-name">
+      Platform storage
+      <span class="status-badge status-badge--connected" {{enabledHidden}}>Saving</span>
+      <span class="status-badge status-badge--none" {{disabledHidden}}>Not saving</span>
+    </h3>
+    <p class="card-desc" {{enabledHidden}}>Notes are saved to your platform archive.</p>
+    <p class="card-desc" {{disabledHidden}}>Notes are not archived on the platform.</p>
+  </div>
+  <div class="card-actions">
+    <button type="button" class="btn btn--ghost" onclick="openStorageModal()">Manage →</button>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="modal-overlay" id="storage-modal-overlay" onclick="if(event.target===this)closeStorageModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Platform storage</h2>
+      <button class="modal-close" onclick="closeStorageModal()">✕</button>
+    </div>
+    <form id="storage-settings-form" method="POST" action="/api/storage">
+      {{csrfField}}
+      <div class="modal-body">
+        <label class="checkbox-label checkbox-label--spaced">
+          <input type="checkbox" id="storage-enabled" name="storageEnabled" value="1" {{storageEnabledChecked}} data-was-enabled="{{storageEnabledAttr}}">
+          Save notes to the platform
+        </label>
+        <div class="warning storage-disable-warning" id="storage-disable-warning" hidden>
+          Turning off storage will permanently delete all your saved notes when you save.
+        </div>
+        <div class="note-list" {{noteListHidden}}>{{noteListItems}}</div>
+        <p class="note-list-empty" {{emptyListHidden}}>No notes saved yet.</p>
+        <p class="note-list-hint" {{storageHintHidden}}>Enable storage to save notes on the platform.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn--red">Save →</button>
+        <button type="button" class="btn btn--ghost" onclick="closeStorageModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

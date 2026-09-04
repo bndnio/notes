@@ -452,6 +452,56 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   margin-bottom: 12px;
 }
 
+.outputs-banner {
+  margin-bottom: 16px;
+}
+
+.note-list {
+  margin-top: 16px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1.5px solid var(--ink);
+}
+
+.note-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.12);
+  font-size: 13px;
+}
+
+.note-list-item:last-child {
+  border-bottom: none;
+}
+
+.note-list-subject {
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-list-date {
+  color: var(--ink-mid);
+  flex-shrink: 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+
+.note-list-empty,
+.note-list-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ink-mid);
+}
+
+.storage-disable-warning {
+  margin-top: 12px;
+}
+
 /* ── Token box (MCP modal) ── */
 .token-box {
   background: var(--ink);

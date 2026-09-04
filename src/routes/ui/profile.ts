@@ -5,6 +5,7 @@ import { createDb } from "@/db";
 import { html, renderTemplate, pageVars } from "@/lib/responses";
 import type { Env } from "@/lib/types";
 import { buildNotionSection } from "./sections/notion";
+import { buildStorageSection } from "./sections/storage";
 import { buildMcpSection } from "./sections/mcp";
 import { buildEmailSection } from "./sections/email";
 
@@ -23,10 +24,12 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
 
   const [
     { card: notionCard, modal: notionModal, script: notionScript },
+    { card: storageCard, modal: storageModal, script: storageScript },
     { card: mcpCard, modal: mcpModal, script: mcpScript },
     { card: emailCard, modal: emailModal, script: emailScript },
   ] = await Promise.all([
     buildNotionSection(profile, userId, env, csrfField),
+    buildStorageSection(profile, userId, env, csrfField),
     buildMcpSection(profile, userId, env, encryptionKey, csrfField),
     buildEmailSection(profile, userId, env, csrfField),
   ]);
@@ -40,7 +43,9 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     renderTemplate(profileHtml, pageVars({
       toast,
       csrfField,
+      outputsBannerHidden: profile.storageEnabled || profile.notion ? "hidden" : "",
       notionModal, notionCard, notionScript,
+      storageModal, storageCard, storageScript,
       mcpModal, mcpCard, mcpScript,
       emailModal, emailCard, emailScript,
       username,
