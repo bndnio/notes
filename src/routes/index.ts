@@ -9,6 +9,7 @@ import { handleMcpSetup } from "./api/mcp/setup";
 import { handleMcpInstall } from "./api/mcp/install";
 import { handleEmailSettingsSave } from "./api/email";
 import { handleNotionRoutes } from "./api/notion";
+import { handleStorageSettingsSave } from "./api/storage";
 import { handleHttpErrorResponse } from "@/lib/responses";
 import type { Env } from "@/lib/types";
 
@@ -34,6 +35,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname === "/api/mcp/install/claude-code") return handleMcpInstall(env);
     if (pathname === "/api/email" && request.method === "POST") return handleEmailSettingsSave(request, env);
     if (pathname.startsWith("/api/notion/")) return handleNotionRoutes(request, env);
+    if (pathname === "/api/storage" && request.method === "POST") return handleStorageSettingsSave(request, env);
 
     return new Response("Not found", { status: 404 });
   } catch (e) {
