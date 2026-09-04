@@ -26,16 +26,16 @@
             <h2>Install the MCP server</h2>
             <h3>One-liner</h3>
             <p>After setting your token above, run this in your terminal:</p>
-            <pre>curl -s {{appUrl}}/install-mcp/claude-code | sh</pre>
+            <pre>curl -s {{appUrl}}/api/mcp/install/claude-code | sh</pre>
             <h3>Manual — CLI</h3>
-            <pre>claude mcp add --transport http notes {{appUrl}}/mcp \
+            <pre>claude mcp add --transport http notes {{appUrl}}/api/mcp \
   -H "Authorization: Bearer ${NOTES_MCP_TOKEN}"</pre>
             <h3>Manual — .mcp.json</h3>
             <pre>{
   "mcpServers": {
     "notes": {
       "type": "http",
-      "url": "{{appUrl}}/mcp",
+      "url": "{{appUrl}}/api/mcp",
       "headers": { "Authorization": "Bearer ${NOTES_MCP_TOKEN}" }
     }
   }

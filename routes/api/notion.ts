@@ -47,7 +47,7 @@ async function handleConnect(request: Request, env: Env): Promise<Response> {
 
   const oauthUrl = new URL("https://api.notion.com/v1/oauth/authorize");
   oauthUrl.searchParams.set("client_id", env.NOTION_CLIENT_ID);
-  oauthUrl.searchParams.set("redirect_uri", `${env.APP_URL}/integration/notion/callback`);
+  oauthUrl.searchParams.set("redirect_uri", `${env.APP_URL}/api/notion/callback`);
   oauthUrl.searchParams.set("response_type", "code");
   oauthUrl.searchParams.set("state", state);
   oauthUrl.searchParams.set("owner", "user");
@@ -64,7 +64,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
   const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const sessionUserId = await resolveSession(request, env, encryptionKey);
   if (sessionUserId !== userId) {
-    return Response.redirect(`${env.APP_URL}/login`, 302);
+    return Response.redirect(`${env.APP_URL}/auth/login`, 302);
   }
 
   await env.EPHEMERAL_KV.delete(`notion_state:${state}`);
@@ -80,7 +80,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
     body: JSON.stringify({
       grant_type: "authorization_code",
       code,
-      redirect_uri: `${env.APP_URL}/integration/notion/callback`,
+      redirect_uri: `${env.APP_URL}/api/notion/callback`,
     }),
   });
 
@@ -98,7 +98,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
     { expirationTtl: 3600 },
   );
 
-  return Response.redirect(`${env.APP_URL}/integration/notion/select?relay=1`, 302);
+  return Response.redirect(`${env.APP_URL}/api/notion/select?relay=1`, 302);
 }
 
 async function handleSelectGet(request: Request, env: Env): Promise<Response> {
@@ -110,7 +110,7 @@ async function handleSelectGet(request: Request, env: Env): Promise<Response> {
   const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
   if (dbsJson) {
     return Response.redirect(
-      viaRelay ? `${env.APP_URL}/integration/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
+      viaRelay ? `${env.APP_URL}/api/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
       302,
     );
   }
@@ -127,14 +127,14 @@ async function handleSelectGet(request: Request, env: Env): Promise<Response> {
   }
 
   if (!accessToken) {
-    return Response.redirect(`${env.APP_URL}/integration/notion/connect`, 302);
+    return Response.redirect(`${env.APP_URL}/api/notion/connect`, 302);
   }
 
   const databases = await listDatabases(accessToken);
   if (databases.length === 0) {
     const error = encodeURIComponent("No databases found. Share a Notion database with this integration and try again.");
     if (viaRelay) {
-      return Response.redirect(`${env.APP_URL}/integration/notion/relay?error=${error}`, 302);
+      return Response.redirect(`${env.APP_URL}/api/notion/relay?error=${error}`, 302);
     }
     return Response.redirect(`${env.APP_URL}/profile?toast=${error}`, 302);
   }
@@ -142,7 +142,7 @@ async function handleSelectGet(request: Request, env: Env): Promise<Response> {
   await storeDatabasePicker(userId, accessToken, databases, encryptionKey, env);
 
   return Response.redirect(
-    viaRelay ? `${env.APP_URL}/integration/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
+    viaRelay ? `${env.APP_URL}/api/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
     302,
   );
 }
@@ -164,7 +164,7 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   ]);
 
   if (!dbsJson || !encryptedToken) {
-    return Response.redirect(`${env.APP_URL}/integration/notion/select`, 302);
+    return Response.redirect(`${env.APP_URL}/api/notion/select`, 302);
   }
 
   const databases = JSON.parse(dbsJson) as NotionDatabase[];
@@ -192,19 +192,19 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
 export async function handleNotionRoutes(request: Request, env: Env): Promise<Response> {
   const { pathname, searchParams } = new URL(request.url);
 
-  if (pathname === "/integration/notion/connect" && request.method === "GET") {
+  if (pathname === "/api/notion/connect" && request.method === "GET") {
     return handleConnect(request, env);
   }
-  if (pathname === "/integration/notion/callback" && request.method === "GET") {
+  if (pathname === "/api/notion/callback" && request.method === "GET") {
     return handleCallback(request, searchParams, env);
   }
-  if (pathname === "/integration/notion/relay" && request.method === "GET") {
+  if (pathname === "/api/notion/relay" && request.method === "GET") {
     return handleRelay(request, env);
   }
-  if (pathname === "/integration/notion/select" && request.method === "GET") {
+  if (pathname === "/api/notion/select" && request.method === "GET") {
     return handleSelectGet(request, env);
   }
-  if (pathname === "/integration/notion/select" && request.method === "POST") {
+  if (pathname === "/api/notion/select" && request.method === "POST") {
     return handleSelectPost(request, env);
   }
 

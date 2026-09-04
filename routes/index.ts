@@ -20,19 +20,21 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname === "/profile") return handleProfile(request, env);
 
     // Login island
-    if (pathname.startsWith("/register")) return handleRegistration(request, env);
-    if (pathname.startsWith("/login")) return handleLogin(request, env);
-    if (pathname.startsWith("/verify")) return handleVerify(request, env);
-    if (pathname === "/logout" && request.method === "POST") return handleLogout(request, env);
+    if (pathname.startsWith("/auth/register")) return handleRegistration(request, env);
+    if (pathname.startsWith("/auth/login")) return handleLogin(request, env);
+    if (pathname.startsWith("/auth/verify")) return handleVerify(request, env);
+    if (pathname === "/auth/logout" && request.method === "POST") return handleLogout(request, env);
 
     // Pipeline ingest — the only route that reaches into a source
-    if (pathname === "/mcp") return handleMcp(request, env);
+    if (pathname === "/api/mcp") return handleMcp(request, env);
+    // 308 keeps method and body, so Claude Code configs pointing at /mcp keep working
+    if (pathname === "/mcp") return Response.redirect(`${env.APP_URL}/api/mcp`, 308);
 
     // Integration config
-    if (pathname.startsWith("/setup-mcp/")) return handleMcpSetup(request, env);
-    if (pathname === "/install-mcp/claude-code") return handleMcpInstall(env);
-    if (pathname === "/settings/email" && request.method === "POST") return handleEmailSettingsSave(request, env);
-    if (pathname.startsWith("/integration/notion")) return handleNotionRoutes(request, env);
+    if (pathname.startsWith("/api/mcp/setup/")) return handleMcpSetup(request, env);
+    if (pathname === "/api/mcp/install/claude-code") return handleMcpInstall(env);
+    if (pathname === "/api/email" && request.method === "POST") return handleEmailSettingsSave(request, env);
+    if (pathname.startsWith("/api/notion/")) return handleNotionRoutes(request, env);
 
     return new Response("Not found", { status: 404 });
   } catch (e) {

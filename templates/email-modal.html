@@ -4,7 +4,7 @@
       <h2>Manage email</h2>
       <button class="modal-close" onclick="closeEmailModal()">✕</button>
     </div>
-    <form id="email-settings-form" method="POST" action="/settings/email">
+    <form id="email-settings-form" method="POST" action="/api/email">
       {{csrfField}}
       <p class="error" id="email-form-error"></p>
       <div class="modal-body">

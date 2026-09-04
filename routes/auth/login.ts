@@ -41,7 +41,7 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
     }
 
     // Always redirect to avoid email enumeration
-    return Response.redirect(`${env.APP_URL}/verify?email=${encodeURIComponent(email)}`, 302);
+    return Response.redirect(`${env.APP_URL}/auth/verify?email=${encodeURIComponent(email)}`, 302);
   }
 
   return new Response("Method not allowed", { status: 405 });

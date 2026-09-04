@@ -6,7 +6,7 @@ const MCP_AUTH_TOKEN = process.env.MCP_AUTH_TOKEN!;
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function mcp(params: unknown, token = MCP_AUTH_TOKEN) {
-  return fetch(`${WORKER_URL}/mcp`, {
+  return fetch(`${WORKER_URL}/api/mcp`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -21,7 +21,7 @@ async function mcp(params: unknown, token = MCP_AUTH_TOKEN) {
 
 describe("MCP server", () => {
   test("rejects request with no auth token", async () => {
-    const res = await fetch(`${WORKER_URL}/mcp`, {
+    const res = await fetch(`${WORKER_URL}/api/mcp`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
       body: JSON.stringify({ jsonrpc: "2.0", id: "1", method: "tools/call", params: {} }),

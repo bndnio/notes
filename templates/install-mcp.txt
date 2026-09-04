@@ -8,6 +8,6 @@ if [ -z "$NOTES_MCP_TOKEN" ]; then
   exit 1
 fi
 claude mcp remove notes 2>/dev/null || true
-claude mcp add --transport http notes {{appUrl}}/mcp \
+claude mcp add --transport http notes {{appUrl}}/api/mcp \
   -H "Authorization: Bearer ${NOTES_MCP_TOKEN}"
 echo "Done. Restart Claude Code to activate the Notes MCP server."

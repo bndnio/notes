@@ -4,7 +4,7 @@
       <h2>Choose a database</h2>
       <button class="modal-close" onclick="closeNotionModal()">✕</button>
     </div>
-    <form method="POST" action="/integration/notion/select">
+    <form method="POST" action="/api/notion/select">
       {{csrfField}}
       <div class="modal-body">
         <p class="subtitle">Your database needs <code>Name</code> (Title), <code>Date</code> (Date), and <code>From</code> (Text) properties.</p>

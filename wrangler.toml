@@ -8,7 +8,7 @@
 #   1. Generate an encryption key:    bun run gen-key
 #   2. Set worker secrets:            bun run secret-encryption-key (and other secret-* scripts)
 #   3. Apply D1 migrations:           bunx wrangler d1 migrations apply bndnio-notes --remote
-#   4. Deploy and register at /register
+#   4. Deploy and register at /auth/register
 
 name = "bndnio-notes"
 main = "worker.ts"

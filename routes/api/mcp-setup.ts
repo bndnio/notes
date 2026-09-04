@@ -87,13 +87,13 @@ async function handleResetMcpToken(request: Request, env: Env): Promise<Response
 export async function handleMcpSetup(request: Request, env: Env): Promise<Response> {
   const { pathname } = new URL(request.url);
 
-  if (pathname === "/setup-mcp/generate" && request.method === "POST") {
+  if (pathname === "/api/mcp/setup/generate" && request.method === "POST") {
     return handleGenerateMcpToken(request, env);
   }
-  if (pathname === "/setup-mcp/reset" && request.method === "POST") {
+  if (pathname === "/api/mcp/setup/reset" && request.method === "POST") {
     return handleResetMcpToken(request, env);
   }
-  if (pathname === "/setup-mcp/done" && request.method === "POST") {
+  if (pathname === "/api/mcp/setup/done" && request.method === "POST") {
     return handleMcpDone(request, env);
   }
 

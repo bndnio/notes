@@ -56,7 +56,7 @@ Login/register PINs are logged in the **terminal running wrangler**, not the bro
 
 - **Inbound email** — Cloudflare Email Routing only hits the deployed worker, not localhost.
 - **Resend** — skipped when running on localhost; PINs go to the wrangler terminal instead.
-- **Notion OAuth** — Notion requires HTTPS redirect URIs. Add `https://localhost:8787/integration/notion/callback` in your Notion integration settings. `APP_URL` in `.dev.vars` must use the same origin.
+- **Notion OAuth** — Notion requires HTTPS redirect URIs. Add `https://localhost:8787/api/notion/callback` in your Notion integration settings. `APP_URL` in `.dev.vars` must use the same origin.
 
 ### Local vs remote dev
 
@@ -100,7 +100,7 @@ bun run bucket
 
 1. Go to https://www.notion.so/my-integrations → **New integration** (type: **Public**)
    - Name it "Notes Capture"
-   - Add redirect URI: `https://notes.bndn.io/integration/notion/callback`
+   - Add redirect URI: `https://notes.bndn.io/api/notion/callback`
    - Copy the **OAuth client ID** and **OAuth client secret**
 
 2. Set `NOTION_CLIENT_ID` in `wrangler.toml` `[vars]` (or override in `.dev.vars` for local dev)
@@ -110,7 +110,7 @@ bun run bucket
    bun run secret-notion-client-secret
    ```
 
-4. After registering at `/register`, connect Notion from `/profile` → **Notion** → **Connect**. You'll pick a database with these properties:
+4. After registering at `/auth/register`, connect Notion from `/profile` → **Notion** → **Connect**. You'll pick a database with these properties:
    - `Name` — Title (default)
    - `Date` — Date
    - `From` — Text
@@ -159,7 +159,7 @@ Check:
 
 ## Step 9 — Set up MCP (optional, for AI agents)
 
-This worker exposes a Remote MCP server at `/mcp` so AI agents (Claude Code, etc.) can save notes directly without email.
+This worker exposes a Remote MCP server at `/api/mcp` so AI agents (Claude Code, etc.) can save notes directly without email. Requests to the legacy `/mcp` path are permanently redirected there.
 
 Register at `/profile` → **MCP Server** → **Setup**. Save the token when shown — it won't be displayed again.
 

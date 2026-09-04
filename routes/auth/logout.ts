@@ -17,7 +17,7 @@ export async function handleLogout(request: Request, env: Env): Promise<Response
   return new Response(null, {
     status: 302,
     headers: {
-      Location: `${env.APP_URL}/login`,
+      Location: `${env.APP_URL}/auth/login`,
       "Set-Cookie": clearSessionCookieHeader(),
     },
   });

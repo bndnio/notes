@@ -94,7 +94,7 @@ Never construct HTML as inline strings in handlers, even tiny fragments.
 function buildNotionModal(databases: NotionDatabase[]): string {
   return `<div class="modal-overlay">
     <div class="modal">
-      <form method="POST" action="/integration/notion/select">
+      <form method="POST" action="/api/notion/select">
         ${databases.map(d => `<input type="radio" value="${escHtml(d.id)}">`).join('\n')}
       </form>
     </div>
@@ -169,7 +169,7 @@ export async function completeRegistration(env, email, pending) {
   return { sessionToken };
 }
 
-// User clicks "Setup →" → POST /setup-mcp/generate → token created and shown.
+// User clicks "Setup →" → POST /api/mcp/setup/generate → token created and shown.
 ```
 
 ### Authentication checks always go at the top of handlers
@@ -264,7 +264,7 @@ await env.EPHEMERAL_KV.put(`picker:${pickerToken}`, JSON.stringify({ userId, dat
 **Do** — resolve identity via the session cookie at every step:
 ```ts
 const userId = await resolveSession(request, env, encryptionKey);
-if (!userId) return Response.redirect(`${env.APP_URL}/login`, 302);
+if (!userId) return Response.redirect(`${env.APP_URL}/auth/login`, 302);
 
 const dbsJson = await env.EPHEMERAL_KV.get(`notion_dbs:${userId}`);
 // pending state keyed by userId — no separate correlation token needed
@@ -387,9 +387,9 @@ For any refactor touching multiple files or systems, finish one phase, pause for
 ```
 Edit lib/types.ts
 Edit lib/registration.ts
-Edit handlers/fetch/profile.ts
-Edit handlers/fetch/setup-mcp.ts
-Edit handlers/fetch/integration/notion.ts
+Edit routes/ui/profile.ts
+Edit routes/api/mcp-setup.ts
+Edit routes/api/notion.ts
 Edit templates/profile.html
 Edit templates/notion-relay.html
 [no pause]

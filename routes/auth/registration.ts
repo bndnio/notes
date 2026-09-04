@@ -35,7 +35,7 @@ export async function handleRegistration(request: Request, env: Env): Promise<Re
 
     await sendPin(email, result.pin, env);
 
-    return Response.redirect(`${env.APP_URL}/verify?email=${encodeURIComponent(email)}`, 302);
+    return Response.redirect(`${env.APP_URL}/auth/verify?email=${encodeURIComponent(email)}`, 302);
   }
 
   return new Response("Method not allowed", { status: 405 });

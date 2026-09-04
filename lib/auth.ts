@@ -46,7 +46,7 @@ export async function assertSession(
   encryptionKey: string,
 ): Promise<{ userId: string; sessionHash: string }> {
   const session = await resolveSessionWithHash(request, env, encryptionKey);
-  if (!session) throw new HttpError(Response.redirect(`${env.APP_URL}/login`, 302));
+  if (!session) throw new HttpError(Response.redirect(`${env.APP_URL}/auth/login`, 302));
   return session;
 }
 
@@ -56,7 +56,7 @@ export async function assertUser(
   appUrl: string,
 ): Promise<Profile> {
   const user = await usersRepo.findById(db, userId);
-  if (!user) throw new HttpError(Response.redirect(`${appUrl}/login`, 302));
+  if (!user) throw new HttpError(Response.redirect(`${appUrl}/auth/login`, 302));
   return user;
 }
 

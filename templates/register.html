@@ -13,7 +13,7 @@
     <h1>Register</h1>
     <p class="subtitle">Create an account to start capturing notes.</p>
     <p class="error">{{error}}</p>
-    <form method="POST" action="/register">
+    <form method="POST" action="/auth/register">
       <label>
         Email
         <input type="email" name="email" required autocomplete="email">
@@ -29,7 +29,7 @@
       </label>
       <button type="submit" class="btn">Register →</button>
     </form>
-    <p class="help-text">Already registered? <a href="/login">Login</a></p>
+    <p class="help-text">Already registered? <a href="/auth/login">Login</a></p>
   </div>
 </body>
 </html>

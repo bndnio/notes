@@ -10,21 +10,21 @@
       }
     }
 
-    var popup = window.open('/integration/notion/connect', 'notion-oauth', 'width=600,height=700,menubar=no,toolbar=no,location=no');
+    var popup = window.open('/api/notion/connect', 'notion-oauth', 'width=600,height=700,menubar=no,toolbar=no,location=no');
     if (!popup) {
       if (btn) {
         btn.disabled = false;
         var s = btn.querySelector('.btn-spinner');
         if (s) s.remove();
       }
-      window.location.href = '/integration/notion/connect';
+      window.location.href = '/api/notion/connect';
     }
   }
 
   function openNotionModal() {
     var overlay = document.getElementById('notion-modal-overlay');
     if (!overlay) {
-      window.location.href = '/integration/notion/select';
+      window.location.href = '/api/notion/select';
       return;
     }
     overlay.classList.add('modal-overlay--visible');
