@@ -1,4 +1,4 @@
-import { handleMcp } from "../sources/mcp/handler";
+import { handleMcp } from "@/sources/mcp/handler";
 import { handleHome } from "./ui/home";
 import { handleProfile } from "./ui/profile";
 import { handleRegistration } from "./auth/register";
@@ -9,8 +9,8 @@ import { handleMcpSetup } from "./api/mcp/setup";
 import { handleMcpInstall } from "./api/mcp/install";
 import { handleEmailSettingsSave } from "./api/email";
 import { handleNotionRoutes } from "./api/notion";
-import { handleHttpErrorResponse } from "../lib/responses";
-import type { Env } from "../lib/types";
+import { handleHttpErrorResponse } from "@/lib/responses";
+import type { Env } from "@/lib/types";
 
 export async function handleFetch(request: Request, env: Env): Promise<Response> {
   try {

@@ -1,5 +1,5 @@
-import betaBannerHtml from "../templates/beta-banner.html";
-import integrationCardHtml from "../templates/integration-card.html";
+import betaBannerHtml from "@/templates/beta-banner.html";
+import integrationCardHtml from "@/templates/integration-card.html";
 
 export class HttpError extends Error {
   constructor(public readonly response: Response) {

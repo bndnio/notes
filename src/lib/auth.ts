@@ -1,7 +1,7 @@
 import { hmacToken } from "./crypto";
 import { getCookie } from "./cookies";
-import { createDb } from "../db";
-import * as usersRepo from "../db/repositories/users";
+import { createDb } from "@/db";
+import * as usersRepo from "@/db/repositories/users";
 import { HttpError } from "./responses";
 import type { Env, Profile } from "./types";
 

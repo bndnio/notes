@@ -1,9 +1,9 @@
-import profileHtml from "../../templates/profile.html";
-import { assertSession, assertUser, getCsrfToken } from "../../lib/auth";
-import { escHtml } from "../../lib/html";
-import { createDb } from "../../db";
-import { html, renderTemplate, pageVars } from "../../lib/responses";
-import type { Env } from "../../lib/types";
+import profileHtml from "@/templates/profile.html";
+import { assertSession, assertUser, getCsrfToken } from "@/lib/auth";
+import { escHtml } from "@/lib/html";
+import { createDb } from "@/db";
+import { html, renderTemplate, pageVars } from "@/lib/responses";
+import type { Env } from "@/lib/types";
 import { buildNotionSection } from "./sections/notion";
 import { buildMcpSection } from "./sections/mcp";
 import { buildEmailSection } from "./sections/email";

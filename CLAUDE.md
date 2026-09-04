@@ -375,6 +375,34 @@ When asked to review or audit, walk through these categories in order. The initi
 
 ---
 
+## Imports
+
+### Use `@/` to cross a subsystem, relative paths within one
+
+`@/` resolves to `src/`. If an import leaves its own top-level subsystem (`routes/`, `sinks/`, `sources/`, `lib/`, `db/`, `templates/`), use `@/`. If it stays inside, keep it relative. No exception for files at the `src/` root.
+
+**Why:** 27 of 99 relative imports were `../../../`, concentrated in `routes/ui/sections/*` and `routes/api/mcp/*`. Depth grows every time the route tree mirrors a URL more faithfully, and counting dots is not a thing a reader should have to do.
+
+**Don't** — walk up out of the subsystem, or alias a sibling:
+```ts
+// src/routes/ui/sections/mcp.ts
+import { decrypt } from "../../../lib/crypto";       // ← leaves routes/, use @/
+// src/routes/ui/profile.ts
+import { buildMcpSection } from "@/routes/ui/sections/mcp"; // ← sibling, keep it relative
+```
+
+**Do:**
+```ts
+// src/routes/ui/sections/mcp.ts
+import { decrypt } from "@/lib/crypto";
+// src/routes/ui/profile.ts
+import { buildMcpSection } from "./sections/mcp";
+```
+
+The alias is declared in **two** files and both must be changed together — `[alias]` in `wrangler.toml` (esbuild, bundle time) and `"paths"` in `tsconfig.json` (`tsc`, typecheck time). They are separate resolvers, so there is no single source. A bad path fails loudly in both, and `bun run typecheck` in CI catches a half-applied change.
+
+---
+
 ## Process
 
 ### Implement multi-step refactors one phase at a time

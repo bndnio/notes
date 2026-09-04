@@ -15,6 +15,11 @@ main = "src/worker.ts"
 compatibility_date = "2024-09-23"
 routes = [{ pattern = "notes.bndn.io", custom_domain = true }]
 
+# Path alias for cross-subsystem imports. Must stay in sync with the matching "paths" entry 
+# in tsconfig.json — esbuild (bundling) and tsc (typechecking) resolve independently.
+[alias]
+"@" = "./src"
+
 [assets]
 directory = "./assets"
 

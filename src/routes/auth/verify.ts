@@ -1,12 +1,12 @@
-import verifyHtml from "../../templates/verify.html";
-import { consumePin } from "../../lib/pin";
-import { completeRegistration } from "../../lib/registration";
-import { hmacToken, generateRandomHex } from "../../lib/crypto";
-import { escHtml } from "../../lib/html";
-import { formField } from "../../lib/form";
-import { sessionCookieHeader } from "../../lib/auth";
-import { html, renderTemplate, pageVars } from "../../lib/responses";
-import type { Env } from "../../lib/types";
+import verifyHtml from "@/templates/verify.html";
+import { consumePin } from "@/lib/pin";
+import { completeRegistration } from "@/lib/registration";
+import { hmacToken, generateRandomHex } from "@/lib/crypto";
+import { escHtml } from "@/lib/html";
+import { formField } from "@/lib/form";
+import { sessionCookieHeader } from "@/lib/auth";
+import { html, renderTemplate, pageVars } from "@/lib/responses";
+import type { Env } from "@/lib/types";
 
 export async function handleVerify(request: Request, env: Env): Promise<Response> {
   if (request.method === "GET") {

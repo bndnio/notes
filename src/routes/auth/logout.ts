@@ -1,5 +1,5 @@
-import { assertCsrf, clearSessionCookieHeader, resolveSessionWithHash } from "../../lib/auth";
-import type { Env } from "../../lib/types";
+import { assertCsrf, clearSessionCookieHeader, resolveSessionWithHash } from "@/lib/auth";
+import type { Env } from "@/lib/types";
 
 export async function handleLogout(request: Request, env: Env): Promise<Response> {
   if (request.method !== "POST") {

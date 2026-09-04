@@ -1,9 +1,9 @@
-import loginHtml from "../../templates/login.html";
-import { generatePin, storePin, sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "../../lib/pin";
-import { createDb } from "../../db";
-import * as usersRepo from "../../db/repositories/users";
-import { html, renderTemplate, pageVars } from "../../lib/responses";
-import type { Env } from "../../lib/types";
+import loginHtml from "@/templates/login.html";
+import { generatePin, storePin, sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "@/lib/pin";
+import { createDb } from "@/db";
+import * as usersRepo from "@/db/repositories/users";
+import { html, renderTemplate, pageVars } from "@/lib/responses";
+import type { Env } from "@/lib/types";
 
 function formField(form: FormData, name: string): string {
   return ((form.get(name) as string) ?? "").trim();

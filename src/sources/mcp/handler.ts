@@ -1,9 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
-import { hasEnabledSink, saveNote, type SaveNoteResult } from "../../pipeline";
-import { resolveProfile } from "../../lib/auth";
-import type { Content, Env, Profile } from "../../lib/types";
+import { hasEnabledSink, saveNote, type SaveNoteResult } from "@/pipeline";
+import { resolveProfile } from "@/lib/auth";
+import type { Content, Env, Profile } from "@/lib/types";
 
 function formatResults(results: SaveNoteResult): string {
   return Object.entries(results)

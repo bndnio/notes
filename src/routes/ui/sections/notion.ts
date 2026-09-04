@@ -1,9 +1,9 @@
-import notionSelectModalHtml from "../../../templates/notion-select-modal.html";
-import notionScriptHtml from "../../../templates/notion-script.html";
-import { escHtml } from "../../../lib/html";
-import { renderTemplate, renderIntegrationCard } from "../../../lib/responses";
-import type { NotionDatabase } from "../../../lib/notion-client";
-import type { Env, Profile, Section } from "../../../lib/types";
+import notionSelectModalHtml from "@/templates/notion-select-modal.html";
+import notionScriptHtml from "@/templates/notion-script.html";
+import { escHtml } from "@/lib/html";
+import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
+import type { NotionDatabase } from "@/lib/notion-client";
+import type { Env, Profile, Section } from "@/lib/types";
 
 function buildNotionModal(
   databases: Array<{ id: string; title: string }>,

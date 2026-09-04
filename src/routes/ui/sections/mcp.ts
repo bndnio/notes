@@ -1,9 +1,9 @@
-import mcpSetupModalHtml from "../../../templates/mcp-setup-modal.html";
-import mcpScriptHtml from "../../../templates/mcp-script.html";
-import { decrypt } from "../../../lib/crypto";
-import { escHtml } from "../../../lib/html";
-import { renderTemplate, renderIntegrationCard } from "../../../lib/responses";
-import type { Env, Profile, Section } from "../../../lib/types";
+import mcpSetupModalHtml from "@/templates/mcp-setup-modal.html";
+import mcpScriptHtml from "@/templates/mcp-script.html";
+import { decrypt } from "@/lib/crypto";
+import { escHtml } from "@/lib/html";
+import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
+import type { Env, Profile, Section } from "@/lib/types";
 
 export async function buildMcpSection(
   profile: Profile,

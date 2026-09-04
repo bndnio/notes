@@ -1,8 +1,8 @@
 import { streamToText, parseEmail } from "./parse";
-import { hasEnabledSink, saveNote } from "../../pipeline";
-import { createDb } from "../../db";
-import * as usersRepo from "../../db/repositories/users";
-import type { Content, Env } from "../../lib/types";
+import { hasEnabledSink, saveNote } from "@/pipeline";
+import { createDb } from "@/db";
+import * as usersRepo from "@/db/repositories/users";
+import type { Content, Env } from "@/lib/types";
 
 export async function handleEmail(message: ForwardableEmailMessage, env: Env): Promise<void> {
   const localPart = (message.to ?? "").split("@")[0];

@@ -1,10 +1,10 @@
-import emailModalHtml from "../../../templates/email-modal.html";
-import emailScriptHtml from "../../../templates/email-script.html";
-import { escHtml } from "../../../lib/html";
-import { createDb } from "../../../db";
-import * as userEmailsRepo from "../../../db/repositories/user-emails";
-import { renderTemplate, renderIntegrationCard } from "../../../lib/responses";
-import type { Env, Profile, Section } from "../../../lib/types";
+import emailModalHtml from "@/templates/email-modal.html";
+import emailScriptHtml from "@/templates/email-script.html";
+import { escHtml } from "@/lib/html";
+import { createDb } from "@/db";
+import * as userEmailsRepo from "@/db/repositories/user-emails";
+import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
+import type { Env, Profile, Section } from "@/lib/types";
 
 function buildEmailModal(
   emails: Array<{ email: string }>,

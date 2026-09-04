@@ -1,9 +1,9 @@
-import registerHtml from "../../templates/register.html";
-import { stageRegistration } from "../../lib/registration";
-import { sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "../../lib/pin";
-import { formField } from "../../lib/form";
-import { html, renderTemplate, pageVars } from "../../lib/responses";
-import type { Env } from "../../lib/types";
+import registerHtml from "@/templates/register.html";
+import { stageRegistration } from "@/lib/registration";
+import { sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "@/lib/pin";
+import { formField } from "@/lib/form";
+import { html, renderTemplate, pageVars } from "@/lib/responses";
+import type { Env } from "@/lib/types";
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
   const renderRegister = (error: string) =>
