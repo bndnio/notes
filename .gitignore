@@ -7,6 +7,7 @@ node_modules/
 # TypeScript
 *.js.map
 *.d.ts
+!html.d.ts
 
 # Downloaded notes (bulk export script output)
 downloaded-notes/
