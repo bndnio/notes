@@ -11,7 +11,7 @@
 #   4. Deploy and register at /auth/register
 
 name = "bndnio-notes"
-main = "worker.ts"
+main = "src/worker.ts"
 compatibility_date = "2024-09-23"
 routes = [{ pattern = "notes.bndn.io", custom_domain = true }]
 

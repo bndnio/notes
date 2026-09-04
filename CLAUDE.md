@@ -104,7 +104,7 @@ function buildNotionModal(databases: NotionDatabase[]): string {
 
 **Do** — put chrome in a template, pass only the dynamic fragment as a slot:
 ```ts
-// templates/notion-select-modal.html contains the wrapper.
+// src/templates/notion-select-modal.html contains the wrapper.
 function buildNotionModal(databases: NotionDatabase[]): string {
   const options = databases
     .map(d => `<input type="radio" value="${escHtml(d.id)}">`)
@@ -212,7 +212,7 @@ async function handleSelectPost(request, env) {
 
 **Don't** — return a union and check at every call site:
 ```ts
-// lib/auth.ts
+// src/lib/auth.ts
 export async function assertSession(...): Promise<{ userId: string } | Response> {
   if (!session) return Response.redirect(...);  // ← caller must check
   return session;
@@ -226,13 +226,13 @@ const { userId } = session;
 
 **Do** — throw and catch once:
 ```ts
-// lib/auth.ts
+// src/lib/auth.ts
 export async function assertSession(...): Promise<{ userId: string; sessionHash: string }> {
   if (!session) throw new HttpError(Response.redirect(...));
   return session;
 }
 
-// routes/index.ts — one place
+// src/routes/index.ts — one place
 try {
   return await handler(request, env);
 } catch (e) {
@@ -241,7 +241,7 @@ try {
 }
 ```
 
-`HttpError` is a plain class (not `extends Error`) — it is a control flow mechanism, not an exception. It lives in `lib/responses.ts` because it wraps a `Response`, not in `lib/auth.ts` or a dedicated errors file.
+`HttpError` is a plain class (not `extends Error`) — it is a control flow mechanism, not an exception. It lives in `src/lib/responses.ts` because it wraps a `Response`, not in `src/lib/auth.ts` or a dedicated errors file.
 
 The one recognised exception is `handleCallback` in notion.ts, which does a cross-check (OAuth state userId vs session userId) rather than a plain "is authenticated" assertion. It stays manual and that's intentional.
 
@@ -385,13 +385,13 @@ For any refactor touching multiple files or systems, finish one phase, pause for
 
 **Don't** — produce a 7-file diff in one shot for a refactor with natural phases:
 ```
-Edit lib/types.ts
-Edit lib/registration.ts
-Edit routes/ui/profile.ts
-Edit routes/api/mcp-setup.ts
-Edit routes/api/notion.ts
-Edit templates/profile.html
-Edit templates/notion-relay.html
+Edit src/lib/types.ts
+Edit src/lib/registration.ts
+Edit src/routes/ui/profile.ts
+Edit src/routes/api/mcp-setup.ts
+Edit src/routes/api/notion.ts
+Edit src/templates/profile.html
+Edit src/templates/notion-relay.html
 [no pause]
 "Done!"
 ```
@@ -399,8 +399,8 @@ Edit templates/notion-relay.html
 **Do** — finish one phase, summarise, wait:
 ```
 Phase 1: data model changes
-Edit lib/types.ts
-Edit lib/registration.ts
+Edit src/lib/types.ts
+Edit src/lib/registration.ts
 "Phase 1 done — Profile now uses mcpTokenHash. Ready for phase 2 when you are."
 [wait for "next"]
 ```
@@ -555,10 +555,10 @@ Set production secrets with the `secret-*` npm scripts (`wrangler secret put SEC
 
 ### Use `isLocalDev(env)` for local-only behaviour
 
-`lib/env.ts` exports `isLocalDev(env)` — true when `APP_URL` hostname is `localhost` or `127.0.0.1`. Use it for dev-only shortcuts (PIN logged to wrangler terminal instead of Resend, rate limits disabled). Do not add separate env vars like `DISPLAY_PIN_IN_CONSOLE` for behaviour that already follows from running locally.
+`src/lib/env.ts` exports `isLocalDev(env)` — true when `APP_URL` hostname is `localhost` or `127.0.0.1`. Use it for dev-only shortcuts (PIN logged to wrangler terminal instead of Resend, rate limits disabled). Do not add separate env vars like `DISPLAY_PIN_IN_CONSOLE` for behaviour that already follows from running locally.
 
 ```ts
-// lib/pin.ts
+// src/lib/pin.ts
 if (isLocalDev(env)) {
   console.log(`[dev] PIN for ${to}: ${pin}`);
   return;
@@ -577,4 +577,4 @@ Without `[secrets] required`, `wrangler deploy` does not fail fast on missing se
 
 When changing secret names or **adding a new `SEC_*` variable**, update every place that enumerates required secrets — including the `for key in ...` loop in `.github/workflows/deploy.yml`. That CI list is the deploy guardrail; if you add `SEC_FOO` to the codebase but not to the workflow, deploy will succeed without it.
 
-Also update: `lib/types.ts`, `.dev.vars.example`, `STORES.md`, and the `secret-*` scripts in `package.json`.
+Also update: `src/lib/types.ts`, `.dev.vars.example`, `STORES.md`, and the `secret-*` scripts in `package.json`.
