@@ -11,6 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Wrangler bundles with esbuild, which strips types without checking them,
+      # so a type error would otherwise deploy cleanly.
+      - name: Typecheck
+        run: bun run typecheck
+
       - name: Verify worker secrets
         run: |
           for key in SEC_ENCRYPTION_KEY SEC_RESEND_API_KEY SEC_NOTION_CLIENT_SECRET; do
