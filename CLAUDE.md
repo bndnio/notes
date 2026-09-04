@@ -379,7 +379,7 @@ When asked to review or audit, walk through these categories in order. The initi
 
 ### Use `@/` to cross a subsystem, relative paths within one
 
-`@/` resolves to `src/`. If an import leaves its own top-level subsystem (`routes/`, `sinks/`, `sources/`, `lib/`, `db/`, `templates/`), use `@/`. If it stays inside, keep it relative. No exception for files at the `src/` root.
+`@/` resolves to `src/`. If an import leaves its own top-level subsystem (`routes/`, `pipeline/`, `lib/`, `db/`, `templates/`), use `@/`. If it stays inside, keep it relative — however many levels it climbs. No exception for files at the `src/` root, and none for depth, so **every `@/` in the codebase marks a subsystem boundary being crossed.**
 
 **Why:** 27 of 99 relative imports were `../../../`, concentrated in `routes/ui/sections/*` and `routes/api/mcp/*`. Depth grows every time the route tree mirrors a URL more faithfully, and counting dots is not a thing a reader should have to do.
 
@@ -389,6 +389,8 @@ When asked to review or audit, walk through these categories in order. The initi
 import { decrypt } from "../../../lib/crypto";       // ← leaves routes/, use @/
 // src/routes/ui/profile.ts
 import { buildMcpSection } from "@/routes/ui/sections/mcp"; // ← sibling, keep it relative
+// src/pipeline/sources/email/handler.ts
+import { saveNote } from "@/pipeline";               // ← own subsystem, keep it relative
 ```
 
 **Do:**
@@ -397,6 +399,8 @@ import { buildMcpSection } from "@/routes/ui/sections/mcp"; // ← sibling, keep
 import { decrypt } from "@/lib/crypto";
 // src/routes/ui/profile.ts
 import { buildMcpSection } from "./sections/mcp";
+// src/pipeline/sources/email/handler.ts — still inside pipeline/, so relative
+import { saveNote } from "../..";
 ```
 
 The alias is declared in **two** files and both must be changed together — `[alias]` in `wrangler.toml` (esbuild, bundle time) and `"paths"` in `tsconfig.json` (`tsc`, typecheck time). They are separate resolvers, so there is no single source. A bad path fails loudly in both, and `bun run typecheck` in CI catches a half-applied change.

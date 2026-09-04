@@ -1,5 +1,5 @@
-import { sinks } from "@/sinks";
-import type { SinkContext, SinkResult } from "@/sinks/types";
+import { sinks } from "./sinks";
+import type { SinkContext, SinkResult } from "./sinks/types";
 import type { Content, Env, Profile } from "@/lib/types";
 
 export type SaveNoteResult = Record<string, SinkResult>;

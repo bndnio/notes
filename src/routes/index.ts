@@ -1,4 +1,4 @@
-import { handleMcp } from "@/sources/mcp/handler";
+import { handleMcp } from "@/pipeline/sources/mcp/handler";
 import { handleHome } from "./ui/home";
 import { handleProfile } from "./ui/profile";
 import { handleRegistration } from "./auth/register";

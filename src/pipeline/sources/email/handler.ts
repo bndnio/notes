@@ -1,5 +1,5 @@
 import { streamToText, parseEmail } from "./parse";
-import { hasEnabledSink, saveNote } from "@/pipeline";
+import { hasEnabledSink, saveNote } from "../..";
 import { createDb } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
 import type { Content, Env } from "@/lib/types";
