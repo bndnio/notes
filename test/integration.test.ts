@@ -39,7 +39,16 @@ describe("MCP server", () => {
     expect(res.status).toBe(404);
   });
 
-  test("save_note writes to R2 under brendon/ and Notion", async () => {
+  test("storage settings require authentication", async () => {
+    const res = await fetch(`${WORKER_URL}/api/storage`, {
+      method: "POST",
+      redirect: "manual",
+    });
+    expect(res.status).toBe(302);
+    expect(new URL(res.headers.get("location")!).pathname).toBe("/auth/login");
+  });
+
+  test("save_note writes to the configured destinations", async () => {
     const res = await mcp({
       name: "save_note",
       arguments: {
@@ -50,7 +59,7 @@ describe("MCP server", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as any;
     const text: string = body.result?.content?.[0]?.text ?? "";
-    expect(text).toMatch(/r2: [0-9a-f]{8}\//);
-    expect(text).toContain("notion: ok");
+    expect(text).toMatch(/(?:r2: [0-9a-f]{8}\/|notion: ok)/);
+    expect(text).not.toContain("failed");
   });
 });
