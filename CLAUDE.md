@@ -388,7 +388,7 @@ For any refactor touching multiple files or systems, finish one phase, pause for
 Edit src/lib/types.ts
 Edit src/lib/registration.ts
 Edit src/routes/ui/profile.ts
-Edit src/routes/api/mcp-setup.ts
+Edit src/routes/api/mcp/setup.ts
 Edit src/routes/api/notion.ts
 Edit src/templates/profile.html
 Edit src/templates/notion-relay.html

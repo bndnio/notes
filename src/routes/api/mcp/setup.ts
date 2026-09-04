@@ -1,14 +1,8 @@
-import installMcpScript from "../../templates/install-mcp.txt";
-import { assertSession, assertUser, assertCsrf } from "../../lib/auth";
-import { hmacToken, generateRandomHex, encrypt, decrypt } from "../../lib/crypto";
-import { createDb } from "../../lib/db";
-import * as usersRepo from "../../lib/db/repositories/users";
-import { renderTemplate, text } from "../../lib/responses";
-import type { Env } from "../../lib/types";
-
-export function handleMcpInstall(env: Env): Response {
-  return text(renderTemplate(installMcpScript, { appUrl: env.APP_URL }));
-}
+import { assertSession, assertUser, assertCsrf } from "../../../lib/auth";
+import { hmacToken, generateRandomHex, encrypt, decrypt } from "../../../lib/crypto";
+import { createDb } from "../../../lib/db";
+import * as usersRepo from "../../../lib/db/repositories/users";
+import type { Env } from "../../../lib/types";
 
 async function handleGenerateMcpToken(request: Request, env: Env): Promise<Response> {
   const encryptionKey = env.SEC_ENCRYPTION_KEY;

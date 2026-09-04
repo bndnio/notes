@@ -1,12 +1,13 @@
 import { handleMcp } from "../sources/mcp/handler";
 import { handleHome } from "./ui/home";
 import { handleProfile } from "./ui/profile";
-import { handleRegistration } from "./auth/registration";
+import { handleRegistration } from "./auth/register";
 import { handleLogin } from "./auth/login";
 import { handleLogout } from "./auth/logout";
 import { handleVerify } from "./auth/verify";
-import { handleMcpSetup, handleMcpInstall } from "./api/mcp-setup";
-import { handleEmailSettingsSave } from "./api/email-settings";
+import { handleMcpSetup } from "./api/mcp/setup";
+import { handleMcpInstall } from "./api/mcp/install";
+import { handleEmailSettingsSave } from "./api/email";
 import { handleNotionRoutes } from "./api/notion";
 import { handleHttpErrorResponse } from "../lib/responses";
 import type { Env } from "../lib/types";
@@ -27,8 +28,6 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
 
     // Pipeline ingest — the only route that reaches into a source
     if (pathname === "/api/mcp") return handleMcp(request, env);
-    // 308 keeps method and body, so Claude Code configs pointing at /mcp keep working
-    if (pathname === "/mcp") return Response.redirect(`${env.APP_URL}/api/mcp`, 308);
 
     // Integration config
     if (pathname.startsWith("/api/mcp/setup/")) return handleMcpSetup(request, env);
