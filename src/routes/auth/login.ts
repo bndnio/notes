@@ -1,7 +1,7 @@
 import loginHtml from "../../templates/login.html";
 import { generatePin, storePin, sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "../../lib/pin";
-import { createDb } from "../../lib/db";
-import * as usersRepo from "../../lib/db/repositories/users";
+import { createDb } from "../../db";
+import * as usersRepo from "../../db/repositories/users";
 import { html, renderTemplate, pageVars } from "../../lib/responses";
 import type { Env } from "../../lib/types";
 

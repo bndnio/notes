@@ -1,7 +1,7 @@
 import { assertSession, assertUser, assertCsrf } from "../../lib/auth";
-import { createDb } from "../../lib/db";
-import * as usersRepo from "../../lib/db/repositories/users";
-import * as userEmailsRepo from "../../lib/db/repositories/user-emails";
+import { createDb } from "../../db";
+import * as usersRepo from "../../db/repositories/users";
+import * as userEmailsRepo from "../../db/repositories/user-emails";
 import type { Env } from "../../lib/types";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

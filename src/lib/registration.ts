@@ -1,9 +1,9 @@
 import { hmacToken, generateRandomHex } from "./crypto";
 import { generatePin, storePin } from "./pin";
-import { createDb } from "./db";
-import { users, userEmails } from "./db/schema";
-import * as usersRepo from "./db/repositories/users";
-import * as userEmailsRepo from "./db/repositories/user-emails";
+import { createDb } from "../db";
+import { users, userEmails } from "../db/schema";
+import * as usersRepo from "../db/repositories/users";
+import * as userEmailsRepo from "../db/repositories/user-emails";
 import type { Env } from "./types";
 
 const RESERVED_USERNAMES = new Set([

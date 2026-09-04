@@ -3,8 +3,8 @@ import { resolveSession, assertSession, assertUser, assertCsrf } from "../../lib
 import { decrypt, encrypt, generateRandomHex } from "../../lib/crypto";
 import { html, renderTemplate } from "../../lib/responses";
 import { listDatabases, validateNotionDatabaseSchema, type NotionDatabase } from "../../lib/notion-client";
-import { createDb } from "../../lib/db";
-import * as notionIntegrations from "../../lib/db/repositories/notion-integrations";
+import { createDb } from "../../db";
+import * as notionIntegrations from "../../db/repositories/notion-integrations";
 import type { Env } from "../../lib/types";
 
 async function storeDatabasePicker(

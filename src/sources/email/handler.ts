@@ -1,7 +1,7 @@
 import { streamToText, parseEmail } from "./parse";
 import { hasEnabledSink, saveNote } from "../../pipeline";
-import { createDb } from "../../lib/db";
-import * as usersRepo from "../../lib/db/repositories/users";
+import { createDb } from "../../db";
+import * as usersRepo from "../../db/repositories/users";
 import type { Content, Env } from "../../lib/types";
 
 export async function handleEmail(message: ForwardableEmailMessage, env: Env): Promise<void> {
