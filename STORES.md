@@ -1,8 +1,10 @@
 # Storage Reference
 
+Remote artifacts this project depends on (Worker, Email Routing, GitHub, Notion, Resend, packages) are inventoried in [REMOTE.md](REMOTE.md). This file is the schema and key map for the stores listed there.
+
 ## D1 Database
 
-Binding: `DB` (`bndnio-notes`)
+Binding: `DB` (`bndnio-notes`, id `512d5056-9718-4afd-b2d0-4c6b88e6c2be`)
 
 ### `users`
 

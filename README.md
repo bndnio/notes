@@ -14,6 +14,8 @@ All notes are saved to R2 as `.md` and posted to a Notion database. Email notes 
 - Bun installed locally
 - A Notion account
 
+Production depends on Cloudflare resources, GitHub deploy credentials, a Notion OAuth app, and Resend. The full inventory is in [REMOTE.md](REMOTE.md); storage schemas are in [STORES.md](STORES.md).
+
 ---
 
 ## Local development
