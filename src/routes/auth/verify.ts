@@ -31,8 +31,8 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
 
     if (data.type === "register") {
       const { sessionToken } = await completeRegistration(env, email, {
-        username: data.username as string,
-        requireSenderMatch: data.requireSenderMatch as boolean,
+        username: data.username,
+        requireSenderMatch: data.requireSenderMatch,
       });
       return new Response(null, {
         status: 302,
@@ -47,7 +47,7 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
       const sessionToken = generateRandomHex(32);
       const encryptionKey = env.SEC_ENCRYPTION_KEY;
       const sessionHash = await hmacToken(sessionToken, encryptionKey);
-      await env.EPHEMERAL_KV.put(`session:${sessionHash}`, data.userId as string, {
+      await env.EPHEMERAL_KV.put(`session:${sessionHash}`, data.userId, {
         expirationTtl: 604800,
       });
       return new Response(null, {

@@ -39,8 +39,7 @@ export async function stageRegistration(
   if (existingUser) return { error: "Username already taken." };
 
   const pin = generatePin();
-  const stagedData = { type: "register", username, requireSenderMatch };
-  await storePin(email, pin, stagedData, env);
+  await storePin(email, pin, { type: "register", username, requireSenderMatch }, env);
 
   return { pin };
 }

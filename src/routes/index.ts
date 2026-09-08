@@ -7,7 +7,7 @@ import { handleLogout } from "./auth/logout";
 import { handleVerify } from "./auth/verify";
 import { handleMcpSetup } from "./api/mcp/setup";
 import { handleMcpInstall } from "./api/mcp/install";
-import { handleEmailSettingsSave } from "./api/email";
+import { handleEmailRoutes } from "./api/email";
 import { handleNotionRoutes } from "./api/notion";
 import { handleStorageSettingsSave } from "./api/storage";
 import { handleHttpErrorResponse } from "@/lib/responses";
@@ -33,7 +33,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     // Integration config
     if (pathname.startsWith("/api/mcp/setup/")) return handleMcpSetup(request, env);
     if (pathname === "/api/mcp/install/claude-code") return handleMcpInstall(env);
-    if (pathname === "/api/email" && request.method === "POST") return handleEmailSettingsSave(request, env);
+    if (pathname.startsWith("/api/email")) return handleEmailRoutes(request, env);
     if (pathname.startsWith("/api/notion/")) return handleNotionRoutes(request, env);
     if (pathname === "/api/storage" && request.method === "POST") return handleStorageSettingsSave(request, env);
 

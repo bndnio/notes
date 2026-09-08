@@ -51,21 +51,31 @@ export async function checkIpPinSendRate(ip: string, env: Env): Promise<boolean>
   return checkAndIncrementSendCount(`pin_send_count_ip:${ip}`, PIN_SEND_IP_LIMIT, env);
 }
 
+export type PinPayload =
+  | { type: "register"; username: string; requireSenderMatch: boolean }
+  | { type: "login"; userId: string }
+  | { type: "email_add"; userId: string };
+
 export async function storePin(
   email: string,
   pin: string,
-  payload: Record<string, unknown>,
+  payload: PinPayload,
   env: Env,
 ): Promise<void> {
   const stored = JSON.stringify({ pin, ...payload });
   await env.EPHEMERAL_KV.put(`pin:${email}`, stored, { expirationTtl: PIN_TTL });
 }
 
+/** Drops a staged PIN without consuming it — used when a flow is abandoned. */
+export async function discardPin(email: string, env: Env): Promise<void> {
+  await env.EPHEMERAL_KV.delete(`pin:${email}`);
+}
+
 export async function consumePin(
   email: string,
   pin: string,
   env: Env,
-): Promise<Record<string, unknown> | "locked" | null> {
+): Promise<PinPayload | "locked" | null> {
   const attemptsKey = `pin_attempts:${email}`;
   const [raw, attemptsRaw] = await Promise.all([
     env.EPHEMERAL_KV.get(`pin:${email}`),
@@ -76,8 +86,8 @@ export async function consumePin(
   const attempts = parseInt(attemptsRaw ?? "0", 10);
   if (isPinVerifyLocked(attempts, env)) return "locked";
 
-  const data = JSON.parse(raw) as Record<string, unknown>;
-  if (data.pin !== pin) {
+  const { pin: storedPin, ...payload } = JSON.parse(raw) as { pin: string } & PinPayload;
+  if (storedPin !== pin) {
     await recordPinVerifyAttempt(attemptsKey, attempts, env);
     return null;
   }
@@ -86,7 +96,7 @@ export async function consumePin(
     env.EPHEMERAL_KV.delete(`pin:${email}`),
     env.EPHEMERAL_KV.delete(attemptsKey),
   ]);
-  return data;
+  return payload;
 }
 
 export async function sendPin(to: string, pin: string, env: Env): Promise<void> {

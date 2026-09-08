@@ -1,0 +1,14 @@
+<div class="pending-verify">
+  <p class="warning">Enter the 6-digit PIN sent to <strong>{{pendingEmail}}</strong> to finish adding it.</p>
+  <div class="email-row">
+    <form class="form-inline" method="POST" action="/api/email/verify">
+      {{csrfField}}
+      <input type="text" name="pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+      <button type="submit" class="btn btn--sm">Verify →</button>
+    </form>
+    <form class="form-inline" method="POST" action="/api/email/cancel">
+      {{csrfField}}
+      <button type="submit" class="btn btn--ghost btn--sm">Discard</button>
+    </form>
+  </div>
+</div>

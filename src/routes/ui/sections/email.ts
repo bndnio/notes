@@ -1,5 +1,6 @@
 import emailModalHtml from "@/templates/email-modal.html";
 import emailScriptHtml from "@/templates/email-script.html";
+import emailVerifyPendingHtml from "@/templates/email-verify-pending.html";
 import { escHtml } from "@/lib/html";
 import { createDb } from "@/db";
 import * as userEmailsRepo from "@/db/repositories/user-emails";
@@ -9,6 +10,7 @@ import type { Env, Profile, Section } from "@/lib/types";
 function buildEmailModal(
   emails: Array<{ email: string }>,
   requireSenderMatch: boolean,
+  pendingEmail: string | null,
   csrfField: string,
 ): string {
   const emailList = emails
@@ -24,8 +26,13 @@ function buildEmailModal(
     })
     .join("\n");
 
+  const pendingSection = pendingEmail
+    ? renderTemplate(emailVerifyPendingHtml, { pendingEmail: escHtml(pendingEmail), csrfField })
+    : "";
+
   return renderTemplate(emailModalHtml, {
     emailList,
+    pendingSection,
     requireSenderMatchChecked: requireSenderMatch ? "checked" : "",
     csrfField,
   });
@@ -38,14 +45,21 @@ export async function buildEmailSection(
   csrfField: string,
 ): Promise<Section> {
   const db = createDb(env.DB);
-  const emails = await userEmailsRepo.findAllByUserId(db, userId);
+  const [emails, pendingEmail] = await Promise.all([
+    userEmailsRepo.findAllByUserId(db, userId),
+    env.EPHEMERAL_KV.get(`email_add:${userId}`),
+  ]);
   const { requireSenderMatch } = profile;
 
   const badgeClass = requireSenderMatch ? "status-badge--connected" : "status-badge--none";
   const badgeText = requireSenderMatch ? "Restricted" : "Open";
-  const description = requireSenderMatch
+
+  const policy = requireSenderMatch
     ? "Only notes from registered addresses are accepted."
     : "Notes from any sender address are accepted.";
+  const description = pendingEmail
+    ? `${policy} ${escHtml(pendingEmail)} is awaiting PIN verification.`
+    : policy;
 
   return {
     card: renderIntegrationCard({
@@ -55,7 +69,7 @@ export async function buildEmailSection(
       description,
       action: `<button class="btn btn--ghost" onclick="openEmailModal()">Manage →</button>`,
     }),
-    modal: buildEmailModal(emails, requireSenderMatch, csrfField),
+    modal: buildEmailModal(emails, requireSenderMatch, pendingEmail, csrfField),
     script: emailScriptHtml,
   };
 }

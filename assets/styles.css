@@ -659,6 +659,11 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 
 .email-row input { flex: 1; min-width: 0; }
 
+.pending-verify {
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--ink);
+}
+
 .email-primary-label {
   font-family: 'Anton', sans-serif;
   font-size: 10px;
