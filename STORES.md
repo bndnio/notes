@@ -51,11 +51,12 @@ All access goes through a typed repository in `src/kv/repositories/` — one mod
 | `pin_attempts:<email>` | attempt count (string) | 10 min | `pins` |
 | `pin_send_count:<email>` | send count (string) | 1 hr | `pin-send-counts` |
 | `pin_send_count_ip:<ip>` | send count (string) | 1 hr | `pin-send-counts` |
-| `notion_state:<randomHex32>` | `userId` | 15 min | — (direct, pending migration) |
-| `notion_token:<userId>` | AES-GCM encrypted OAuth token (base64), pending DB selection | 1 hr | — (direct, pending migration) |
-| `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr | — (direct, pending migration) |
-| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr | — (direct, pending migration) |
-| `email_add:<userId>` | pending email address (string), awaiting PIN verification | 10 min | — (direct, pending migration) |
+| `notion_state:<randomHex32>` | `userId` | 15 min | `notion` |
+| `notion_token:<userId>` | AES-GCM encrypted OAuth token (base64), pending DB selection | 1 hr | `notion` |
+| `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr | `notion` |
+| `notion_schema_error:<userId>` | schema validation message shown on the database picker | 1 hr | `notion` |
+| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr | `mcp-tokens` |
+| `email_add:<userId>` | pending email address (string), awaiting PIN verification | 10 min | `email-adds` |
 
 **`pin` payload** varies by type:
 - `register`: `{pin, type: "register", username, requireSenderMatch}`
@@ -64,7 +65,7 @@ All access goes through a typed repository in `src/kv/repositories/` — one mod
 
 **`email_add`** points at the single address a user is currently verifying; its presence is the pending state. The PIN itself lives under `pin:<newAddress>`, so both expire together. Written by `POST /api/email`, deleted by `POST /api/email/verify` or `POST /api/email/cancel`. An address is never inserted into `user_emails` until the PIN sent to it comes back.
 
-**`notion_dbs`** is written during OAuth callback and deleted after DB selection (or expires after 1 hr if the user never completes setup).
+**`notion_dbs`** is written during OAuth callback and deleted after DB selection (or expires after 1 hr if the user never completes setup). **`notion_schema_error`** is written when the chosen database fails schema validation and deleted with the other pending Notion keys once selection succeeds.
 
 **`mcp_token`** is written when the user generates a token and deleted when they click Done. Clicking Done commits the hash to D1 — the hash is not written to the database until that point.
 

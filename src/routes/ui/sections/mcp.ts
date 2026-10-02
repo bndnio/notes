@@ -3,6 +3,7 @@ import mcpScriptHtml from "@/templates/mcp-script.html";
 import { decrypt } from "@/lib/crypto";
 import { escHtml } from "@/lib/html";
 import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
+import * as mcpTokensRepo from "@/kv/repositories/mcp-tokens";
 import type { Env, Profile, Section } from "@/lib/types";
 
 export async function buildMcpSection(
@@ -12,7 +13,7 @@ export async function buildMcpSection(
   encryptionKey: string,
   csrfField: string,
 ): Promise<Section> {
-  const pendingEncrypted = await env.EPHEMERAL_KV.get(`mcp_token:${userId}`);
+  const pendingEncrypted = await mcpTokensRepo.find(env.EPHEMERAL_KV, userId);
   const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
 
   let badgeClass: string;

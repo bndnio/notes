@@ -6,6 +6,7 @@ import emailVerifyPendingHtml from "@/templates/email-verify-pending.html";
 import { escHtml } from "@/lib/html";
 import { createDb } from "@/db";
 import * as userEmailsRepo from "@/db/repositories/user-emails";
+import * as emailAddsRepo from "@/kv/repositories/email-adds";
 import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
 import type { Env, Profile, Section } from "@/lib/types";
 
@@ -43,7 +44,7 @@ export async function buildEmailSection(
   const db = createDb(env.DB);
   const [emails, pendingEmail] = await Promise.all([
     userEmailsRepo.findAllByUserId(db, userId),
-    env.EPHEMERAL_KV.get(`email_add:${userId}`),
+    emailAddsRepo.find(env.EPHEMERAL_KV, userId),
   ]);
   const { requireSenderMatch } = profile;
 

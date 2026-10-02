@@ -2,7 +2,7 @@ import notionSelectModalHtml from "@/templates/notion-select-modal.html";
 import notionScriptHtml from "@/templates/notion-script.html";
 import { escHtml } from "@/lib/html";
 import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
-import type { NotionDatabase } from "@/lib/notion-client";
+import * as notionKv from "@/kv/repositories/notion";
 import type { Env, Profile, Section } from "@/lib/types";
 
 function buildNotionModal(
@@ -38,12 +38,11 @@ export async function buildNotionSection(
 ): Promise<Section> {
   const script = notionScriptHtml;
 
-  const [dbsJson, schemaError, pendingToken] = await Promise.all([
-    env.EPHEMERAL_KV.get(`notion_dbs:${userId}`),
-    env.EPHEMERAL_KV.get(`notion_schema_error:${userId}`),
-    env.EPHEMERAL_KV.get(`notion_token:${userId}`),
+  const [databases, schemaError, pendingToken] = await Promise.all([
+    notionKv.findDatabases(env.EPHEMERAL_KV, userId),
+    notionKv.findSchemaError(env.EPHEMERAL_KV, userId),
+    notionKv.findToken(env.EPHEMERAL_KV, userId),
   ]);
-  const databases = dbsJson ? (JSON.parse(dbsJson) as NotionDatabase[]) : null;
   const modal = databases?.length
     ? buildNotionModal(databases, csrfField, schemaError, profile.notion?.databaseId)
     : "";
