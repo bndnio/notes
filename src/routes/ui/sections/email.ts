@@ -44,7 +44,7 @@ export async function buildEmailSection(
   const db = createDb(env.DB);
   const [emails, pendingEmail] = await Promise.all([
     userEmailsRepo.findAllByUserId(db, userId),
-    emailAddsKv.find(env.EPHEMERAL_KV, userId),
+    emailAddsKv.find(userId),
   ]);
   const { requireSenderMatch } = profile;
 

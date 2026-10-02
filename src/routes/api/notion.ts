@@ -17,8 +17,8 @@ async function storeDatabasePicker(
 ): Promise<void> {
   const encrypted = await encrypt(accessToken, encryptionKey);
   await Promise.all([
-    notionKv.putToken(env.EPHEMERAL_KV, userId, encrypted),
-    notionKv.putDatabases(env.EPHEMERAL_KV, userId, databases),
+    notionKv.putToken(userId, encrypted),
+    notionKv.putDatabases(userId, databases),
   ]);
 }
 
@@ -44,7 +44,7 @@ async function handleConnect(request: Request, env: Env): Promise<Response> {
   const { userId } = await assertSession(request, env, encryptionKey);
 
   const state = generateRandomHex(32);
-  await notionKv.putState(env.EPHEMERAL_KV, state, userId);
+  await notionKv.putState(state, userId);
 
   const oauthUrl = new URL("https://api.notion.com/v1/oauth/authorize");
   oauthUrl.searchParams.set("client_id", env.NOTION_CLIENT_ID);
@@ -59,7 +59,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
   const state = searchParams.get("state") ?? "";
   const code = searchParams.get("code") ?? "";
 
-  const userId = await notionKv.findStateUserId(env.EPHEMERAL_KV, state);
+  const userId = await notionKv.findStateUserId(state);
   if (!userId) return new Response("Link expired or invalid.", { status: 404 });
 
   const encryptionKey = env.SEC_ENCRYPTION_KEY;
@@ -68,7 +68,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
     return Response.redirect(`${env.APP_URL}/auth/login`, 302);
   }
 
-  await notionKv.removeState(env.EPHEMERAL_KV, state);
+  await notionKv.removeState(state);
 
   const clientSecret = env.SEC_NOTION_CLIENT_SECRET;
   const credentials = btoa(`${env.NOTION_CLIENT_ID}:${clientSecret}`);
@@ -93,7 +93,7 @@ async function handleCallback(request: Request, searchParams: URLSearchParams, e
   const tokenData = (await tokenRes.json()) as { access_token: string };
   const accessToken = tokenData.access_token;
 
-  await notionKv.putToken(env.EPHEMERAL_KV, userId, await encrypt(accessToken, encryptionKey));
+  await notionKv.putToken(userId, await encrypt(accessToken, encryptionKey));
 
   return Response.redirect(`${env.APP_URL}/api/notion/select?relay=1`, 302);
 }
@@ -104,7 +104,7 @@ async function handleSelectGet(request: Request, env: Env): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const viaRelay = searchParams.get("relay") === "1";
 
-  const databases = await notionKv.findDatabases(env.EPHEMERAL_KV, userId);
+  const databases = await notionKv.findDatabases(userId);
   if (databases) {
     return Response.redirect(
       viaRelay ? `${env.APP_URL}/api/notion/relay` : `${env.APP_URL}/profile?modal=notion-select`,
@@ -116,7 +116,7 @@ async function handleSelectGet(request: Request, env: Env): Promise<Response> {
   const profile = await assertUser(db, userId, env.APP_URL);
 
   let accessToken: string | null = null;
-  const encryptedToken = await notionKv.findToken(env.EPHEMERAL_KV, userId);
+  const encryptedToken = await notionKv.findToken(userId);
   if (encryptedToken) {
     accessToken = await decrypt(encryptedToken, encryptionKey);
   } else if (profile.notion) {
@@ -156,8 +156,8 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   const dbId = ((form.get("dbId") as string) ?? "").trim();
 
   const [databases, encryptedToken] = await Promise.all([
-    notionKv.findDatabases(env.EPHEMERAL_KV, userId),
-    notionKv.findToken(env.EPHEMERAL_KV, userId),
+    notionKv.findDatabases(userId),
+    notionKv.findToken(userId),
   ]);
 
   if (!databases || !encryptedToken) {
@@ -171,15 +171,15 @@ async function handleSelectPost(request: Request, env: Env): Promise<Response> {
   const accessToken = await decrypt(encryptedToken, encryptionKey);
   const validation = await validateNotionDatabaseSchema(accessToken, dbId);
   if (!validation.ok) {
-    await notionKv.putSchemaError(env.EPHEMERAL_KV, userId, validation.message);
+    await notionKv.putSchemaError(userId, validation.message);
     return Response.redirect(`${env.APP_URL}/profile?modal=notion-select`, 302);
   }
 
   await Promise.all([
     completeNotionSetup(userId, encryptedToken, dbId, env),
-    notionKv.removeDatabases(env.EPHEMERAL_KV, userId),
-    notionKv.removeToken(env.EPHEMERAL_KV, userId),
-    notionKv.removeSchemaError(env.EPHEMERAL_KV, userId),
+    notionKv.removeDatabases(userId),
+    notionKv.removeToken(userId),
+    notionKv.removeSchemaError(userId),
   ]);
 
   return Response.redirect(`${env.APP_URL}/profile?toast=Notion+connected`, 302);

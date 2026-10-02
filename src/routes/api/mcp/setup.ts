@@ -21,7 +21,7 @@ async function handleGenerateMcpToken(request: Request, env: Env): Promise<Respo
 
   const isRegenerate = form.get("regenerate") === "1";
 
-  const existingPending = await mcpTokensKv.find(env.EPHEMERAL_KV, userId);
+  const existingPending = await mcpTokensKv.find(userId);
   if (existingPending && !isRegenerate) {
     return Response.redirect(`${env.APP_URL}/profile?modal=mcp-setup`, 302);
   }
@@ -29,7 +29,7 @@ async function handleGenerateMcpToken(request: Request, env: Env): Promise<Respo
   const mcpToken = generateRandomHex(32);
   const encrypted = await encrypt(mcpToken, encryptionKey);
 
-  await mcpTokensKv.put(env.EPHEMERAL_KV, userId, encrypted);
+  await mcpTokensKv.put(userId, encrypted);
 
   return Response.redirect(`${env.APP_URL}/profile?modal=mcp-setup`, 302);
 }
@@ -44,13 +44,13 @@ async function handleMcpDone(request: Request, env: Env): Promise<Response> {
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
 
-  const encrypted = await mcpTokensKv.find(env.EPHEMERAL_KV, userId);
+  const encrypted = await mcpTokensKv.find(userId);
   if (encrypted) {
     const mcpToken = await decrypt(encrypted, encryptionKey);
     const hash = await hmacToken(mcpToken, encryptionKey);
     await Promise.all([
       usersRepo.updateMcpTokenHash(db, userId, hash),
-      mcpTokensKv.remove(env.EPHEMERAL_KV, userId),
+      mcpTokensKv.remove(userId),
     ]);
   }
 
@@ -73,7 +73,7 @@ async function handleResetMcpToken(request: Request, env: Env): Promise<Response
 
   await Promise.all([
     usersRepo.updateMcpTokenHash(db, userId, null),
-    mcpTokensKv.remove(env.EPHEMERAL_KV, userId),
+    mcpTokensKv.remove(userId),
   ]);
 
   return Response.redirect(`${env.APP_URL}/profile?toast=MCP+token+reset.+Set+up+a+new+one+when+ready.`, 302);

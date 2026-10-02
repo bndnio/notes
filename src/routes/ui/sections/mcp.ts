@@ -13,7 +13,7 @@ export async function buildMcpSection(
   encryptionKey: string,
   csrfField: string,
 ): Promise<Section> {
-  const pendingEncrypted = await mcpTokensKv.find(env.EPHEMERAL_KV, userId);
+  const pendingEncrypted = await mcpTokensKv.find(userId);
   const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
 
   let badgeClass: string;

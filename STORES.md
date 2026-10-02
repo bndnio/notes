@@ -42,7 +42,7 @@ Binding: `DB` (`bndnio-notes`, id `512d5056-9718-4afd-b2d0-4c6b88e6c2be`)
 ### EPHEMERAL_KV `da30844449de47bbb874342583c9c485`
 Short-lived state. All entries expire automatically.
 
-All access goes through a typed repository in `src/kv/repositories/` — one module per entity, which owns the key format, value shape, and TTL. Callers never build keys or call `EPHEMERAL_KV` directly.
+All access goes through a typed repository in `src/kv/repositories/` — one module per entity, which owns the key format, value shape, and TTL. `src/worker.ts` binds `EPHEMERAL_KV` once per invocation via `bindEphemeralKv`; repositories read it from `ephemeralKv()` and do not take `env`. Callers never build keys or touch `EPHEMERAL_KV` directly.
 
 | Key | Value | TTL | Repository |
 |-----|-------|-----|------------|

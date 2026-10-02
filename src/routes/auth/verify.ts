@@ -39,7 +39,7 @@ async function handleResend(request: Request, env: Env): Promise<Response> {
     return renderVerify(email, "Too many verification emails sent to this address. Please try again later.", "");
   }
 
-  const authPin = await rotateAuthPin(email, env);
+  const authPin = await rotateAuthPin(email);
   if (authPin) {
     await sendPin(email, authPin, env);
     return renderVerify(email, "", "New PIN sent.");
@@ -48,7 +48,7 @@ async function handleResend(request: Request, env: Env): Promise<Response> {
   const db = createDb(env.DB);
   const user = await usersRepo.findByEmail(db, email);
   if (user) {
-    const pin = await rotatePin(email, { type: "login", userId: user.id }, env);
+    const pin = await rotatePin(email, { type: "login", userId: user.id });
     await sendPin(email, pin, env);
     return renderVerify(email, "", "New PIN sent.");
   }
@@ -99,7 +99,7 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
       const sessionToken = generateRandomHex(32);
       const encryptionKey = env.SEC_ENCRYPTION_KEY;
       const sessionHash = await hmacToken(sessionToken, encryptionKey);
-      await sessionsKv.create(env.EPHEMERAL_KV, sessionHash, data.userId);
+      await sessionsKv.create(sessionHash, data.userId);
       return new Response(null, {
         status: 302,
         headers: {

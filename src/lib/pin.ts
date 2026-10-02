@@ -28,61 +28,56 @@ function isPinVerifyLocked(attempts: number, env: Env): boolean {
 
 async function recordPinVerifyAttempt(email: string, attempts: number, env: Env): Promise<void> {
   if (isLocalDev(env)) return;
-  await pinsKv.putAttempts(env.EPHEMERAL_KV, email, attempts + 1);
+  await pinsKv.putAttempts(email, attempts + 1);
 }
 
 export async function checkEmailPinSendRate(email: string, env: Env): Promise<boolean> {
   if (isLocalDev(env)) return true;
-  const count = await pinSendCountsKv.findByEmail(env.EPHEMERAL_KV, email);
+  const count = await pinSendCountsKv.findByEmail(email);
   if (count >= PIN_SEND_EMAIL_LIMIT) return false;
-  await pinSendCountsKv.putForEmail(env.EPHEMERAL_KV, email, count + 1);
+  await pinSendCountsKv.putForEmail(email, count + 1);
   return true;
 }
 
 export async function checkIpPinSendRate(ip: string, env: Env): Promise<boolean> {
   if (isLocalDev(env)) return true;
-  const count = await pinSendCountsKv.findByIp(env.EPHEMERAL_KV, ip);
+  const count = await pinSendCountsKv.findByIp(ip);
   if (count >= PIN_SEND_IP_LIMIT) return false;
-  await pinSendCountsKv.putForIp(env.EPHEMERAL_KV, ip, count + 1);
+  await pinSendCountsKv.putForIp(ip, count + 1);
   return true;
 }
 
-export async function storePin(
-  email: string,
-  pin: string,
-  payload: PinPayload,
-  env: Env,
-): Promise<void> {
-  await pinsKv.put(env.EPHEMERAL_KV, email, { pin, ...payload });
+export async function storePin(email: string, pin: string, payload: PinPayload): Promise<void> {
+  await pinsKv.put(email, { pin, ...payload });
 }
 
 /** Drops a staged PIN without consuming it — used when a flow is abandoned. */
-export async function discardPin(email: string, env: Env): Promise<void> {
-  await pinsKv.remove(env.EPHEMERAL_KV, email);
+export async function discardPin(email: string): Promise<void> {
+  await pinsKv.remove(email);
 }
 
-async function readPinPayload(email: string, env: Env): Promise<PinPayload | null> {
-  const record = await pinsKv.find(env.EPHEMERAL_KV, email);
+async function readPinPayload(email: string): Promise<PinPayload | null> {
+  const record = await pinsKv.find(email);
   if (!record) return null;
   const { pin: _pin, ...payload } = record;
   return payload;
 }
 
 /** Issues a replacement PIN for an existing payload and clears verify-attempt lockout. */
-export async function rotatePin(email: string, payload: PinPayload, env: Env): Promise<string> {
+export async function rotatePin(email: string, payload: PinPayload): Promise<string> {
   const pin = generatePin();
   await Promise.all([
-    storePin(email, pin, payload, env),
-    pinsKv.removeAttempts(env.EPHEMERAL_KV, email),
+    storePin(email, pin, payload),
+    pinsKv.removeAttempts(email),
   ]);
   return pin;
 }
 
 /** Re-issues a live login or register PIN. Returns null when the stored PIN is missing or belongs to another flow. */
-export async function rotateAuthPin(email: string, env: Env): Promise<string | null> {
-  const existing = await readPinPayload(email, env);
+export async function rotateAuthPin(email: string): Promise<string | null> {
+  const existing = await readPinPayload(email);
   if (!existing || (existing.type !== "login" && existing.type !== "register")) return null;
-  return rotatePin(email, existing, env);
+  return rotatePin(email, existing);
 }
 
 export async function consumePin(
@@ -91,8 +86,8 @@ export async function consumePin(
   env: Env,
 ): Promise<PinPayload | "locked" | "expired" | null> {
   const [record, attempts] = await Promise.all([
-    pinsKv.find(env.EPHEMERAL_KV, email),
-    pinsKv.findAttempts(env.EPHEMERAL_KV, email),
+    pinsKv.find(email),
+    pinsKv.findAttempts(email),
   ]);
   if (!record) return "expired";
 
@@ -105,8 +100,8 @@ export async function consumePin(
   }
 
   await Promise.all([
-    pinsKv.remove(env.EPHEMERAL_KV, email),
-    pinsKv.removeAttempts(env.EPHEMERAL_KV, email),
+    pinsKv.remove(email),
+    pinsKv.removeAttempts(email),
   ]);
   return payload;
 }

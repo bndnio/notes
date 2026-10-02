@@ -12,7 +12,7 @@ export async function handleLogout(request: Request, env: Env): Promise<Response
   if (session) {
     const form = await request.formData();
     await assertCsrf(form, session.sessionHash, encryptionKey);
-    await sessionsKv.remove(env.EPHEMERAL_KV, session.sessionHash);
+    await sessionsKv.remove(session.sessionHash);
   }
 
   return new Response(null, {

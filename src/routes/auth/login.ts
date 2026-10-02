@@ -35,7 +35,7 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
       const emailAllowed = await checkEmailPinSendRate(email, env);
       if (emailAllowed) {
         const pin = generatePin();
-        await storePin(email, pin, { type: "login", userId: user.id }, env);
+        await storePin(email, pin, { type: "login", userId: user.id });
         await sendPin(email, pin, env);
       }
     }

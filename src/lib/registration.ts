@@ -40,7 +40,7 @@ export async function stageRegistration(
   if (existingUser) return { error: "Username already taken." };
 
   const pin = generatePin();
-  await storePin(email, pin, { type: "register", username, requireSenderMatch }, env);
+  await storePin(email, pin, { type: "register", username, requireSenderMatch });
 
   return { pin };
 }
@@ -64,7 +64,7 @@ export async function completeRegistration(
     db.insert(userEmails).values({ email, userId, createdAt: now }),
   ]);
 
-  await sessionsKv.create(env.EPHEMERAL_KV, sessionHash, userId);
+  await sessionsKv.create(sessionHash, userId);
 
   return { sessionToken };
 }

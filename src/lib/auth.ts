@@ -25,7 +25,7 @@ export async function resolveSession(request: Request, env: Env, encryptionKey: 
   const sessionToken = getCookie(request, "session");
   if (!sessionToken) return null;
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  return sessionsKv.findUserId(env.EPHEMERAL_KV, sessionHash);
+  return sessionsKv.findUserId(sessionHash);
 }
 
 export async function resolveSessionWithHash(
@@ -36,7 +36,7 @@ export async function resolveSessionWithHash(
   const sessionToken = getCookie(request, "session");
   if (!sessionToken) return null;
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  const userId = await sessionsKv.findUserId(env.EPHEMERAL_KV, sessionHash);
+  const userId = await sessionsKv.findUserId(sessionHash);
   if (!userId) return null;
   return { userId, sessionHash };
 }

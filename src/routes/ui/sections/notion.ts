@@ -39,9 +39,9 @@ export async function buildNotionSection(
   const script = notionScriptHtml;
 
   const [databases, schemaError, pendingToken] = await Promise.all([
-    notionKv.findDatabases(env.EPHEMERAL_KV, userId),
-    notionKv.findSchemaError(env.EPHEMERAL_KV, userId),
-    notionKv.findToken(env.EPHEMERAL_KV, userId),
+    notionKv.findDatabases(userId),
+    notionKv.findSchemaError(userId),
+    notionKv.findToken(userId),
   ]);
   const modal = databases?.length
     ? buildNotionModal(databases, csrfField, schemaError, profile.notion?.databaseId)
