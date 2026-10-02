@@ -1,5 +1,5 @@
-import betaBannerHtml from "@/templates/beta-banner.html";
-import themeSwitcherHtml from "@/templates/theme-switcher.html";
+import betaBannerHtml from "@/templates/partials/beta-banner.html";
+import themeSwitcherHtml from "@/templates/partials/theme-switcher.html";
 import { resolveSession } from "./auth";
 import { resolveTheme } from "./theme";
 import type { Env } from "./types";

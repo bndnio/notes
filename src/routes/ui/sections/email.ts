@@ -1,8 +1,8 @@
-import emailModalHtml from "@/templates/email-modal.html";
-import emailRowHtml from "@/templates/components/email-modal/email-row.html";
-import emailRowPrimaryHtml from "@/templates/components/email-modal/email-row-primary.html";
-import emailScriptHtml from "@/templates/email-script.html";
-import emailVerifyPendingHtml from "@/templates/email-verify-pending.html";
+import emailModalHtml from "@/templates/components/email/modal.html";
+import emailRowHtml from "@/templates/components/email/row.html";
+import emailRowPrimaryHtml from "@/templates/components/email/row-primary.html";
+import emailScriptHtml from "@/templates/components/email/script.html";
+import emailVerifyPendingHtml from "@/templates/components/email/verify-pending.html";
 import { escHtml } from "@/lib/html";
 import { createDb } from "@/db";
 import * as userEmailsRepo from "@/db/repositories/user-emails";

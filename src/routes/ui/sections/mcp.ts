@@ -1,5 +1,5 @@
-import mcpSetupModalHtml from "@/templates/mcp-setup-modal.html";
-import mcpScriptHtml from "@/templates/mcp-script.html";
+import mcpSetupModalHtml from "@/templates/components/mcp/setup-modal.html";
+import mcpScriptHtml from "@/templates/components/mcp/script.html";
 import { decrypt } from "@/lib/crypto";
 import { escHtml } from "@/lib/html";
 import { renderTemplate, renderIntegrationCard } from "@/lib/responses";

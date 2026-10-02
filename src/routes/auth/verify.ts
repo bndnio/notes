@@ -1,4 +1,4 @@
-import verifyHtml from "@/templates/verify.html";
+import verifyHtml from "@/templates/pages/verify.html";
 import {
   checkEmailPinSendRate,
   checkIpPinSendRate,

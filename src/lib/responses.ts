@@ -1,4 +1,4 @@
-import integrationCardHtml from "@/templates/integration-card.html";
+import integrationCardHtml from "@/templates/partials/integration-card.html";
 
 export class HttpError extends Error {
   constructor(public readonly response: Response) {

@@ -1,4 +1,4 @@
-import loginHtml from "@/templates/login.html";
+import loginHtml from "@/templates/pages/login.html";
 import { generatePin, storePin, sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "@/lib/pin";
 import { createDb } from "@/db";
 import * as usersRepo from "@/db/repositories/users";

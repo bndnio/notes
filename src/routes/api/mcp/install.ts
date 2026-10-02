@@ -1,4 +1,4 @@
-import installMcpScript from "@/templates/install-mcp.txt";
+import installMcpScript from "@/templates/downloads/install-mcp.txt";
 import { renderTemplate, text } from "@/lib/responses";
 import type { Env } from "@/lib/types";
 

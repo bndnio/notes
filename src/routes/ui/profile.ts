@@ -1,4 +1,4 @@
-import profileHtml from "@/templates/profile.html";
+import profileHtml from "@/templates/pages/profile.html";
 import { assertSession, assertUser, getCsrfToken } from "@/lib/auth";
 import { escHtml } from "@/lib/html";
 import { createDb } from "@/db";

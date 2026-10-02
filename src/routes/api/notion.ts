@@ -1,4 +1,4 @@
-import notionRelayHtml from "@/templates/notion-relay.html";
+import notionRelayHtml from "@/templates/pages/notion-relay.html";
 import { resolveSession, assertSession, assertUser, assertCsrf } from "@/lib/auth";
 import { decrypt, encrypt, generateRandomHex } from "@/lib/crypto";
 import { html, renderTemplate } from "@/lib/responses";

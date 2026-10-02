@@ -1,4 +1,4 @@
-import indexHtml from "@/templates/index.html";
+import indexHtml from "@/templates/pages/index.html";
 import { html, renderTemplate } from "@/lib/responses";
 import { pageVars } from "@/lib/page";
 import type { Env } from "@/lib/types";

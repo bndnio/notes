@@ -1,5 +1,5 @@
-import notionSelectModalHtml from "@/templates/notion-select-modal.html";
-import notionScriptHtml from "@/templates/notion-script.html";
+import notionSelectModalHtml from "@/templates/components/notion/select-modal.html";
+import notionScriptHtml from "@/templates/components/notion/script.html";
 import { escHtml } from "@/lib/html";
 import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
 import * as notionKv from "@/kv/repositories/notion";

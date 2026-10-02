@@ -1,4 +1,4 @@
-import registerHtml from "@/templates/register.html";
+import registerHtml from "@/templates/pages/register.html";
 import { stageRegistration } from "@/lib/registration";
 import { sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "@/lib/pin";
 import { formField } from "@/lib/form";

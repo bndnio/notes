@@ -1,7 +1,7 @@
-import storageCardHtml from "@/templates/storage-card.html";
-import storageModalHtml from "@/templates/storage-modal.html";
-import storageNoteListItemHtml from "@/templates/storage-note-list-item.html";
-import storageScriptHtml from "@/templates/storage-script.html";
+import storageCardHtml from "@/templates/components/storage/card.html";
+import storageModalHtml from "@/templates/components/storage/modal.html";
+import storageNoteListItemHtml from "@/templates/components/storage/note-list-item.html";
+import storageScriptHtml from "@/templates/components/storage/script.html";
 import { escHtml } from "@/lib/html";
 import { listStoredNotes } from "@/lib/platform-storage";
 import { renderTemplate } from "@/lib/responses";
