@@ -3,29 +3,175 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notes</title>
+  <title>Notes — a quiet place for loose thoughts</title>
+  <meta name="description" content="Email a note to your own address or ask Claude to save it. Notes files it into your Notion database and can keep a Markdown copy.">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/landing.css">
   <script src="/scripts.js" defer></script>
 </head>
-<body>
+<body class="lp">
   {{betaBanner}}
-  <div class="page--wide">
-    <h1>Notes</h1>
-    <p class="subtitle">Capture ideas wherever you are and find them where you work.</p>
 
-    <h2>What it does</h2>
-    <p>Notes gives you a personal capture address and an AI-native interface
-      for saving thoughts, links, and context — routed straight into your connected apps.</p>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="lp-envelope" viewBox="0 0 68 44"><rect x=".5" y=".5" width="67" height="43"/><path d="M.5 .5 34 30 67.5 .5" fill="none"/></symbol>
+    </defs>
+  </svg>
 
-    <h2>Getting started</h2>
-    <ol>
-      <li>Register with your email and a username.</li>
-      <li>Connect Notion — authorize once and pick a database.</li>
-      <li>Send notes to <code>u_username@{{emailDomain}}</code>, or use the MCP server with your AI assistant.</li>
-    </ol>
+  <header class="lp-hero">
+    <div class="lp-stars" aria-hidden="true">
+      <i style="left:33.1%;top:17.9%;animation-delay:-2.34s;opacity:0.34"></i>
+      <i style="left:53.4%;top:37.6%;animation-delay:-0.21s;opacity:0.60"></i>
+      <i style="left:5.6%;top:43.9%;animation-delay:-0.25s;opacity:0.35"></i>
+      <i style="left:42.8%;top:80.1%;animation-delay:-0.45s;opacity:0.43"></i>
+      <i style="left:62.2%;top:91.2%;animation-delay:-2.08s;opacity:0.54"></i>
+      <i style="left:95.7%;top:8.3%;animation-delay:-3.09s;opacity:0.47"></i>
+      <i style="left:15.8%;top:14.8%;animation-delay:-1.11s;opacity:0.79"></i>
+      <i style="left:19.3%;top:57.5%;animation-delay:-2.30s;opacity:0.52"></i>
+      <i style="left:54.6%;top:9.8%;animation-delay:-0.21s;opacity:0.42"></i>
+      <i style="left:67.3%;top:43.3%;animation-delay:-1.13s;opacity:0.65"></i>
+      <i style="left:45.5%;top:31.6%;animation-delay:-2.86s;opacity:0.72"></i>
+      <i style="left:25.4%;top:56.8%;animation-delay:-1.89s;opacity:0.83"></i>
+      <i style="left:72.0%;top:30.5%;animation-delay:-3.53s;opacity:0.37"></i>
+      <i style="left:42.1%;top:73.7%;animation-delay:-0.55s;opacity:0.59"></i>
+      <i style="left:5.8%;top:65.5%;animation-delay:-2.75s;opacity:0.64"></i>
+      <i style="left:86.0%;top:32.9%;animation-delay:-2.50s;opacity:0.66"></i>
+      <i style="left:57.7%;top:46.0%;animation-delay:-3.02s;opacity:0.87"></i>
+      <i style="left:47.5%;top:65.1%;animation-delay:-0.22s;opacity:0.72"></i>
+      <i style="left:64.1%;top:95.4%;animation-delay:-2.96s;opacity:0.47"></i>
+      <i style="left:39.0%;top:65.5%;animation-delay:-0.08s;opacity:0.58"></i>
+      <i style="left:18.1%;top:14.8%;animation-delay:-0.21s;opacity:0.76"></i>
+      <i style="left:14.4%;top:26.8%;animation-delay:-1.41s;opacity:0.82"></i>
+      <i style="left:9.7%;top:45.3%;animation-delay:-1.98s;opacity:0.83"></i>
+      <i style="left:80.7%;top:83.5%;animation-delay:-1.00s;opacity:0.55"></i>
+      <i style="left:36.4%;top:85.3%;animation-delay:-3.45s;opacity:0.39"></i>
+      <i style="left:18.9%;top:25.3%;animation-delay:-0.84s;opacity:0.59"></i>
+      <i style="left:58.6%;top:28.2%;animation-delay:-0.01s;opacity:0.55"></i>
+      <i style="left:37.4%;top:56.1%;animation-delay:-3.43s;opacity:0.71"></i>
+      <i style="left:51.5%;top:60.8%;animation-delay:-2.43s;opacity:0.33"></i>
+      <i style="left:88.4%;top:75.8%;animation-delay:-3.15s;opacity:0.78"></i>
+    </div>
+    <div class="lp-wrap lp-hero-inner">
+      <nav class="lp-nav" aria-label="Main">
+        <a class="lp-logo" href="/"><svg width="22" height="15" viewBox="0 0 68 44" aria-hidden="true"><use href="#lp-envelope"/></svg>notes</a>
+        <a class="lp-nav-link lp-nav-optional" href="#how">How it works</a>
+        <a class="lp-nav-link lp-nav-login" href="/auth/login">Log in</a>
+        <a class="lp-nav-cta" href="/auth/register">Claim your address</a>
+      </nav>
 
-    <a class="btn btn--red" href="/auth/register">Get started →</a>
-  </div>
+      <div class="lp-copy">
+        <p class="lp-eyebrow">Your ideas need somewhere to land</p>
+        <h1 class="lp-title">A quiet place for loose thoughts.</h1>
+        <p class="lp-lede">Email a note to <code>u_you@{{emailDomain}}</code> or ask Claude to save it. It lands in your Notion database, and you can keep a Markdown copy of every note too.</p>
+        <a class="lp-btn" href="/auth/register">Claim your address →</a>
+      </div>
+
+      <div class="lp-scene" aria-hidden="true">
+        <svg class="lp-env" style="left:28%;--dx:60%;animation-delay:0s" viewBox="0 0 68 44"><use href="#lp-envelope"/></svg>
+        <svg class="lp-env" style="left:62%;--dx:-40%;animation-delay:-3s" viewBox="0 0 68 44"><use href="#lp-envelope"/></svg>
+        <svg class="lp-env" style="left:46%;--dx:20%;animation-delay:-6s" viewBox="0 0 68 44"><use href="#lp-envelope"/></svg>
+
+        <div class="lp-line">
+          <svg viewBox="0 0 200 90">
+            <path class="ln" d="M10 90V14M190 90V14M4 14H16M184 14H196"/>
+            <path class="ln" d="M10 20Q100 45 190 20"/>
+            <g class="sway" style="--d:0s"><rect class="paper" x="36" y="28" width="20" height="25"/><path class="ln-paper" d="M40 35h12M40 40h9M40 45h11"/><rect class="peg" x="44" y="25" width="4" height="6"/></g>
+            <g class="sway" style="--d:-.7s"><rect class="peg" x="73" y="32" width="18" height="18"/><rect class="solid" x="80" y="29" width="4" height="6"/></g>
+            <g class="sway" style="--d:-1.4s"><rect class="paper" x="108" y="32" width="20" height="25"/><path class="ln-paper" d="M112 39h12M112 44h8M112 49h11"/><rect class="peg" x="116" y="29" width="4" height="6"/></g>
+            <g class="sway" style="--d:-2.1s"><rect class="paper" x="145" y="28" width="18" height="22"/><path class="ln-paper" d="M149 35h10M149 40h7"/><rect class="peg" x="152" y="25" width="4" height="6"/></g>
+          </svg>
+        </div>
+
+        <svg class="lp-house" viewBox="0 -46 125 158">
+          <!-- chimney (drawn first so the roof covers its base) -->
+          <path class="w" d="M71 -14H78V14H71Z"/>
+          <path class="w" d="M78 -14 84 -17.6V10L78 14Z"/>
+          <path class="w" d="M70 -14H79L85 -17.6H76Z"/>
+          <g class="smoke"><circle cx="77" cy="-21" r="2.6"/><circle cx="77" cy="-21" r="2.6"/><circle cx="77" cy="-21" r="2.6"/></g>
+          <!-- side wall -->
+          <path class="w" d="M72 50 117 23 117 79 72 106Z"/>
+          <path class="hl soft" d="M72 58L117 31 M72 96L117 69"/>
+          <path class="win" d="M78.3 64.22L90 57.2L90 79.2L78.3 86.22Z"/>
+          <path class="hl" d="M84.15 60.71L84.15 82.71M78.3 75.22L90 68.2"/>
+          <path class="win" d="M98.1 52.34L109.8 45.32L109.8 67.32L98.1 74.34Z" style="animation-delay:-2.4s"/>
+          <path class="hl" d="M103.95 48.83L103.95 70.83M98.1 63.34L109.8 56.32"/>
+          <path class="hl" d="M72 102 117 75"/>
+          <!-- roof -->
+          <path class="w" d="M40 18 85 -9 118 24 73 51Z"/>
+          <path class="hl soft" d="M45.12 23.12L90.12 -3.88 M50.24 28.24L95.24 1.24 M55.36 33.36L100.36 6.36 M60.48 38.48L105.48 11.48 M65.6 43.6L110.6 16.6"/>
+          <!-- front gable wall -->
+          <path class="w" d="M8 50 40 18 72 50 72 106 8 106Z"/>
+          <path class="hl soft" d="M15 50 40 25 65 50"/>
+          <circle class="win" cx="40" cy="38" r="5.5" style="animation-delay:-3.6s"/>
+          <path class="hl" d="M34.5 38H45.5M40 32.5V43.5"/>
+          <!-- one large window -->
+          <rect class="win" x="14" y="72" width="22" height="20" style="animation-delay:-1.2s"/>
+          <path class="hl" d="M25 72V92M14 82H36"/>
+          <rect class="w" x="13" y="92" width="24" height="3.4"/>
+          <circle class="flower" cx="17" cy="91.2" r="1.3"/><circle class="flower" cx="21" cy="90.6" r="1.3"/><circle class="flower" cx="25" cy="91.2" r="1.3"/><circle class="flower" cx="29" cy="90.6" r="1.3"/><circle class="flower" cx="33" cy="91.2" r="1.3"/>
+          <!-- large door, canopy, light, steps -->
+          <path class="w" d="M40 69 53 61 66 69Z"/>
+          <path class="hl" d="M42 69 43.5 73M64 69 62.5 73"/>
+          <path class="w" d="M44 106V81a9 9 0 0 1 18 0V106Z"/>
+          <path class="hl soft" d="M47 104V83a6 6 0 0 1 12 0V104"/>
+          <rect class="lamp" x="48" y="87" width="10" height="1.6"/>
+          <circle class="cf" cx="58.6" cy="94" r="1"/>
+          <circle class="glow" cx="67.4" cy="80" r="3.4"/>
+          <circle class="lamp" cx="67.4" cy="80" r="1.2"/>
+          <path class="hl" d="M8 102H44M62 102H72"/>
+          <rect class="w" x="41" y="106" width="24" height="2.6"/>
+          <rect class="w" x="39" y="108.6" width="28" height="2.6"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="lp-steps" id="how" aria-label="How it works">
+      <div class="lp-wrap">
+        <div class="lp-step"><h2>Capture</h2><p>From your inbox, your phone, or Claude Code.</p></div>
+        <div class="lp-step"><h2>Route</h2><p>Straight into the Notion database you pick.</p></div>
+        <div class="lp-step"><h2>Keep</h2><p>An optional Markdown archive, dated and searchable.</p></div>
+      </div>
+    </section>
+
+    <section class="lp-roots" aria-labelledby="lp-roots-title">
+      <div class="lp-wrap">
+        <p class="lp-eyebrow" id="lp-roots-title">What happens underneath</p>
+        <div class="lp-diagram" role="img" aria-label="Email and Claude both feed Notes, which writes to your Notion database and, optionally, to a Markdown archive with an email backup">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path class="r" vector-effect="non-scaling-stroke" d="M15 14 C15 32 50 28 50 46"/>
+            <path class="r" vector-effect="non-scaling-stroke" d="M85 14 C85 32 50 28 50 46"/>
+            <path class="r" vector-effect="non-scaling-stroke" d="M50 46 C50 66 18 62 18 80"/>
+            <path class="r" vector-effect="non-scaling-stroke" d="M50 46 L50 80"/>
+            <path class="r" vector-effect="non-scaling-stroke" d="M50 46 C50 66 82 62 82 80"/>
+            <path class="flow" vector-effect="non-scaling-stroke" pathLength="100" d="M15 14 C15 32 50 28 50 46 C50 66 18 62 18 80"/>
+            <path class="flow" vector-effect="non-scaling-stroke" pathLength="100" style="animation-delay:-2s" d="M85 14 C85 32 50 28 50 46 L50 80"/>
+            <path class="flow" vector-effect="non-scaling-stroke" pathLength="100" style="animation-delay:-1s" d="M15 14 C15 32 50 28 50 46 C50 66 82 62 82 80"/>
+          </svg>
+          <span class="lp-node" style="--x:15%;--y:14%"></span>
+          <span class="lp-node" style="--x:85%;--y:14%"></span>
+          <span class="lp-node" style="--x:18%;--y:80%"></span>
+          <span class="lp-node" style="--x:50%;--y:80%"></span>
+          <span class="lp-node" style="--x:82%;--y:80%"></span>
+          <span class="lp-hub" style="--y:46%">notes</span>
+          <span class="lp-label" style="--x:15%;--y:14%;--dy:calc(-100% - 12px)">your email</span>
+          <span class="lp-label" style="--x:85%;--y:14%;--dy:calc(-100% - 12px)">Claude · MCP</span>
+          <span class="lp-label" style="--x:18%;--y:80%;--dy:12px">Notion<small>your database</small></span>
+          <span class="lp-label" style="--x:50%;--y:80%;--dy:12px">Markdown<small>dated .md files</small></span>
+          <span class="lp-label" style="--x:82%;--y:80%;--dy:12px">.eml<small>email backup</small></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-close" aria-labelledby="lp-close-title">
+      <div class="lp-wrap">
+        <h2 id="lp-close-title">Give your ideas an address.<small>Alpha · built in public</small></h2>
+        <a class="lp-btn" href="/auth/register">Claim your address →</a>
+      </div>
+    </section>
+  </main>
+
   <footer class="site-footer">{{themeSwitcher}}</footer>
 </body>
 </html>
