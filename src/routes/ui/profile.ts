@@ -2,7 +2,8 @@ import profileHtml from "@/templates/profile.html";
 import { assertSession, assertUser, getCsrfToken } from "@/lib/auth";
 import { escHtml } from "@/lib/html";
 import { createDb } from "@/db";
-import { html, renderTemplate, pageVars } from "@/lib/responses";
+import { html, renderTemplate } from "@/lib/responses";
+import { pageVars } from "@/lib/page";
 import type { Env } from "@/lib/types";
 import { buildNotionSection } from "./sections/notion";
 import { buildStorageSection } from "./sections/storage";
@@ -40,7 +41,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     : "";
 
   return html(
-    renderTemplate(profileHtml, pageVars(request, {
+    renderTemplate(profileHtml, await pageVars(request, env, {
       toast,
       csrfField,
       outputsBannerHidden: profile.storageEnabled || profile.notion ? "hidden" : "",

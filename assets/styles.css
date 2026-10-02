@@ -42,8 +42,8 @@
   --field-muted:      light-dark(var(--ink-mid), #A8A296);
   --field-readonly-bg:   light-dark(var(--paper), #242424);
   --field-readonly-line: light-dark(#C8C0AA, #4A4740);
-  --spinner:          light-dark(#FFFFFF, var(--ink));
-  --spinner-track:    light-dark(rgba(255, 255, 255, 0.35), rgba(26, 26, 26, 0.35));
+  --envelope-fill:    light-dark(#FFFDF7, var(--paper));
+  --envelope-stroke:  var(--ink);
   --pending-bg:       light-dark(#FDF0CC, #3A2E0E);
   --pending-text:     light-dark(#7A5200, var(--mustard));
 
@@ -399,8 +399,9 @@ body {
   display: inline-block;
   width: 0.85em;
   height: 0.85em;
-  border: 2px solid var(--spinner-track);
-  border-top-color: var(--spinner);
+  /* currentColor: matches the text of whichever button it's in (solid, red, ghost). */
+  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
   border-radius: 50%;
   animation: btn-spin 0.6s linear infinite;
   vertical-align: middle;
@@ -453,6 +454,14 @@ a:hover { text-decoration: underline; }
 }
 
 .page form + form { margin-top: 12px; }
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.back-link:hover { color: var(--text); text-decoration: none; }
 
 /* ── Forms ── */
 label {

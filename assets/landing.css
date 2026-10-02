@@ -11,8 +11,6 @@
   --lp-win:        light-dark(#DCD4C0, var(--mustard));
   --lp-win-dim:    light-dark(#DCD4C0, #D9AE33);
   --lp-glow:       light-dark(transparent, var(--mustard));
-  --lp-env-fill:   light-dark(#FFFDF7, var(--paper));
-  --lp-env-stroke: var(--ink);
   --lp-star:       light-dark(transparent, var(--paper));
   --lp-glow-1:     light-dark(rgba(242, 199, 68, 0.22), rgba(242, 199, 68, 0.1));
   --lp-glow-2:     light-dark(rgba(43, 79, 176, 0.08), rgba(43, 79, 176, 0.16));
@@ -76,17 +74,17 @@
 
 .lp-logo {
   margin-right: auto;
+  opacity: 1;
   display: flex;
   align-items: center;
   gap: 8px;
-  opacity: 1 !important;
   font-family: var(--lp-display);
   font-variation-settings: 'wdth' 80;
   font-weight: 700;
   font-size: 19px;
   letter-spacing: -0.01em;
 }
-.lp-logo svg { fill: var(--lp-env-fill); stroke: var(--lp-env-stroke); stroke-width: 4; }
+.lp-logo svg { fill: var(--envelope-fill); stroke: var(--envelope-stroke); stroke-width: 4; }
 
 .lp-nav .lp-nav-cta { opacity: 1; border: 1px solid var(--text); padding: 0.45em clamp(0.6em, 2vw, 0.9em); white-space: nowrap; }
 /* Log in is always shown, full strength, so returning users can find it on
@@ -185,8 +183,8 @@
   z-index: 2;
   width: 11%;
   top: -12%;
-  fill: var(--lp-env-fill);
-  stroke: var(--lp-env-stroke);
+  fill: var(--envelope-fill);
+  stroke: var(--envelope-stroke);
   stroke-width: 2;
   animation: lp-drift 9s linear infinite;
 }
@@ -200,8 +198,8 @@
 .lp-line { position: absolute; left: 0; bottom: 7%; width: 46%; z-index: 1; }
 .lp-line svg { display: block; width: 100%; height: auto; overflow: visible; }
 .lp-line .ln { fill: none; stroke: var(--text); stroke-width: 1.2; stroke-linecap: round; }
-.lp-line .ln-paper { fill: none; stroke: var(--lp-env-stroke); stroke-width: 1.2; }
-.lp-line .paper { fill: var(--lp-env-fill); stroke: var(--lp-env-stroke); stroke-width: 1; }
+.lp-line .ln-paper { fill: none; stroke: var(--envelope-stroke); stroke-width: 1.2; }
+.lp-line .paper { fill: var(--envelope-fill); stroke: var(--envelope-stroke); stroke-width: 1; }
 .lp-line .peg { fill: var(--accent); }
 .lp-line .solid { fill: var(--surface); stroke: var(--text); stroke-width: 1.2; }
 .lp-line .sway {

@@ -1,7 +1,8 @@
 import indexHtml from "@/templates/index.html";
-import { html, renderTemplate, pageVars } from "@/lib/responses";
+import { html, renderTemplate } from "@/lib/responses";
+import { pageVars } from "@/lib/page";
 import type { Env } from "@/lib/types";
 
-export function handleHome(request: Request, env: Env): Response {
-  return html(renderTemplate(indexHtml, pageVars(request, { emailDomain: env.EMAIL_DOMAIN })));
+export async function handleHome(request: Request, env: Env): Promise<Response> {
+  return html(renderTemplate(indexHtml, await pageVars(request, env, { emailDomain: env.EMAIL_DOMAIN })));
 }

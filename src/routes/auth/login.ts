@@ -2,7 +2,8 @@ import loginHtml from "@/templates/login.html";
 import { generatePin, storePin, sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "@/lib/pin";
 import { createDb } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
-import { html, renderTemplate, pageVars } from "@/lib/responses";
+import { html, renderTemplate } from "@/lib/responses";
+import { pageVars } from "@/lib/page";
 import type { Env } from "@/lib/types";
 
 function formField(form: FormData, name: string): string {
@@ -10,8 +11,8 @@ function formField(form: FormData, name: string): string {
 }
 
 export async function handleLogin(request: Request, env: Env): Promise<Response> {
-  const renderLogin = (error: string) =>
-    html(renderTemplate(loginHtml, pageVars(request, { error })));
+  const renderLogin = async (error: string) =>
+    html(renderTemplate(loginHtml, await pageVars(request, env, { error })));
 
   if (request.method === "GET") {
     return renderLogin("");

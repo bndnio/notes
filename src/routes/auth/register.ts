@@ -2,12 +2,13 @@ import registerHtml from "@/templates/register.html";
 import { stageRegistration } from "@/lib/registration";
 import { sendPin, checkIpPinSendRate, checkEmailPinSendRate } from "@/lib/pin";
 import { formField } from "@/lib/form";
-import { html, renderTemplate, pageVars } from "@/lib/responses";
+import { html, renderTemplate } from "@/lib/responses";
+import { pageVars } from "@/lib/page";
 import type { Env } from "@/lib/types";
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
-  const renderRegister = (error: string) =>
-    html(renderTemplate(registerHtml, pageVars(request, { error, emailDomain: env.EMAIL_DOMAIN })));
+  const renderRegister = async (error: string) =>
+    html(renderTemplate(registerHtml, await pageVars(request, env, { error, emailDomain: env.EMAIL_DOMAIN })));
 
   if (request.method === "GET") {
     return renderRegister("");
