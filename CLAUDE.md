@@ -379,7 +379,7 @@ When asked to review or audit, walk through these categories in order. The initi
 
 ### Use `@/` to cross a subsystem, relative paths within one
 
-`@/` resolves to `src/`. If an import leaves its own top-level subsystem (`routes/`, `pipeline/`, `lib/`, `db/`, `templates/`), use `@/`. If it stays inside, keep it relative — however many levels it climbs. No exception for files at the `src/` root, and none for depth, so **every `@/` in the codebase marks a subsystem boundary being crossed.**
+`@/` resolves to `src/`. If an import leaves its own top-level subsystem (`routes/`, `pipeline/`, `lib/`, `db/`, `kv/`, `templates/`), use `@/`. If it stays inside, keep it relative — however many levels it climbs. No exception for files at the `src/` root, and none for depth, so **every `@/` in the codebase marks a subsystem boundary being crossed.**
 
 **Why:** 27 of 99 relative imports were `../../../`, concentrated in `routes/ui/sections/*` and `routes/api/mcp/*`. Depth grows every time the route tree mirrors a URL more faithfully, and counting dots is not a thing a reader should have to do.
 

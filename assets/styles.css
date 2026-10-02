@@ -575,6 +575,30 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   margin-bottom: 12px;
 }
 
+/* ── Callout ── */
+/* A calm "next step" note: the app's pending yellow, no heavy border. */
+.callout {
+  position: relative;
+  background: var(--pending-bg);
+  color: var(--pending-text);
+  padding: 12px 16px 12px 34px;
+  display: grid;
+  gap: 2px;
+}
+
+.callout::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  width: 7px;
+  height: 7px;
+  background: var(--badge-pending-dot);
+}
+
+.callout-title { font-size: 14px; font-weight: 600; }
+.callout-body { font-size: 13px; line-height: 1.45; }
+
 .outputs-banner {
   margin-bottom: 16px;
 }
