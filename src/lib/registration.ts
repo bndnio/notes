@@ -4,7 +4,7 @@ import { createDb } from "@/db";
 import { users, userEmails } from "@/db/schema";
 import * as usersRepo from "@/db/repositories/users";
 import * as userEmailsRepo from "@/db/repositories/user-emails";
-import * as sessionsRepo from "@/kv/repositories/sessions";
+import * as sessionsKv from "@/kv/repositories/sessions";
 import type { Env } from "./types";
 
 const RESERVED_USERNAMES = new Set([
@@ -64,7 +64,7 @@ export async function completeRegistration(
     db.insert(userEmails).values({ email, userId, createdAt: now }),
   ]);
 
-  await sessionsRepo.create(env.EPHEMERAL_KV, sessionHash, userId);
+  await sessionsKv.create(env.EPHEMERAL_KV, sessionHash, userId);
 
   return { sessionToken };
 }

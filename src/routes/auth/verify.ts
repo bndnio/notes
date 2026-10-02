@@ -13,7 +13,7 @@ import { escHtml } from "@/lib/html";
 import { formField } from "@/lib/form";
 import { sessionCookieHeader } from "@/lib/auth";
 import { html, renderTemplate, pageVars } from "@/lib/responses";
-import * as sessionsRepo from "@/kv/repositories/sessions";
+import * as sessionsKv from "@/kv/repositories/sessions";
 import { createDb } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
 import type { Env } from "@/lib/types";
@@ -99,7 +99,7 @@ export async function handleVerify(request: Request, env: Env): Promise<Response
       const sessionToken = generateRandomHex(32);
       const encryptionKey = env.SEC_ENCRYPTION_KEY;
       const sessionHash = await hmacToken(sessionToken, encryptionKey);
-      await sessionsRepo.create(env.EPHEMERAL_KV, sessionHash, data.userId);
+      await sessionsKv.create(env.EPHEMERAL_KV, sessionHash, data.userId);
       return new Response(null, {
         status: 302,
         headers: {

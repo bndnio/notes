@@ -1,7 +1,7 @@
 import { isLocalDev } from "./env";
 import { sendEmail } from "./resend";
-import * as pinsRepo from "@/kv/repositories/pins";
-import * as pinSendCountsRepo from "@/kv/repositories/pin-send-counts";
+import * as pinsKv from "@/kv/repositories/pins";
+import * as pinSendCountsKv from "@/kv/repositories/pin-send-counts";
 import type { PinPayload } from "@/kv/repositories/pins";
 import type { Env } from "./types";
 
@@ -28,22 +28,22 @@ function isPinVerifyLocked(attempts: number, env: Env): boolean {
 
 async function recordPinVerifyAttempt(email: string, attempts: number, env: Env): Promise<void> {
   if (isLocalDev(env)) return;
-  await pinsRepo.putAttempts(env.EPHEMERAL_KV, email, attempts + 1);
+  await pinsKv.putAttempts(env.EPHEMERAL_KV, email, attempts + 1);
 }
 
 export async function checkEmailPinSendRate(email: string, env: Env): Promise<boolean> {
   if (isLocalDev(env)) return true;
-  const count = await pinSendCountsRepo.findByEmail(env.EPHEMERAL_KV, email);
+  const count = await pinSendCountsKv.findByEmail(env.EPHEMERAL_KV, email);
   if (count >= PIN_SEND_EMAIL_LIMIT) return false;
-  await pinSendCountsRepo.putForEmail(env.EPHEMERAL_KV, email, count + 1);
+  await pinSendCountsKv.putForEmail(env.EPHEMERAL_KV, email, count + 1);
   return true;
 }
 
 export async function checkIpPinSendRate(ip: string, env: Env): Promise<boolean> {
   if (isLocalDev(env)) return true;
-  const count = await pinSendCountsRepo.findByIp(env.EPHEMERAL_KV, ip);
+  const count = await pinSendCountsKv.findByIp(env.EPHEMERAL_KV, ip);
   if (count >= PIN_SEND_IP_LIMIT) return false;
-  await pinSendCountsRepo.putForIp(env.EPHEMERAL_KV, ip, count + 1);
+  await pinSendCountsKv.putForIp(env.EPHEMERAL_KV, ip, count + 1);
   return true;
 }
 
@@ -53,16 +53,16 @@ export async function storePin(
   payload: PinPayload,
   env: Env,
 ): Promise<void> {
-  await pinsRepo.put(env.EPHEMERAL_KV, email, { pin, ...payload });
+  await pinsKv.put(env.EPHEMERAL_KV, email, { pin, ...payload });
 }
 
 /** Drops a staged PIN without consuming it — used when a flow is abandoned. */
 export async function discardPin(email: string, env: Env): Promise<void> {
-  await pinsRepo.remove(env.EPHEMERAL_KV, email);
+  await pinsKv.remove(env.EPHEMERAL_KV, email);
 }
 
 async function readPinPayload(email: string, env: Env): Promise<PinPayload | null> {
-  const record = await pinsRepo.find(env.EPHEMERAL_KV, email);
+  const record = await pinsKv.find(env.EPHEMERAL_KV, email);
   if (!record) return null;
   const { pin: _pin, ...payload } = record;
   return payload;
@@ -73,7 +73,7 @@ export async function rotatePin(email: string, payload: PinPayload, env: Env): P
   const pin = generatePin();
   await Promise.all([
     storePin(email, pin, payload, env),
-    pinsRepo.removeAttempts(env.EPHEMERAL_KV, email),
+    pinsKv.removeAttempts(env.EPHEMERAL_KV, email),
   ]);
   return pin;
 }
@@ -91,8 +91,8 @@ export async function consumePin(
   env: Env,
 ): Promise<PinPayload | "locked" | "expired" | null> {
   const [record, attempts] = await Promise.all([
-    pinsRepo.find(env.EPHEMERAL_KV, email),
-    pinsRepo.findAttempts(env.EPHEMERAL_KV, email),
+    pinsKv.find(env.EPHEMERAL_KV, email),
+    pinsKv.findAttempts(env.EPHEMERAL_KV, email),
   ]);
   if (!record) return "expired";
 
@@ -105,8 +105,8 @@ export async function consumePin(
   }
 
   await Promise.all([
-    pinsRepo.remove(env.EPHEMERAL_KV, email),
-    pinsRepo.removeAttempts(env.EPHEMERAL_KV, email),
+    pinsKv.remove(env.EPHEMERAL_KV, email),
+    pinsKv.removeAttempts(env.EPHEMERAL_KV, email),
   ]);
   return payload;
 }

@@ -1,5 +1,5 @@
 import { assertCsrf, clearSessionCookieHeader, resolveSessionWithHash } from "@/lib/auth";
-import * as sessionsRepo from "@/kv/repositories/sessions";
+import * as sessionsKv from "@/kv/repositories/sessions";
 import type { Env } from "@/lib/types";
 
 export async function handleLogout(request: Request, env: Env): Promise<Response> {
@@ -12,7 +12,7 @@ export async function handleLogout(request: Request, env: Env): Promise<Response
   if (session) {
     const form = await request.formData();
     await assertCsrf(form, session.sessionHash, encryptionKey);
-    await sessionsRepo.remove(env.EPHEMERAL_KV, session.sessionHash);
+    await sessionsKv.remove(env.EPHEMERAL_KV, session.sessionHash);
   }
 
   return new Response(null, {

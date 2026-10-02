@@ -12,7 +12,7 @@ import {
 import { createDb, type Db } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
 import * as userEmailsRepo from "@/db/repositories/user-emails";
-import * as emailAddsRepo from "@/kv/repositories/email-adds";
+import * as emailAddsKv from "@/kv/repositories/email-adds";
 import type { Env } from "@/lib/types";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,7 +53,7 @@ async function stagePendingAddition(
   const pin = generatePin();
   await Promise.all([
     storePin(email, pin, { type: "email_add", userId }, env),
-    emailAddsRepo.put(env.EPHEMERAL_KV, userId, email),
+    emailAddsKv.put(env.EPHEMERAL_KV, userId, email),
   ]);
   await sendPin(email, pin, env);
 
@@ -128,7 +128,7 @@ async function handleVerifyPin(request: Request, env: Env): Promise<Response> {
   const pin = ((form.get("pin") as string) ?? "").trim();
 
   // The address comes from the session-keyed pointer, never from the form.
-  const email = await emailAddsRepo.find(env.EPHEMERAL_KV, userId);
+  const email = await emailAddsKv.find(env.EPHEMERAL_KV, userId);
   if (!email) {
     return toProfile(env, "No pending address to verify. Add it again.");
   }
@@ -153,14 +153,14 @@ async function handleVerifyPin(request: Request, env: Env): Promise<Response> {
 
   // The address may have been claimed by a registration during the PIN window.
   if (await userEmailsRepo.emailExists(db, email)) {
-    await emailAddsRepo.remove(env.EPHEMERAL_KV, userId);
+    await emailAddsKv.remove(env.EPHEMERAL_KV, userId);
     console.warn(`Rejected email addition — address claimed during verification: ${email}`);
     return toProfile(env, "That address is already in use");
   }
 
   await Promise.all([
     userEmailsRepo.create(db, { email, userId }),
-    emailAddsRepo.remove(env.EPHEMERAL_KV, userId),
+    emailAddsKv.remove(env.EPHEMERAL_KV, userId),
   ]);
 
   console.log(`Verified additional email for user ${userId}`);
@@ -177,9 +177,9 @@ async function handleCancel(request: Request, env: Env): Promise<Response> {
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
 
-  const email = await emailAddsRepo.find(env.EPHEMERAL_KV, userId);
+  const email = await emailAddsKv.find(env.EPHEMERAL_KV, userId);
   await Promise.all([
-    emailAddsRepo.remove(env.EPHEMERAL_KV, userId),
+    emailAddsKv.remove(env.EPHEMERAL_KV, userId),
     email ? discardPin(email, env) : Promise.resolve(),
   ]);
 
@@ -196,7 +196,7 @@ async function handleResend(request: Request, env: Env): Promise<Response> {
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
 
-  const email = await emailAddsRepo.find(env.EPHEMERAL_KV, userId);
+  const email = await emailAddsKv.find(env.EPHEMERAL_KV, userId);
   if (!email) {
     return toProfile(env, "No pending address to verify. Add it again.");
   }
@@ -210,7 +210,7 @@ async function handleResend(request: Request, env: Env): Promise<Response> {
   }
 
   const pin = await rotatePin(email, { type: "email_add", userId }, env);
-  await emailAddsRepo.put(env.EPHEMERAL_KV, userId, email);
+  await emailAddsKv.put(env.EPHEMERAL_KV, userId, email);
   await sendPin(email, pin, env);
 
   console.log(`Resent email-add PIN for user ${userId}`);
