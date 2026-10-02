@@ -18,7 +18,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     const { pathname } = new URL(request.url);
 
     // Website pages
-    if (pathname === "/") return handleHome(env);
+    if (pathname === "/") return handleHome(request, env);
     if (pathname === "/profile") return handleProfile(request, env);
 
     // Login island

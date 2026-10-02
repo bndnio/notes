@@ -40,7 +40,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     : "";
 
   return html(
-    renderTemplate(profileHtml, pageVars({
+    renderTemplate(profileHtml, pageVars(request, {
       toast,
       csrfField,
       outputsBannerHidden: profile.storageEnabled || profile.notion ? "hidden" : "",

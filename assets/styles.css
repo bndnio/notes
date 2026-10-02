@@ -6,60 +6,73 @@
 [hidden] { display: none !important; }
 
 :root {
+  /* Brand colours. Fixed across themes; only used to define the tokens below. */
   --paper:   #F2EDE0;
   --blue:    #2B4FB0;
   --red:     #E84628;
   --mustard: #F2C744;
   --ink:     #1A1A1A;
   --ink-mid: #555555;
-  --banner-bg:      #EAE3D1;
-  --banner-border:  rgba(26, 26, 26, 0.14);
-  --banner-accent:  #A84832;
-  --banner-text:    #6B6355;
 
-  /* Role-based tokens. Rules below use only these; themes redefine them. */
-  --surface:          var(--paper);
-  --surface-dots:     rgba(242, 199, 68, 0.55);
-  --surface-raised:   var(--paper);
-  --surface-sunken:   rgba(26, 26, 26, 0.1);
-  --text:             var(--ink);
-  --text-muted:       var(--ink-mid);
-  --line:             var(--ink);
-  --line-soft:        rgba(26, 26, 26, 0.12);
-  --link:             var(--blue);
-  --focus:            var(--blue);
-  --accent:           var(--red);
-  --accent-contrast:  var(--paper);
-  --accent-shadow:    #8B2010;
-  --danger:           var(--red);
-  --success:          #1A5C2E;
-  --btn-bg:           var(--ink);
-  --btn-text:         var(--paper);
-  --btn-shadow:       var(--blue);
-  --inverse-bg:       var(--ink);
-  --inverse-text:     var(--paper);
-  --overlay:          rgba(26, 26, 26, 0.55);
-  --field-bg:         #FFFFFF;
-  --field-readonly-bg:   var(--paper);
-  --field-readonly-line: #C8C0AA;
-  --spinner:          #FFFFFF;
-  --spinner-track:    rgba(255, 255, 255, 0.35);
-  --pending-bg:       #FDF0CC;
-  --pending-text:     #7A5200;
+  /* Role-based tokens. Rules use only these.
+     light-dark(paper, ink): the browser picks by color-scheme (set per theme below). */
+  --surface:          light-dark(var(--paper), var(--ink));
+  --surface-dots:     light-dark(rgba(242, 199, 68, 0.55), rgba(242, 199, 68, 0.12));
+  --surface-raised:   light-dark(var(--paper), #242424);
+  --surface-sunken:   light-dark(rgba(26, 26, 26, 0.1), rgba(242, 237, 224, 0.12));
+  --text:             light-dark(var(--ink), var(--paper));
+  --text-muted:       light-dark(var(--ink-mid), #A8A296);
+  --line:             light-dark(var(--ink), rgba(242, 237, 224, 0.8));
+  --line-soft:        light-dark(rgba(26, 26, 26, 0.12), rgba(242, 237, 224, 0.14));
+  --link:             light-dark(var(--blue), #8FA8F0);
+  --focus:            light-dark(var(--blue), var(--mustard));
+  --accent:           light-dark(var(--red), var(--mustard));
+  --accent-contrast:  light-dark(var(--paper), var(--ink));
+  --accent-shadow:    light-dark(#8B2010, #8A6A10);
+  --danger:           light-dark(var(--red), #FF7A5C);
+  --success:          light-dark(#1A5C2E, #7BD08F);
+  --btn-bg:           light-dark(var(--ink), var(--paper));
+  --btn-text:         light-dark(var(--paper), var(--ink));
+  --btn-shadow:       light-dark(var(--blue), #5B7BD6);
+  --inverse-bg:       light-dark(var(--ink), var(--paper));
+  --inverse-text:     light-dark(var(--paper), var(--ink));
+  --overlay:          light-dark(rgba(26, 26, 26, 0.55), rgba(0, 0, 0, 0.65));
+  --field-bg:         light-dark(#FFFFFF, #111111);
+  --field-text:       light-dark(var(--ink), var(--paper));
+  --field-muted:      light-dark(var(--ink-mid), #A8A296);
+  --field-readonly-bg:   light-dark(var(--paper), #242424);
+  --field-readonly-line: light-dark(#C8C0AA, #4A4740);
+  --spinner:          light-dark(#FFFFFF, var(--ink));
+  --spinner-track:    light-dark(rgba(255, 255, 255, 0.35), rgba(26, 26, 26, 0.35));
+  --pending-bg:       light-dark(#FDF0CC, #3A2E0E);
+  --pending-text:     light-dark(#7A5200, var(--mustard));
 
-  --badge-ok-bg:          #D4EDD9;
-  --badge-ok-text:        #1A5C2E;
+  --badge-ok-bg:          light-dark(#D4EDD9, #183A22);
+  --badge-ok-text:        light-dark(#1A5C2E, #8FD9A3);
   --badge-ok-dot:         #2E9E50;
-  --badge-pending-bg:     #FDF0CC;
-  --badge-pending-text:   #7A5200;
+  --badge-pending-bg:     light-dark(#FDF0CC, #3A2E0E);
+  --badge-pending-text:   light-dark(#7A5200, var(--mustard));
   --badge-pending-dot:    #E0A020;
-  --badge-none-bg:        #E8E4DA;
-  --badge-none-text:      var(--ink-mid);
-  --badge-none-dot:       var(--ink-mid);
-  --badge-restricted-bg:  #FAD9D4;
-  --badge-restricted-text: #8B2010;
+  --badge-none-bg:        light-dark(#E8E4DA, #2E2C28);
+  --badge-none-text:      light-dark(var(--ink-mid), #A8A296);
+  --badge-none-dot:       light-dark(var(--ink-mid), #A8A296);
+  --badge-restricted-bg:  light-dark(#FAD9D4, #3D1A14);
+  --badge-restricted-text: light-dark(#8B2010, #FF9A85);
   --badge-restricted-dot: var(--red);
+
+  --banner-bg:      light-dark(#EAE3D1, #222222);
+  --banner-border:  light-dark(rgba(26, 26, 26, 0.14), rgba(242, 237, 224, 0.12));
+  --banner-accent:  light-dark(#A84832, var(--mustard));
+  --banner-text:    light-dark(#6B6355, #A8A296);
 }
+
+/* ── Themes ──
+   data-theme comes from the `theme` cookie (src/lib/theme.ts); "auto" follows the OS. */
+:root,
+:root[data-theme="auto"] { color-scheme: light dark; }
+:root[data-theme="paper"] { color-scheme: light; }
+:root[data-theme="ink"] { color-scheme: dark; }
+
 
 body {
   background-color: var(--surface);
@@ -422,7 +435,7 @@ input:not([type="checkbox"]):not([type="radio"]) {
   padding: 10px 12px;
   border: 2px solid var(--line);
   background: var(--field-bg);
-  color: var(--text);
+  color: var(--field-text);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   outline: none;
@@ -434,7 +447,7 @@ input:not([type="checkbox"]):not([type="radio"]):focus { border-color: var(--foc
 input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   border-color: var(--field-readonly-line);
   background: var(--field-readonly-bg);
-  color: var(--text-muted);
+  color: var(--field-muted);
   cursor: default;
 }
 

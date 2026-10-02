@@ -7,7 +7,7 @@ import type { Env } from "@/lib/types";
 
 export async function handleRegistration(request: Request, env: Env): Promise<Response> {
   const renderRegister = (error: string) =>
-    html(renderTemplate(registerHtml, pageVars({ error, emailDomain: env.EMAIL_DOMAIN })));
+    html(renderTemplate(registerHtml, pageVars(request, { error, emailDomain: env.EMAIL_DOMAIN })));
 
   if (request.method === "GET") {
     return renderRegister("");

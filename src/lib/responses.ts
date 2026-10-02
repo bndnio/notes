@@ -1,5 +1,6 @@
 import betaBannerHtml from "@/templates/beta-banner.html";
 import integrationCardHtml from "@/templates/integration-card.html";
+import { resolveTheme } from "./theme";
 
 export class HttpError extends Error {
   constructor(public readonly response: Response) {
@@ -28,8 +29,8 @@ export function renderIntegrationCard(data: {
   return renderTemplate(integrationCardHtml, data);
 }
 
-export function pageVars(vars: Record<string, string> = {}): Record<string, string> {
-  return { betaBanner: betaBannerHtml, ...vars };
+export function pageVars(request: Request, vars: Record<string, string> = {}): Record<string, string> {
+  return { betaBanner: betaBannerHtml, theme: resolveTheme(request), ...vars };
 }
 
 export const html = (content: string) =>

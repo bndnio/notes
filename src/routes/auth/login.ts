@@ -11,7 +11,7 @@ function formField(form: FormData, name: string): string {
 
 export async function handleLogin(request: Request, env: Env): Promise<Response> {
   const renderLogin = (error: string) =>
-    html(renderTemplate(loginHtml, pageVars({ error })));
+    html(renderTemplate(loginHtml, pageVars(request, { error })));
 
   if (request.method === "GET") {
     return renderLogin("");
