@@ -2,11 +2,12 @@ import { hmacToken } from "./crypto";
 import { getCookie } from "./cookies";
 import { createDb } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
+import * as sessionsRepo from "@/kv/repositories/sessions";
 import { HttpError } from "./responses";
 import type { Env, Profile } from "./types";
 
 export function sessionCookieHeader(token: string): string {
-  return `session=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/`;
+  return `session=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=${sessionsRepo.SESSION_TTL}; Path=/`;
 }
 
 export function clearSessionCookieHeader(): string {
@@ -24,7 +25,7 @@ export async function resolveSession(request: Request, env: Env, encryptionKey: 
   const sessionToken = getCookie(request, "session");
   if (!sessionToken) return null;
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  return env.EPHEMERAL_KV.get(`session:${sessionHash}`);
+  return sessionsRepo.findUserId(env.EPHEMERAL_KV, sessionHash);
 }
 
 export async function resolveSessionWithHash(
@@ -35,7 +36,7 @@ export async function resolveSessionWithHash(
   const sessionToken = getCookie(request, "session");
   if (!sessionToken) return null;
   const sessionHash = await hmacToken(sessionToken, encryptionKey);
-  const userId = await env.EPHEMERAL_KV.get(`session:${sessionHash}`);
+  const userId = await sessionsRepo.findUserId(env.EPHEMERAL_KV, sessionHash);
   if (!userId) return null;
   return { userId, sessionHash };
 }

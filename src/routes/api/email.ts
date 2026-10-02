@@ -1,6 +1,5 @@
 import { assertSession, assertUser, assertCsrf } from "@/lib/auth";
 import {
-  PIN_TTL,
   checkEmailPinSendRate,
   checkIpPinSendRate,
   consumePin,
@@ -13,6 +12,7 @@ import {
 import { createDb, type Db } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
 import * as userEmailsRepo from "@/db/repositories/user-emails";
+import { PIN_TTL } from "@/kv/repositories/pins";
 import type { Env } from "@/lib/types";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

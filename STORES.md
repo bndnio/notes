@@ -42,21 +42,27 @@ Binding: `DB` (`bndnio-notes`, id `512d5056-9718-4afd-b2d0-4c6b88e6c2be`)
 ### EPHEMERAL_KV `da30844449de47bbb874342583c9c485`
 Short-lived state. All entries expire automatically.
 
-| Key | Value | TTL |
-|-----|-------|-----|
-| `session:<hmac-sha256(sessionToken)>` | `userId` | 7 days |
-| `pin:<email>` | JSON `{pin, type, ...payload}` | 10 min |
-| `pin_attempts:<email>` | attempt count (string) | 10 min |
-| `pin_send_count:<email>` | send count (string) | 1 hr |
-| `pin_send_count_ip:<ip>` | send count (string) | 1 hr |
-| `notion_state:<randomHex32>` | `userId` | 15 min |
-| `notion_token:<userId>` | AES-GCM encrypted OAuth token (base64), pending DB selection | 1 hr |
-| `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr |
-| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr |
+All access goes through a typed repository in `src/kv/repositories/` — one module per entity, which owns the key format, value shape, and TTL. Callers never build keys or call `EPHEMERAL_KV` directly.
+
+| Key | Value | TTL | Repository |
+|-----|-------|-----|------------|
+| `session:<hmac-sha256(sessionToken)>` | `userId` | 7 days | `sessions` |
+| `pin:<email>` | JSON `{pin, type, ...payload}` | 10 min | `pins` |
+| `pin_attempts:<email>` | attempt count (string) | 10 min | `pins` |
+| `pin_send_count:<email>` | send count (string) | 1 hr | `pin-send-counts` |
+| `pin_send_count_ip:<ip>` | send count (string) | 1 hr | `pin-send-counts` |
+| `notion_state:<randomHex32>` | `userId` | 15 min | — (direct, pending migration) |
+| `notion_token:<userId>` | AES-GCM encrypted OAuth token (base64), pending DB selection | 1 hr | — (direct, pending migration) |
+| `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr | — (direct, pending migration) |
+| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr | — (direct, pending migration) |
+| `email_add:<userId>` | pending email address (string), awaiting PIN verification | 10 min | — (direct, pending migration) |
 
 **`pin` payload** varies by type:
 - `register`: `{pin, type: "register", username, requireSenderMatch}`
 - `login`: `{pin, type: "login", userId}`
+- `email_add`: `{pin, type: "email_add", userId}` — keyed by the *new* address, not the account's existing one
+
+**`email_add`** points at the single address a user is currently verifying; its presence is the pending state. The PIN itself lives under `pin:<newAddress>`, so both expire together. Written by `POST /api/email`, deleted by `POST /api/email/verify` or `POST /api/email/cancel`. An address is never inserted into `user_emails` until the PIN sent to it comes back.
 
 **`notion_dbs`** is written during OAuth callback and deleted after DB selection (or expires after 1 hr if the user never completes setup).
 
