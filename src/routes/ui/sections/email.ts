@@ -1,4 +1,6 @@
 import emailModalHtml from "@/templates/email-modal.html";
+import emailRowHtml from "@/templates/components/email-modal/email-row.html";
+import emailRowPrimaryHtml from "@/templates/components/email-modal/email-row-primary.html";
 import emailScriptHtml from "@/templates/email-script.html";
 import emailVerifyPendingHtml from "@/templates/email-verify-pending.html";
 import { escHtml } from "@/lib/html";
@@ -14,16 +16,9 @@ function buildEmailModal(
   csrfField: string,
 ): string {
   const emailList = emails
-    .map((e, i) => {
-      const isPrimary = i === 0;
-      const input = isPrimary
-        ? `<input type="email" name="email" value="${escHtml(e.email)}" readonly>`
-        : `<input type="email" name="email" value="${escHtml(e.email)}" required>`;
-      const action = isPrimary
-        ? `<span class="email-primary-label">primary</span>`
-        : `<button type="button" class="btn btn--ghost btn--sm" onclick="removeEmailRow(this)">Remove</button>`;
-      return `<div class="email-row">${input}${action}</div>`;
-    })
+    .map((e, i) => renderTemplate(i === 0 ? emailRowPrimaryHtml : emailRowHtml, {
+      email: escHtml(e.email),
+    }))
     .join("\n");
 
   const pendingSection = pendingEmail
@@ -34,6 +29,7 @@ function buildEmailModal(
     emailList,
     pendingSection,
     requireSenderMatchChecked: requireSenderMatch ? "checked" : "",
+    addHidden: pendingEmail ? "hidden" : "",
     csrfField,
   });
 }
@@ -51,8 +47,18 @@ export async function buildEmailSection(
   ]);
   const { requireSenderMatch } = profile;
 
-  const badgeClass = requireSenderMatch ? "status-badge--connected" : "status-badge--none";
-  const badgeText = requireSenderMatch ? "Restricted" : "Open";
+  let badgeClass: string;
+  let badgeText: string;
+  if (pendingEmail) {
+    badgeClass = "status-badge--pending";
+    badgeText = "Pending";
+  } else if (requireSenderMatch) {
+    badgeClass = "status-badge--connected";
+    badgeText = "Restricted";
+  } else {
+    badgeClass = "status-badge--none";
+    badgeText = "Open";
+  }
 
   const policy = requireSenderMatch
     ? "Only notes from registered addresses are accepted."

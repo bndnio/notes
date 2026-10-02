@@ -24,6 +24,17 @@
       return;
     }
 
+    var saved = new Set(
+      Array.from(document.querySelectorAll('#email-list [data-saved-email]'))
+        .map(function (el) { return el.getAttribute('data-saved-email'); })
+    );
+    var additions = values.filter(function (v) { return !saved.has(v); });
+    if (additions.length > 1) {
+      e.preventDefault();
+      errorEl.textContent = 'Add one address at a time.';
+      return;
+    }
+
     errorEl.textContent = '';
   });
 

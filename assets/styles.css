@@ -2,6 +2,9 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Author `display` (flex/inline-flex) otherwise beats the UA [hidden] rule. */
+[hidden] { display: none !important; }
+
 :root {
   --paper:   #F2EDE0;
   --blue:    #2B4FB0;
@@ -357,6 +360,8 @@ a:hover { text-decoration: underline; }
   margin-top: 20px;
 }
 
+.page form + form { margin-top: 12px; }
+
 /* ── Forms ── */
 label {
   display: block;
@@ -441,6 +446,23 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   color: var(--red);
   margin-bottom: 16px;
   min-height: 1em;
+}
+
+.notice {
+  font-family: 'Anton', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1A5C2E;
+  margin-bottom: 16px;
+  min-height: 1em;
+}
+
+.error:empty,
+.notice:empty {
+  display: none;
+  margin: 0;
+  min-height: 0;
 }
 
 .warning {
@@ -650,6 +672,15 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 }
 
 /* ── Email rows (modal) ── */
+.email-section-label {
+  font-family: 'Anton', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  margin: 0 0 10px;
+}
+
 .email-row {
   display: flex;
   align-items: center;
@@ -660,8 +691,25 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 .email-row input { flex: 1; min-width: 0; }
 
 .pending-verify {
+  background: #FDF0CC;
+  border-bottom: 2.5px solid var(--ink);
   padding-bottom: 18px;
-  border-bottom: 2px solid var(--ink);
+}
+
+.pending-verify .email-section-label { color: #7A5200; }
+
+.email-pending-address {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.email-pending-hint {
+  font-size: 13px;
+  color: #7A5200;
+  margin: 0 0 10px;
 }
 
 .email-primary-label {

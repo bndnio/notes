@@ -2,7 +2,7 @@ import { isLocalDev } from "./env";
 import { sendEmail } from "./resend";
 import type { Env } from "./types";
 
-const PIN_TTL = 600; // 10 minutes
+export const PIN_TTL = 600; // 10 minutes
 const PIN_SEND_WINDOW = 3600; // 1 hour
 const PIN_SEND_EMAIL_LIMIT = 5;
 const PIN_SEND_IP_LIMIT = 10;
@@ -71,17 +71,41 @@ export async function discardPin(email: string, env: Env): Promise<void> {
   await env.EPHEMERAL_KV.delete(`pin:${email}`);
 }
 
+async function readPinPayload(email: string, env: Env): Promise<PinPayload | null> {
+  const raw = await env.EPHEMERAL_KV.get(`pin:${email}`);
+  if (!raw) return null;
+  const { pin: _pin, ...payload } = JSON.parse(raw) as { pin: string } & PinPayload;
+  return payload;
+}
+
+/** Issues a replacement PIN for an existing payload and clears verify-attempt lockout. */
+export async function rotatePin(email: string, payload: PinPayload, env: Env): Promise<string> {
+  const pin = generatePin();
+  await Promise.all([
+    storePin(email, pin, payload, env),
+    env.EPHEMERAL_KV.delete(`pin_attempts:${email}`),
+  ]);
+  return pin;
+}
+
+/** Re-issues a live login or register PIN. Returns null when the stored PIN is missing or belongs to another flow. */
+export async function rotateAuthPin(email: string, env: Env): Promise<string | null> {
+  const existing = await readPinPayload(email, env);
+  if (!existing || (existing.type !== "login" && existing.type !== "register")) return null;
+  return rotatePin(email, existing, env);
+}
+
 export async function consumePin(
   email: string,
   pin: string,
   env: Env,
-): Promise<PinPayload | "locked" | null> {
+): Promise<PinPayload | "locked" | "expired" | null> {
   const attemptsKey = `pin_attempts:${email}`;
   const [raw, attemptsRaw] = await Promise.all([
     env.EPHEMERAL_KV.get(`pin:${email}`),
     env.EPHEMERAL_KV.get(attemptsKey),
   ]);
-  if (!raw) return null;
+  if (!raw) return "expired";
 
   const attempts = parseInt(attemptsRaw ?? "0", 10);
   if (isPinVerifyLocked(attempts, env)) return "locked";

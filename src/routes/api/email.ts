@@ -1,10 +1,12 @@
 import { assertSession, assertUser, assertCsrf } from "@/lib/auth";
 import {
+  PIN_TTL,
   checkEmailPinSendRate,
   checkIpPinSendRate,
   consumePin,
   discardPin,
   generatePin,
+  rotatePin,
   sendPin,
   storePin,
 } from "@/lib/pin";
@@ -15,8 +17,8 @@ import type { Env } from "@/lib/types";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Matches PIN_TTL in lib/pin.ts so the pointer and the PIN it points at expire together.
-const PENDING_TTL = 600;
+// Matches PIN_TTL so the pointer and the PIN it points at expire together.
+const PENDING_TTL = PIN_TTL;
 
 // Presence of this key IS the "an address is awaiting verification" state — there is no
 // pending flag on the user record.
@@ -81,22 +83,22 @@ async function handleSave(request: Request, env: Env): Promise<Response> {
   const requireSenderMatch = form.get("requireSenderMatch") === "1";
 
   if (submitted.length === 0) {
-    return toProfile(env, "At least one email is required");
+    return toModal(env, "At least one email is required");
   }
 
   if (!submitted.every((e) => EMAIL_RE.test(e))) {
-    return toProfile(env, "Invalid email address");
+    return toModal(env, "Invalid email address");
   }
 
   if (new Set(submitted).size !== submitted.length) {
-    return toProfile(env, "Duplicate email addresses");
+    return toModal(env, "Duplicate email addresses");
   }
 
   const currentEmails = await userEmailsRepo.findAllByUserId(db, userId);
   const currentSet = new Set(currentEmails.map((e) => e.email));
   const primaryEmail = currentEmails[0]?.email;
   if (primaryEmail && !submitted.includes(primaryEmail)) {
-    return toProfile(env, "Cannot remove primary email");
+    return toModal(env, "Cannot remove primary email");
   }
 
   const additions = submitted.filter((e) => !currentSet.has(e));
@@ -104,7 +106,7 @@ async function handleSave(request: Request, env: Env): Promise<Response> {
 
   // One pending addition at a time — the pointer key holds a single address.
   if (additions.length > 1) {
-    return toProfile(env, "Add one address at a time");
+    return toModal(env, "Add one address at a time");
   }
 
   // Removals and the sender-match toggle need no proof of control, so they apply now.
@@ -140,10 +142,13 @@ async function handleVerifyPin(request: Request, env: Env): Promise<Response> {
 
   const payload = await consumePin(email, pin, env);
   if (payload === "locked") {
-    return toModal(env, "Too many attempts. Try again in a few minutes.");
+    return toModal(env, "Too many attempts. Send a new PIN.");
+  }
+  if (payload === "expired") {
+    return toModal(env, "PIN expired. Send a new one.");
   }
   if (!payload) {
-    return toModal(env, "Invalid or expired PIN");
+    return toModal(env, "Invalid PIN");
   }
 
   // pin:<email> is shared with login/register. A PIN from another flow must not add this address.
@@ -188,6 +193,37 @@ async function handleCancel(request: Request, env: Env): Promise<Response> {
   return toProfile(env, "Pending address discarded");
 }
 
+async function handleResend(request: Request, env: Env): Promise<Response> {
+  const encryptionKey = env.SEC_ENCRYPTION_KEY;
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
+
+  const db = createDb(env.DB);
+  await assertUser(db, userId, env.APP_URL);
+
+  const form = await request.formData();
+  await assertCsrf(form, sessionHash, encryptionKey);
+
+  const email = await env.EPHEMERAL_KV.get(pendingKey(userId));
+  if (!email) {
+    return toProfile(env, "No pending address to verify. Add it again.");
+  }
+
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  if (!await checkIpPinSendRate(ip, env)) {
+    return toModal(env, "Too many requests. Please try again later.");
+  }
+  if (!await checkEmailPinSendRate(email, env)) {
+    return toModal(env, "Too many verification emails sent to that address. Please try again later.");
+  }
+
+  const pin = await rotatePin(email, { type: "email_add", userId }, env);
+  await env.EPHEMERAL_KV.put(pendingKey(userId), email, { expirationTtl: PENDING_TTL });
+  await sendPin(email, pin, env);
+
+  console.log(`Resent email-add PIN for user ${userId}`);
+  return toModal(env, `New PIN sent to ${email}`);
+}
+
 export async function handleEmailRoutes(request: Request, env: Env): Promise<Response> {
   const { pathname } = new URL(request.url);
 
@@ -196,6 +232,9 @@ export async function handleEmailRoutes(request: Request, env: Env): Promise<Res
   }
   if (pathname === "/api/email/verify" && request.method === "POST") {
     return handleVerifyPin(request, env);
+  }
+  if (pathname === "/api/email/resend" && request.method === "POST") {
+    return handleResend(request, env);
   }
   if (pathname === "/api/email/cancel" && request.method === "POST") {
     return handleCancel(request, env);

@@ -9,8 +9,9 @@
       {{csrfField}}
       <p class="error" id="email-form-error"></p>
       <div class="modal-body">
+        <h3 class="email-section-label">Registered addresses</h3>
         <div id="email-list">{{emailList}}</div>
-        <button type="button" class="btn btn--ghost btn--sm" onclick="addEmailRow()">+ Add</button>
+        <button type="button" class="btn btn--ghost btn--sm" onclick="addEmailRow()" {{addHidden}}>+ Add</button>
         <label class="checkbox-label checkbox-label--spaced">
           <input type="checkbox" name="requireSenderMatch" value="1" {{requireSenderMatchChecked}}>
           Only accept notes from registered addresses
