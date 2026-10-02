@@ -83,6 +83,10 @@ body {
   font-size: 15px;
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh;
+  /* Column layout so .site-footer can sit at the bottom of short pages. */
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Banner ── */
@@ -125,14 +129,46 @@ body {
   color: var(--banner-text);
 }
 
+/* ── Footer / theme switcher ── */
+.site-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  padding: 24px 28px;
+}
+
+.theme-switch {
+  display: inline-flex;
+  border: 1.5px solid var(--line-soft);
+}
+
+.theme-switch-btn {
+  font-family: 'Anton', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.theme-switch-btn + .theme-switch-btn { border-left: 1.5px solid var(--line-soft); }
+.theme-switch-btn:hover { color: var(--text); }
+.theme-switch-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.theme-switch-btn[aria-pressed="true"] { background: var(--text); color: var(--surface); }
+
 /* ── Layout ── */
 .page {
+  width: 100%;
   max-width: 440px;
   margin: 0 auto;
   padding: 52px 28px 80px;
 }
 
 .page--wide {
+  width: 100%;
   max-width: 680px;
   margin: 0 auto;
   padding: 52px 28px 80px;
