@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{theme}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes — Notes</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/scripts.js" defer></script>
+</head>
+<body>
+  {{betaBanner}}
+
+  <div class="page page--wide">
+    <a class="back-link" href="/profile">← Profile</a>
+    <header class="page-header">
+      <h1 class="page-title">Notes</h1>
+      <p class="notes-meta" {{metaHidden}}>{{rangeStart}}–{{rangeEnd}} of {{total}} · Times in UTC</p>
+    </header>
+
+    {{emptyState}}
+    {{dayGroups}}
+    {{pagination}}
+  </div>
+
+  <footer class="site-footer">{{themeSwitcher}}</footer>
+</body>
+</html>

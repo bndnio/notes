@@ -17,6 +17,14 @@ export interface McpTokenSummary {
   lastUsedAt: number | null;
 }
 
+export interface NoteSummary {
+  id: string;
+  subject: string;
+  from: string;
+  createdAt: number;
+  emailKey: string | null;
+}
+
 /** Profile page fragment contributed by one integration. Composed by routes/ui/profile.ts. */
 export interface Section {
   card: string;
