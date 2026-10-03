@@ -35,8 +35,19 @@ document.addEventListener('submit', function (e) {
   sync();
 })();
 
-// Modals: each overlay is `#<name>-overlay`, where <name> is also its `?modal=`
-// value, so a server redirect to /profile?modal=<name> opens it on load.
+// Modals: each overlay is `#<name>-overlay` and opens on load when the URL has
+// `?modal=<name>`. Closing a modal discards unsaved edits by restoring its
+// original markup, so attach listeners for anything inside a modal to `document`.
+var modalSnapshots = new Map();
+document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+  modalSnapshots.set(overlay, overlay.innerHTML);
+});
+
+function resetModal(overlay) {
+  var snapshot = modalSnapshots.get(overlay);
+  if (snapshot !== undefined) overlay.innerHTML = snapshot;
+}
+
 function modalOverlay(name) {
   return document.getElementById(name + '-overlay');
 }
@@ -48,11 +59,20 @@ function openModal(name) {
 
 function closeModal(name) {
   var overlay = modalOverlay(name);
-  if (overlay) overlay.classList.remove('modal-overlay--visible');
+  if (overlay) {
+    overlay.classList.remove('modal-overlay--visible');
+    resetModal(overlay);
+  }
   var url = new URL(window.location);
   url.searchParams.delete('modal');
   history.replaceState(null, '', url);
 }
+
+// Reset on every page show, including back/forward navigation, where the
+// browser would otherwise bring back stale input values.
+window.addEventListener('pageshow', function () {
+  modalSnapshots.forEach(function (_, overlay) { resetModal(overlay); });
+});
 
 // A click on the backdrop itself, not on the modal inside it, closes.
 document.addEventListener('click', function (e) {

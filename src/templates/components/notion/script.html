@@ -21,8 +21,8 @@
     }
   }
 
-  // The picker is only rendered while database choices are pending; otherwise
-  // the server fetches them and redirects back with ?modal=notion-select.
+  // The picker is only rendered while database choices are pending. Without
+  // it, the server fetches the choices and redirects back with ?modal=notion-select.
   function openNotionModal() {
     if (!document.getElementById('notion-select-overlay')) {
       window.location.href = '/api/notion/select';

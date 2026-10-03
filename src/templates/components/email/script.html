@@ -13,7 +13,8 @@
     btn.closest('.email-row').remove();
   }
 
-  document.getElementById('email-settings-form').addEventListener('submit', function (e) {
+  document.addEventListener('submit', function (e) {
+    if (e.target.id !== 'email-settings-form') return;
     var inputs = Array.from(document.querySelectorAll('#email-list input[name="email"]'));
     var values = inputs.map(function (el) { return el.value.trim().toLowerCase(); }).filter(Boolean);
     var errorEl = document.getElementById('email-form-error');
