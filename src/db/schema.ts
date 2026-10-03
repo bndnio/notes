@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
@@ -32,6 +32,17 @@ export const mcpTokens = sqliteTable("mcp_tokens", {
   lastUsedAt: integer("last_used_at"),
 }, (t) => [uniqueIndex("mcp_tokens_user_id_name_unique").on(t.userId, t.name)]);
 
+// Index only: the .md at r2_key is the source of truth (see STORES.md).
+export const notes = sqliteTable("notes", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  r2Key: text("r2_key").notNull().unique(),
+  emailKey: text("email_key"),
+  subject: text("subject").notNull(),
+  from: text("from").notNull(),
+  createdAt: integer("created_at").notNull(),
+}, (t) => [index("notes_user_id_created_at_id_idx").on(t.userId, t.createdAt, t.id)]);
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   notion: one(notionIntegrations, {
     fields: [users.id],
@@ -39,6 +50,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   emails: many(userEmails),
   mcpTokens: many(mcpTokens),
+  notes: many(notes),
 }));
 
 export const userEmailsRelations = relations(userEmails, ({ one }) => ({
@@ -51,4 +63,8 @@ export const notionIntegrationsRelations = relations(notionIntegrations, ({ one 
 
 export const mcpTokensRelations = relations(mcpTokens, ({ one }) => ({
   user: one(users, { fields: [mcpTokens.userId], references: [users.id] }),
+}));
+
+export const notesRelations = relations(notes, ({ one }) => ({
+  user: one(users, { fields: [notes.userId], references: [users.id] }),
 }));

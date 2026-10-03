@@ -29,6 +29,13 @@
       "when": 1791057960117,
       "tag": "0003_drop_users_mcp_token_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791060565359,
+      "tag": "0004_notes",
+      "breakpoints": true
     }
   ]
 }

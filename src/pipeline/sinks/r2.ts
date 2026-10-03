@@ -1,30 +1,20 @@
+import { createDb } from "@/db";
+import * as notesRepo from "@/db/repositories/notes";
+import { noteKeys } from "@/lib/platform-storage";
 import type { Content } from "@/lib/types";
 import type { Sink, SinkContext, SinkResult } from "./types";
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .slice(0, 60);
-}
-
-function computeKeys(subject: string, userId: string, timestamp: string): { mdKey: string; emlKey: string } {
-  const dateStamp = timestamp.slice(0, 10);
-  const timeStamp = timestamp.slice(11, 16).replace(":", "h");
-  const slug = slugify(subject || "untitled");
-  const mdKey = `${userId}/${dateStamp}/${timeStamp}-${slug}.md`;
-  const emlKey = mdKey.replace(".md", ".eml");
-  return { mdKey, emlKey };
+// A line break in a value could end the frontmatter block early or inject fields.
+function frontmatterValue(value: string): string {
+  return value.replace(/[\r\n]+/g, " ");
 }
 
 function toMarkdown(content: Content, emlKey?: string): string {
   return `---
-timestamp: ${content.timestamp}
-from: ${content.from}
-to: ${content.to}
-subject: ${content.subject}
+timestamp: ${frontmatterValue(content.timestamp)}
+from: ${frontmatterValue(content.from)}
+to: ${frontmatterValue(content.to)}
+subject: ${frontmatterValue(content.subject)}
 ${emlKey ? `emlKey: ${emlKey}` : ""}
 ---
 
@@ -38,7 +28,8 @@ export const r2Sink: Sink = {
 
   async write(content: Content, ctx: SinkContext): Promise<SinkResult> {
     try {
-      const { mdKey, emlKey } = computeKeys(content.subject, ctx.profile.id, content.timestamp);
+      const noteId = notesRepo.generateNoteId();
+      const { mdKey, emlKey } = noteKeys(ctx.profile.id, noteId, content.subject, content.timestamp);
       const stored: Content = {
         ...content,
         subject: content.subject || "(no subject)",
@@ -70,6 +61,22 @@ export const r2Sink: Sink = {
       }
 
       console.log(`Saved md: ${mdKey}`);
+
+      // The note is already saved, so an index failure is logged rather than failing the write.
+      try {
+        await notesRepo.create(createDb(ctx.env.DB), {
+          id: noteId,
+          userId: ctx.profile.id,
+          r2Key: mdKey,
+          emailKey: rawEmail && emlResult.status === "fulfilled" ? emlKey : null,
+          subject: frontmatterValue(stored.subject),
+          from: frontmatterValue(stored.from),
+          createdAt: Date.parse(stored.timestamp),
+        });
+      } catch (e) {
+        console.error(`Notes index write failed for ${mdKey}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+
       return { ok: true, detail: mdKey };
     } catch (e) {
       const error = e instanceof Error ? e.message : String(e);

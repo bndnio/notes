@@ -37,6 +37,24 @@ One row per MCP bearer token. A user has at most `MAX_TOKENS_PER_USER` (10, in `
 | `created_at` | integer | Unix ms |
 | `last_used_at` | integer nullable | Unix ms of last authenticated MCP call; rewritten at most hourly. Null = never used |
 
+### `notes`
+
+Index of notes stored in R2, used for listing and paging. Not a source of truth: the `.md` object at `r2_key` is, and every column can be rebuilt from its frontmatter. This copy is a deliberate exception to "never duplicate state" — R2 can only list keys in ascending order and can't filter.
+
+Written by the R2 sink after the `.md` is saved; a failed index write is logged and leaves the note unlisted. Rows are deleted with their objects when storage is disabled.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | text PK | 12-char hex note id; also the suffix of its R2 keys |
+| `user_id` | text FK → `users.id` | Cascade delete |
+| `r2_key` | text unique | `.md` object key in `NOTES_BUCKET` |
+| `email_key` | text nullable | `.eml` object key; presence ⇒ the original email is stored |
+| `subject` | text | As written to frontmatter |
+| `from` | text | Sender address, or `mcp` |
+| `created_at` | integer | Unix ms, from the note's `timestamp` |
+
+Index `notes_user_id_created_at_id_idx` on `(user_id, created_at, id)` serves newest-first paging.
+
 ### `notion_integrations`
 
 | Column | Type | Notes |
@@ -87,12 +105,16 @@ All access goes through a typed repository in `src/kv/repositories/` — one mod
 
 ### NOTES_BUCKET `bndnio-notes`
 
-Opt-in per user via `users.storage_enabled`. Disabling storage deletes all objects under `<userId>/`.
+Opt-in per user via `users.storage_enabled`. Disabling storage deletes all objects under `<userId>/` and the user's `notes` rows. Key format is built by `noteKeys` in `src/lib/platform-storage.ts`.
 
 | Key pattern | Content type |
 |-------------|-------------|
-| `<userId>/<YYYY-MM-DD>/<HH>h<MM>-<slug>.md` | `text/markdown` — note with YAML frontmatter |
-| `<userId>/<YYYY-MM-DD>/<HH>h<MM>-<slug>.eml` | `message/rfc822` — raw email backup |
+| `<userId>/<YYYY-MM-DD>/<HH>h<MM>-<slug>-<noteId>.md` | `text/markdown` — note with YAML frontmatter |
+| `<userId>/<YYYY-MM-DD>/<HH>h<MM>-<slug>-<noteId>.eml` | `message/rfc822` — raw email backup |
+
+`<noteId>` is the note's `notes.id`, so keys never collide and each object maps to one index row.
+
+`.md` frontmatter fields (`timestamp`, `from`, `to`, `subject`, optional `emlKey`) are single-line: line breaks in values are replaced with spaces before writing. Each `.md` has a row in the D1 `notes` index.
 
 ---
 

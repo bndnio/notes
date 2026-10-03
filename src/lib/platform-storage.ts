@@ -6,6 +6,29 @@ export interface StoredNote {
 
 const userPrefix = (userId: string) => `${userId}/`;
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60);
+}
+
+export function noteKeys(
+  userId: string,
+  noteId: string,
+  subject: string,
+  timestamp: string,
+): { mdKey: string; emlKey: string } {
+  const dateStamp = timestamp.slice(0, 10);
+  const timeStamp = timestamp.slice(11, 16).replace(":", "h");
+  const slug = slugify(subject || "untitled");
+  const mdKey = `${userPrefix(userId)}${dateStamp}/${timeStamp}-${slug}-${noteId}.md`;
+  const emlKey = mdKey.replace(/\.md$/, ".eml");
+  return { mdKey, emlKey };
+}
+
 export async function listStoredNotes(bucket: R2Bucket, userId: string): Promise<StoredNote[]> {
   const notes: StoredNote[] = [];
   let cursor: string | undefined;
