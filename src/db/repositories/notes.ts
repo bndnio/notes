@@ -82,6 +82,12 @@ export async function findPage(
   return { notes: page, total, newerCount: newer };
 }
 
+export function findById(db: Db, userId: string, id: string) {
+  return db.query.notes.findFirst({
+    where: and(eq(notes.id, id), eq(notes.userId, userId)),
+  });
+}
+
 export async function removeAllByUserId(db: Db, userId: string): Promise<void> {
   await db.delete(notes).where(eq(notes.userId, userId));
 }

@@ -1,0 +1,24 @@
+<script>
+  // `toggle` doesn't bubble, so it's caught in the capture phase.
+  document.addEventListener('toggle', function (e) {
+    var row = e.target;
+    if (!row.matches || !row.matches('details.notes-row') || !row.open || row.dataset.state) return;
+
+    var container = row.querySelector('.notes-row-body');
+    row.dataset.state = 'loading';
+    container.textContent = 'Loading…';
+    fetch('/notes/' + encodeURIComponent(row.dataset.noteId) + '/body', { credentials: 'same-origin' })
+      .then(function (res) {
+        if (!res.ok || res.redirected) throw new Error(res.status);
+        return res.text();
+      })
+      .then(function (fragment) {
+        container.innerHTML = fragment;
+        row.dataset.state = 'loaded';
+      })
+      .catch(function () {
+        delete row.dataset.state;
+        container.textContent = "Couldn't load this note. Close and reopen it to try again.";
+      });
+  }, true);
+</script>

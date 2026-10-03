@@ -63,3 +63,28 @@ export async function deleteStoredNotes(bucket: R2Bucket, userId: string): Promi
 
   return deleted;
 }
+
+export interface StoredNoteContent {
+  to: string;
+  body: string;
+}
+
+// Parses the format written by toMarkdown in the R2 sink.
+export async function readStoredNote(bucket: R2Bucket, mdKey: string): Promise<StoredNoteContent | null> {
+  const object = await bucket.get(mdKey);
+  if (!object) return null;
+  const raw = await object.text();
+
+  const end = raw.startsWith("---\n") ? raw.indexOf("\n---\n", 4) : -1;
+  if (end === -1) return { to: "", body: raw };
+
+  const fields = new Map<string, string>();
+  for (const line of raw.slice(4, end).split("\n")) {
+    const colon = line.indexOf(":");
+    if (colon > 0) fields.set(line.slice(0, colon), line.slice(colon + 1).trim());
+  }
+  return {
+    to: fields.get("to") ?? "",
+    body: raw.slice(end + "\n---\n".length).replace(/^\n/, "").replace(/\n$/, ""),
+  };
+}

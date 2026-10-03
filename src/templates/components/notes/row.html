@@ -1,5 +1,10 @@
-<li class="notes-row">
-  <time class="notes-row-time" datetime="{{iso}}">{{time}}</time>
-  <span class="notes-row-subject">{{subject}}</span>
-  <span class="notes-row-from">{{from}}</span>
+<li>
+  <details class="notes-row" data-note-id="{{id}}">
+    <summary class="notes-row-summary">
+      <time class="notes-row-time" datetime="{{iso}}">{{time}}</time>
+      <span class="notes-row-subject">{{subject}}</span>
+      <span class="notes-row-from">{{from}}</span>
+    </summary>
+    <div class="notes-row-body"></div>
+  </details>
 </li>

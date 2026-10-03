@@ -1,7 +1,7 @@
 import { handleMcp } from "@/pipeline/sources/mcp/handler";
 import { handleHome } from "./ui/home";
 import { handleProfile } from "./ui/profile";
-import { handleNotes } from "./ui/notes";
+import { handleNotes, handleNoteRoutes } from "./ui/notes";
 import { handleRegistration } from "./auth/register";
 import { handleLogin } from "./auth/login";
 import { handleLogout } from "./auth/logout";
@@ -24,6 +24,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname === "/") return await handleHome(request, env);
     if (pathname === "/profile") return await handleProfile(request, env);
     if (pathname === "/notes") return await handleNotes(request, env);
+    if (pathname.startsWith("/notes/")) return await handleNoteRoutes(request, env);
 
     // Login island
     if (pathname.startsWith("/auth/register")) return await handleRegistration(request, env);
