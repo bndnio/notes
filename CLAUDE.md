@@ -104,7 +104,7 @@ function buildNotionModal(databases: NotionDatabase[]): string {
 
 **Do** — put chrome in a template, pass only the dynamic fragment as a slot:
 ```ts
-// src/templates/notion-select-modal.html contains the wrapper.
+// src/templates/components/notion/select-modal.html contains the wrapper.
 function buildNotionModal(databases: NotionDatabase[]): string {
   const options = databases
     .map(d => `<input type="radio" value="${escHtml(d.id)}">`)
@@ -343,7 +343,7 @@ For every security fix, ask: *what other layer could catch this?* and fix that t
 
 `renderTemplate` substitutes `{{vars}}` with the same dumb string replacement whether it's inside HTML or a `<script>` block. `escHtml` guards against HTML injection but not JS injection — a value containing `'`, `\n`, or `</script>` will break out of a JS string literal or the script block entirely.
 
-**Why:** Introduced when integration section templates (`notion-section.html`, `mcp-section.html`) were adopted. Each section template contains a `<script>` block, which increases the surface area where a developer might accidentally pass user data through a template var into a JS context.
+**Why:** Introduced when integration section templates (`components/notion/script.html`, `components/mcp/script.html`, …) were adopted. Each section template contains a `<script>` block, which increases the surface area where a developer might accidentally pass user data through a template var into a JS context.
 
 **Don't** — substitute user-derived data inside a `<script>` in a template:
 ```html
@@ -368,7 +368,7 @@ When asked to review or audit, walk through these categories in order. The initi
 
 1. **Template injection** — iterative substitution that re-scans replacement values (was: `replaceAll` in a loop over `vars`)
 2. **Stored XSS** — server-side input validation gaps (was: `validateUsername` only checked length, allowing `<script>` usernames)
-3. **Reflected XSS** — URL/form params rendered into templates without escaping (was: `{{email}}` in `verify.html` unescaped)
+3. **Reflected XSS** — URL/form params rendered into templates without escaping (was: `{{email}}` in `pages/verify.html` unescaped)
 4. **OAuth state binding** — callback must verify the session matches the state's user (was: state mapped to userId with no session check — victim could complete attacker's OAuth flow)
 5. **Rate limiting** — brute-force surface on PINs, tokens, login (was: 6-digit PIN with 10-min window and no attempt counter)
 6. **Data lifecycle** — orphaned credentials on regenerate, expired pending state, double-writes (was: old MCP hash left active after lapsed setup before pending-token flow)
@@ -422,8 +422,8 @@ Edit src/lib/registration.ts
 Edit src/routes/ui/profile.ts
 Edit src/routes/api/mcp/setup.ts
 Edit src/routes/api/notion.ts
-Edit src/templates/profile.html
-Edit src/templates/notion-relay.html
+Edit src/templates/pages/profile.html
+Edit src/templates/pages/notion-relay.html
 [no pause]
 "Done!"
 ```

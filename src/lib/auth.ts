@@ -2,6 +2,7 @@ import { hmacToken } from "./crypto";
 import { getCookie } from "./cookies";
 import { createDb } from "@/db";
 import * as usersRepo from "@/db/repositories/users";
+import * as mcpTokensRepo from "@/db/repositories/mcp-tokens";
 import * as sessionsKv from "@/kv/repositories/sessions";
 import { HttpError } from "./responses";
 import type { Env, Profile } from "./types";
@@ -14,11 +15,16 @@ export function clearSessionCookieHeader(): string {
   return `session=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`;
 }
 
-export async function resolveProfile(token: string, env: Env): Promise<Profile | null> {
+export async function resolveMcpToken(
+  token: string,
+  env: Env,
+): Promise<{ profile: Profile; tokenId: string; lastUsedAt: number | null } | null> {
   const db = createDb(env.DB);
   const encryptionKey = env.SEC_ENCRYPTION_KEY;
   const hash = await hmacToken(token, encryptionKey);
-  return (await usersRepo.findByMcpTokenHash(db, hash)) ?? null;
+  const row = await mcpTokensRepo.findByHash(db, hash);
+  if (!row) return null;
+  return { profile: row.user, tokenId: row.id, lastUsedAt: row.lastUsedAt };
 }
 
 export async function resolveSession(request: Request, env: Env, encryptionKey: string): Promise<string | null> {

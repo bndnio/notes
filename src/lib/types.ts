@@ -3,12 +3,18 @@ export interface Profile {
   username: string;
   requireSenderMatch: boolean;
   storageEnabled: boolean;
-  mcpTokenHash: string | null;
   createdAt: number;
   notion: {
     databaseId: string;
     accessTokenEncrypted: string;
   } | null;
+}
+
+export interface McpTokenSummary {
+  id: string;
+  name: string;
+  createdAt: number;
+  lastUsedAt: number | null;
 }
 
 /** Profile page fragment contributed by one integration. Composed by routes/ui/profile.ts. */

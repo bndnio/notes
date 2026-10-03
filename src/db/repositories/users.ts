@@ -18,13 +18,6 @@ export function findByUsername(db: Db, username: string) {
   });
 }
 
-export function findByMcpTokenHash(db: Db, hash: string) {
-  return db.query.users.findFirst({
-    where: eq(users.mcpTokenHash, hash),
-    ...withNotion,
-  });
-}
-
 export async function findByEmail(db: Db, email: string) {
   const row = await db.query.userEmails.findFirst({
     where: (userEmails, { eq }) => eq(userEmails.email, email),
@@ -38,10 +31,6 @@ export async function create(
   user: { id: string; username: string; requireSenderMatch: boolean },
 ): Promise<void> {
   await db.insert(users).values({ ...user, createdAt: Date.now() });
-}
-
-export async function updateMcpTokenHash(db: Db, id: string, hash: string | null): Promise<void> {
-  await db.update(users).set({ mcpTokenHash: hash }).where(eq(users.id, id));
 }
 
 export async function updateRequireSenderMatch(db: Db, id: string, value: boolean): Promise<void> {

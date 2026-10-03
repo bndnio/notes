@@ -2,7 +2,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 import { hasEnabledSink, saveNote, type SaveNoteResult } from "../..";
-import { resolveProfile } from "@/lib/auth";
+import { resolveMcpToken } from "@/lib/auth";
+import { createDb } from "@/db";
+import * as mcpTokensRepo from "@/db/repositories/mcp-tokens";
 import type { Content, Env, Profile } from "@/lib/types";
 
 function formatResults(results: SaveNoteResult): string {
@@ -63,9 +65,16 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
   }
 
   const token = (request.headers.get("Authorization") ?? "").replace(/^Bearer /, "");
-  const profile = await resolveProfile(token, env);
-  if (!profile) {
+  const resolved = await resolveMcpToken(token, env);
+  if (!resolved) {
     return new Response("Unauthorized", { status: 401 });
+  }
+  const { profile, tokenId, lastUsedAt } = resolved;
+
+  try {
+    await mcpTokensRepo.recordUse(createDb(env.DB), { id: tokenId, lastUsedAt });
+  } catch (e) {
+    console.error(`Failed to record MCP token use for ${tokenId}:`, e);
   }
 
   const transport = new WebStandardStreamableHTTPServerTransport({

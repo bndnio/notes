@@ -15,6 +15,13 @@
       "when": 1788543838417,
       "tag": "0001_storage_enabled",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791056156872,
+      "tag": "0002_mcp_tokens",
+      "breakpoints": true
     }
   ]
 }

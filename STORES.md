@@ -14,7 +14,7 @@ Binding: `DB` (`bndnio-notes`, id `512d5056-9718-4afd-b2d0-4c6b88e6c2be`)
 | `username` | text unique | Login handle; email routing uses `u_<username>@<EMAIL_DOMAIN>` |
 | `require_sender_match` | boolean | When true, inbound email must come from a registered address |
 | `storage_enabled` | boolean | When true, notes are archived to R2 (`NOTES_BUCKET`); default false |
-| `mcp_token_hash` | text unique nullable | HMAC-SHA256 of active MCP bearer token |
+| `mcp_token_hash` | text unique nullable | **Legacy, unread.** Copied into `mcp_tokens` by migration 0002; to be dropped |
 | `created_at` | integer | Unix ms |
 
 ### `user_emails`
@@ -24,6 +24,19 @@ Binding: `DB` (`bndnio-notes`, id `512d5056-9718-4afd-b2d0-4c6b88e6c2be`)
 | `email` | text PK | Lowercase email address |
 | `user_id` | text FK → `users.id` | |
 | `created_at` | integer | Earliest row is the primary email |
+
+### `mcp_tokens`
+
+One row per MCP bearer token. A user has at most `MAX_TOKENS_PER_USER` (10, in `src/db/repositories/mcp-tokens.ts`). Having any row means MCP is configured.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | text PK | 8-char hex token id |
+| `user_id` | text FK → `users.id` | Cascade delete |
+| `name` | text | User-chosen label; unique per user (`mcp_tokens_user_id_name_unique`) |
+| `token_hash` | text unique | HMAC-SHA256 of the bearer token |
+| `created_at` | integer | Unix ms |
+| `last_used_at` | integer nullable | Unix ms of last authenticated MCP call; rewritten at most hourly. Null = never used |
 
 ### `notion_integrations`
 
@@ -67,7 +80,7 @@ All access goes through a typed repository in `src/kv/repositories/` — one mod
 
 **`notion_dbs`** is written during OAuth callback and deleted after DB selection (or expires after 1 hr if the user never completes setup). **`notion_schema_error`** is written when the chosen database fails schema validation and deleted with the other pending Notion keys once selection succeeds.
 
-**`mcp_token`** is written when the user generates a token and deleted when they click Done. Clicking Done commits the hash to D1 — the hash is not written to the database until that point.
+**`mcp_token`** is written when the user generates a token and deleted when they click Done. Clicking Done inserts a `mcp_tokens` row — the hash is not written to the database until that point.
 
 ---
 

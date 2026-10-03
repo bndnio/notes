@@ -3,6 +3,8 @@ import mcpScriptHtml from "@/templates/components/mcp/script.html";
 import { decrypt } from "@/lib/crypto";
 import { escHtml } from "@/lib/html";
 import { renderTemplate, renderIntegrationCard } from "@/lib/responses";
+import { createDb } from "@/db";
+import * as mcpTokensRepo from "@/db/repositories/mcp-tokens";
 import * as mcpTokensKv from "@/kv/repositories/mcp-tokens";
 import type { Env, Profile, Section } from "@/lib/types";
 
@@ -13,12 +15,16 @@ export async function buildMcpSection(
   encryptionKey: string,
   csrfField: string,
 ): Promise<Section> {
-  const pendingEncrypted = await mcpTokensKv.find(userId);
+  const [tokens, pendingEncrypted] = await Promise.all([
+    mcpTokensRepo.findAllByUserId(createDb(env.DB), userId),
+    mcpTokensKv.find(userId),
+  ]);
+  const hasTokens = tokens.length > 0;
   const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
 
   let badgeClass: string;
   let badgeText: string;
-  if (profile.mcpTokenHash) { badgeClass = "status-badge--connected"; badgeText = "Configured"; }
+  if (hasTokens) { badgeClass = "status-badge--connected"; badgeText = "Configured"; }
   else if (mcpToken) { badgeClass = "status-badge--pending"; badgeText = "Pending"; }
   else { badgeClass = "status-badge--none"; badgeText = "Not set up"; }
 
@@ -35,7 +41,7 @@ export async function buildMcpSection(
 
   const modal = renderTemplate(mcpSetupModalHtml, { tokenSection, actionSection, appUrl: env.APP_URL });
 
-  const cardAction = profile.mcpTokenHash
+  const cardAction = hasTokens
     ? `<div class="btn-row">
         <form class="form-inline" method="POST" action="/api/mcp/setup/reset" onsubmit="return confirmResetMcp()">${csrfField}<button type="submit" class="btn btn--ghost btn--sm">Reset</button></form>
         <button type="button" class="btn btn--ghost" disabled>Setup →</button>

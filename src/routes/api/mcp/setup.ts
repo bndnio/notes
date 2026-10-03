@@ -1,7 +1,7 @@
 import { assertSession, assertUser, assertCsrf } from "@/lib/auth";
 import { hmacToken, generateRandomHex, encrypt, decrypt } from "@/lib/crypto";
 import { createDb } from "@/db";
-import * as usersRepo from "@/db/repositories/users";
+import * as mcpTokensRepo from "@/db/repositories/mcp-tokens";
 import * as mcpTokensKv from "@/kv/repositories/mcp-tokens";
 import type { Env } from "@/lib/types";
 
@@ -10,12 +10,12 @@ async function handleGenerateMcpToken(request: Request, env: Env): Promise<Respo
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const user = await assertUser(db, userId, env.APP_URL);
+  await assertUser(db, userId, env.APP_URL);
 
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
 
-  if (user.mcpTokenHash) {
+  if ((await mcpTokensRepo.findAllByUserId(db, userId)).length > 0) {
     return Response.redirect(`${env.APP_URL}/profile?toast=Reset+your+MCP+token+before+setting+up+a+new+one`, 302);
   }
 
@@ -39,7 +39,7 @@ async function handleMcpDone(request: Request, env: Env): Promise<Response> {
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const user = await assertUser(db, userId, env.APP_URL);
+  await assertUser(db, userId, env.APP_URL);
 
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
@@ -48,10 +48,11 @@ async function handleMcpDone(request: Request, env: Env): Promise<Response> {
   if (encrypted) {
     const mcpToken = await decrypt(encrypted, encryptionKey);
     const hash = await hmacToken(mcpToken, encryptionKey);
-    await Promise.all([
-      usersRepo.updateMcpTokenHash(db, userId, hash),
-      mcpTokensKv.remove(userId),
-    ]);
+    const result = await mcpTokensRepo.create(db, { userId, name: "Default", tokenHash: hash });
+    if (result === "limit" || result === "duplicate") {
+      return Response.redirect(`${env.APP_URL}/profile?toast=Reset+your+MCP+token+before+setting+up+a+new+one`, 302);
+    }
+    await mcpTokensKv.remove(userId);
   }
 
   return Response.redirect(`${env.APP_URL}/profile?toast=MCP+server+configured`, 302);
@@ -62,17 +63,17 @@ async function handleResetMcpToken(request: Request, env: Env): Promise<Response
   const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
-  const user = await assertUser(db, userId, env.APP_URL);
+  await assertUser(db, userId, env.APP_URL);
 
   const form = await request.formData();
   await assertCsrf(form, sessionHash, encryptionKey);
 
-  if (!user.mcpTokenHash) {
+  if ((await mcpTokensRepo.findAllByUserId(db, userId)).length === 0) {
     return Response.redirect(`${env.APP_URL}/profile`, 302);
   }
 
   await Promise.all([
-    usersRepo.updateMcpTokenHash(db, userId, null),
+    mcpTokensRepo.removeAllByUserId(db, userId),
     mcpTokensKv.remove(userId),
   ]);
 
