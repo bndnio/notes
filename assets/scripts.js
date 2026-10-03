@@ -108,3 +108,10 @@ document.addEventListener('keydown', function (e) {
   var name = new URLSearchParams(window.location.search).get('modal');
   if (name) openModal(name);
 })();
+
+(function () {
+  var toast = document.getElementById('toast');
+  if (!toast) return;
+  setTimeout(function () { toast.remove(); }, 5000);
+  document.getElementById('toast-dismiss').addEventListener('click', function () { toast.remove(); });
+})();

@@ -6,5 +6,14 @@
       <span class="notes-row-from">{{from}}</span>
     </summary>
     <div class="notes-row-body"></div>
+    <div class="note-actions">
+      <a href="/notes/{{id}}/md" download>Download .md</a>
+      <a href="/notes/{{id}}/eml" download {{emailHidden}}>Original email</a>
+      <form class="note-delete" method="POST" action="/notes/{{id}}/delete" data-note-subject="{{subject}}">
+        {{csrfField}}
+        {{positionFields}}
+        <button type="submit">Delete</button>
+      </form>
+    </div>
   </details>
 </li>

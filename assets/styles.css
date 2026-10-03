@@ -957,7 +957,7 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 }
 
 .note-body-text {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 14px;
   line-height: 1.55;
   color: var(--text);
@@ -965,15 +965,30 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   overflow-wrap: anywhere;
 }
 
-.note-body-actions {
+.note-actions {
   display: flex;
+  align-items: baseline;
   gap: 16px;
+  padding: 0 12px 12px;
   font-family: 'Space Mono', monospace;
   font-size: 11px;
 }
 
-.note-body-actions a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
-.note-body-actions a:hover { color: var(--text); }
+.note-actions a,
+.note-actions button {
+  font: inherit;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.note-actions a:hover { color: var(--text); }
+.note-delete { margin-left: auto; }
+.note-actions .note-delete button:hover { color: var(--danger); }
 
 .notes-row-time,
 .notes-row-from {

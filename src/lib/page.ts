@@ -1,5 +1,8 @@
 import betaBannerHtml from "@/templates/partials/beta-banner.html";
 import themeSwitcherHtml from "@/templates/partials/theme-switcher.html";
+import toastHtml from "@/templates/partials/toast.html";
+import { escHtml } from "./html";
+import { renderTemplate } from "./responses";
 import { resolveSession } from "./auth";
 import { resolveTheme } from "./theme";
 import type { Env } from "./types";
@@ -15,8 +18,10 @@ export async function pageVars(
 ): Promise<Record<string, string>> {
   const userId = await resolveSession(request, env, env.SEC_ENCRYPTION_KEY);
   const homeHref = userId ? "/profile" : "/";
+  const toastMessage = new URL(request.url).searchParams.get("toast");
   return {
     betaBanner: betaBannerHtml,
+    toast: toastMessage ? renderTemplate(toastHtml, { message: escHtml(toastMessage) }) : "",
     homeHref,
     themeSwitcher: themeSwitcherHtml,
     theme: resolveTheme(request),

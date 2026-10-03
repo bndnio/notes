@@ -1,6 +1,5 @@
 import profileHtml from "@/templates/pages/profile.html";
 import { assertSession, assertUser, getCsrfToken } from "@/lib/auth";
-import { escHtml } from "@/lib/html";
 import { createDb } from "@/db";
 import { html, renderTemplate } from "@/lib/responses";
 import { pageVars } from "@/lib/page";
@@ -35,14 +34,8 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
     buildEmailSection(profile, userId, env, csrfField),
   ]);
 
-  const toastParam = new URL(request.url).searchParams.get("toast");
-  const toast = toastParam
-    ? `<div class="toast" id="toast">${escHtml(toastParam)}<button class="toast-dismiss" id="toast-dismiss">✕</button></div>`
-    : "";
-
   return html(
     renderTemplate(profileHtml, await pageVars(request, env, {
-      toast,
       csrfField,
       outputsBannerHidden: profile.storageEnabled || profile.notion ? "hidden" : "",
       notionModal, notionCard, notionScript,

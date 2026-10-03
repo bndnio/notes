@@ -57,13 +57,6 @@
     </section>
   </div>
 
-  <script>
-    const toast = document.getElementById('toast');
-    if (toast) {
-      setTimeout(() => toast.remove(), 5000);
-      document.getElementById('toast-dismiss').addEventListener('click', () => toast.remove());
-    }
-  </script>
   {{notionScript}}
   {{storageScript}}
   {{mcpScript}}

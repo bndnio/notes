@@ -9,12 +9,13 @@
 </head>
 <body>
   {{betaBanner}}
+  {{toast}}
 
   <div class="page page--wide">
     <a class="back-link" href="/profile">← Profile</a>
     <header class="page-header">
       <h1 class="page-title">Notes</h1>
-      <p class="notes-meta" {{metaHidden}}>{{rangeStart}}–{{rangeEnd}} of {{total}} · Times in UTC</p>
+      <p class="notes-meta" {{metaHidden}}>{{rangeStart}}–<span data-count="{{rangeEndValue}}" id="notes-range-end">{{rangeEnd}}</span> of <span data-count="{{totalValue}}" id="notes-total">{{total}}</span> · Times in UTC</p>
     </header>
 
     {{emptyState}}
@@ -22,6 +23,7 @@
     {{pagination}}
   </div>
 
+  <template id="toast-template">{{toastTemplate}}</template>
   {{script}}
   <footer class="site-footer">{{themeSwitcher}}</footer>
 </body>

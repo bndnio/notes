@@ -21,4 +21,53 @@
         container.textContent = "Couldn't load this note. Close and reopen it to try again.";
       });
   }, true);
+
+  function decrementCount(id) {
+    var el = document.getElementById(id);
+    var value = Number(el.dataset.count) - 1;
+    el.dataset.count = value;
+    el.textContent = value.toLocaleString('en-US');
+  }
+
+  function removeRow(row) {
+    var item = row.closest('li');
+    var day = item.closest('.notes-day');
+    item.remove();
+    if (!day.querySelector('li')) day.remove();
+    decrementCount('notes-range-end');
+    decrementCount('notes-total');
+  }
+
+  // Deletes without a reload so the scroll position stays put. Without JS, the form
+  // submits normally and the server redirects back to the same page.
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form.matches('form.note-delete')) return;
+    e.preventDefault();
+    if (!confirm('Delete "' + form.dataset.noteSubject + '"?\n\nThis permanently removes the note and its original email.')) return;
+
+    var button = form.querySelector('button');
+    button.disabled = true;
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then(function (res) {
+        if (res.redirected) { window.location.href = res.url; return; }
+        return res.json().catch(function () { return {}; }).then(function (data) {
+          var message = data.message || "Couldn't delete the note. Try again.";
+          if (res.ok || res.status === 404) removeRow(form.closest('details.notes-row'));
+          if (document.querySelector('.notes-list li')) { showToast(message); return; }
+          var url = new URL(window.location);
+          url.searchParams.set('toast', message);
+          window.location.href = url;
+        });
+      })
+      .catch(function () {
+        showToast("Couldn't delete the note. Try again.");
+      })
+      .finally(function () { button.disabled = false; });
+  });
 </script>

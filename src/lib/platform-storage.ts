@@ -50,6 +50,10 @@ export async function listStoredNotes(bucket: R2Bucket, userId: string): Promise
   return notes.sort((a, b) => b.key.localeCompare(a.key));
 }
 
+export async function deleteStoredNote(bucket: R2Bucket, keys: { mdKey: string; emailKey: string | null }): Promise<void> {
+  await bucket.delete(keys.emailKey ? [keys.mdKey, keys.emailKey] : [keys.mdKey]);
+}
+
 export async function deleteStoredNotes(bucket: R2Bucket, userId: string): Promise<number> {
   let deleted = 0;
   let cursor: string | undefined;

@@ -41,7 +41,7 @@ One row per MCP bearer token. A user has at most `MAX_TOKENS_PER_USER` (10, in `
 
 Index of notes stored in R2, used for listing and paging. Not a source of truth: the `.md` object at `r2_key` is, and every column can be rebuilt from its frontmatter. This copy is a deliberate exception to "never duplicate state" — R2 can only list keys in ascending order and can't filter.
 
-Written by the R2 sink after the `.md` is saved; a failed index write is logged and leaves the note unlisted. Rows are deleted with their objects when storage is disabled.
+Written by the R2 sink after the `.md` is saved; a failed index write is logged and leaves the note unlisted. `POST /notes/<id>/delete` removes the `.md` and `.eml` first, then the row, so a failed delete can be retried. All of a user's rows are deleted with their objects when storage is disabled.
 
 | Column | Type | Notes |
 |--------|------|-------|
