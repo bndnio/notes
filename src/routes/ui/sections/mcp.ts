@@ -15,12 +15,12 @@ export async function buildMcpSection(
   encryptionKey: string,
   csrfField: string,
 ): Promise<Section> {
-  const [tokens, pendingEncrypted] = await Promise.all([
+  const [tokens, pending] = await Promise.all([
     mcpTokensRepo.findAllByUserId(createDb(env.DB), userId),
     mcpTokensKv.find(userId),
   ]);
   const hasTokens = tokens.length > 0;
-  const mcpToken = pendingEncrypted ? await decrypt(pendingEncrypted, encryptionKey) : null;
+  const mcpToken = pending ? await decrypt(pending.encrypted, encryptionKey) : null;
 
   let badgeClass: string;
   let badgeText: string;
@@ -33,9 +33,9 @@ export async function buildMcpSection(
     : "";
 
   const actionSection = mcpToken
-    ? `<form class="form-inline" method="POST" action="/api/mcp/setup/done">${csrfField}<button type="submit" class="btn">Done →</button></form>`
+    ? `<form class="form-inline" method="POST" action="/api/mcp/tokens/done">${csrfField}<button type="submit" class="btn">Done →</button></form>`
     : `<div class="btn-row">
-        <form class="form-inline" method="POST" action="/api/mcp/setup/generate">${csrfField}<input type="hidden" name="regenerate" value="1"><button type="submit" class="btn btn--ghost">Regenerate token</button></form>
+        <form class="form-inline" method="POST" action="/api/mcp/tokens">${csrfField}<input type="hidden" name="regenerate" value="1"><button type="submit" class="btn btn--ghost">Regenerate token</button></form>
         <a class="btn btn--ghost" href="/profile">Back →</a>
        </div>`;
 
@@ -43,10 +43,10 @@ export async function buildMcpSection(
 
   const cardAction = hasTokens
     ? `<div class="btn-row">
-        <form class="form-inline" method="POST" action="/api/mcp/setup/reset" onsubmit="return confirmResetMcp()">${csrfField}<button type="submit" class="btn btn--ghost btn--sm">Reset</button></form>
+        <form class="form-inline" method="POST" action="/api/mcp/tokens/delete" onsubmit="return confirmResetMcp()">${csrfField}<input type="hidden" name="id" value="${escHtml(tokens[0].id)}"><button type="submit" class="btn btn--ghost btn--sm">Reset</button></form>
         <button type="button" class="btn btn--ghost" disabled>Setup →</button>
        </div>`
-    : `<form class="form-inline" method="POST" action="/api/mcp/setup/generate">${csrfField}<button type="submit" class="btn btn--red">Setup →</button></form>`;
+    : `<form class="form-inline" method="POST" action="/api/mcp/tokens">${csrfField}<input type="hidden" name="name" value="Default"><button type="submit" class="btn btn--red">Setup →</button></form>`;
 
   const card = renderIntegrationCard({
     name: "MCP Server",

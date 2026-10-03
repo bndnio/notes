@@ -5,6 +5,7 @@ import { generateRandomHex } from "@/lib/crypto";
 import type { McpTokenSummary } from "@/lib/types";
 
 export const MAX_TOKENS_PER_USER = 10;
+export const MAX_TOKEN_NAME_LENGTH = 40;
 
 // last_used_at is only rewritten once it is older than this, so MCP calls don't
 // each cost a D1 write.
@@ -30,16 +31,26 @@ export function findByHash(db: Db, tokenHash: string) {
   });
 }
 
+export async function checkCanCreate(
+  db: Db,
+  userId: string,
+  name: string,
+): Promise<"ok" | "limit" | "duplicate"> {
+  const existing = await db
+    .select({ name: mcpTokens.name })
+    .from(mcpTokens)
+    .where(eq(mcpTokens.userId, userId));
+  if (existing.length >= MAX_TOKENS_PER_USER) return "limit";
+  if (existing.some((t) => t.name === name)) return "duplicate";
+  return "ok";
+}
+
 export async function create(
   db: Db,
   args: { userId: string; name: string; tokenHash: string },
 ): Promise<{ id: string } | "limit" | "duplicate"> {
-  const existing = await db
-    .select({ name: mcpTokens.name })
-    .from(mcpTokens)
-    .where(eq(mcpTokens.userId, args.userId));
-  if (existing.length >= MAX_TOKENS_PER_USER) return "limit";
-  if (existing.some((t) => t.name === args.name)) return "duplicate";
+  const check = await checkCanCreate(db, args.userId, args.name);
+  if (check !== "ok") return check;
 
   const id = generateRandomHex(4);
   await db.insert(mcpTokens).values({ ...args, id, createdAt: Date.now() });
@@ -71,10 +82,6 @@ export async function remove(db: Db, userId: string, id: string): Promise<boolea
     .where(and(eq(mcpTokens.id, id), eq(mcpTokens.userId, userId)))
     .returning({ id: mcpTokens.id });
   return deleted.length > 0;
-}
-
-export async function removeAllByUserId(db: Db, userId: string): Promise<void> {
-  await db.delete(mcpTokens).where(eq(mcpTokens.userId, userId));
 }
 
 export async function recordUse(

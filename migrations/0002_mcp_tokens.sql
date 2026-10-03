@@ -10,8 +10,8 @@ CREATE TABLE `mcp_tokens` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `mcp_tokens_token_hash_unique` ON `mcp_tokens` (`token_hash`);--> statement-breakpoint
 CREATE UNIQUE INDEX `mcp_tokens_user_id_name_unique` ON `mcp_tokens` (`user_id`,`name`);--> statement-breakpoint
--- Carry existing single tokens over. HMAC hashes copy as-is, so current tokens keep working.
--- users.mcp_token_hash is left in place until the old worker version is gone; dropped in a later migration.
+-- Give every users.mcp_token_hash a matching mcp_tokens row named "Default". The HMAC hash
+-- is copied as-is, so the bearer token keeps authenticating.
 INSERT INTO `mcp_tokens` (`id`, `user_id`, `name`, `token_hash`, `created_at`)
 SELECT lower(hex(randomblob(4))), `id`, 'Default', `mcp_token_hash`, CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)
 FROM `users` WHERE `mcp_token_hash` IS NOT NULL;

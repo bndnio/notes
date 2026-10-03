@@ -5,7 +5,7 @@ import { handleRegistration } from "./auth/register";
 import { handleLogin } from "./auth/login";
 import { handleLogout } from "./auth/logout";
 import { handleVerify } from "./auth/verify";
-import { handleMcpSetup } from "./api/mcp/setup";
+import { handleMcpTokens } from "./api/mcp/tokens";
 import { handleMcpInstall } from "./api/mcp/install";
 import { handleEmailRoutes } from "./api/email";
 import { handleNotionRoutes } from "./api/notion";
@@ -33,7 +33,7 @@ export async function handleFetch(request: Request, env: Env): Promise<Response>
     if (pathname === "/api/mcp") return await handleMcp(request, env);
 
     // Integration config
-    if (pathname.startsWith("/api/mcp/setup/")) return await handleMcpSetup(request, env);
+    if (pathname === "/api/mcp/tokens" || pathname.startsWith("/api/mcp/tokens/")) return await handleMcpTokens(request, env);
     if (pathname === "/api/mcp/install/claude-code") return await handleMcpInstall(env);
     if (pathname.startsWith("/api/email")) return await handleEmailRoutes(request, env);
     if (pathname.startsWith("/api/notion/")) return await handleNotionRoutes(request, env);
