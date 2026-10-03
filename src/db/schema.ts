@@ -6,8 +6,6 @@ export const users = sqliteTable("users", {
   username: text("username").notNull().unique(),
   requireSenderMatch: integer("require_sender_match", { mode: "boolean" }).notNull().default(true),
   storageEnabled: integer("storage_enabled", { mode: "boolean" }).notNull().default(false),
-  // Unread — MCP tokens live in mcp_tokens. To be dropped once no deployed worker reads it.
-  mcpTokenHash: text("mcp_token_hash").unique(),
   createdAt: integer("created_at").notNull(),
 });
 

@@ -14,7 +14,6 @@ Binding: `DB` (`bndnio-notes`, id `512d5056-9718-4afd-b2d0-4c6b88e6c2be`)
 | `username` | text unique | Login handle; email routing uses `u_<username>@<EMAIL_DOMAIN>` |
 | `require_sender_match` | boolean | When true, inbound email must come from a registered address |
 | `storage_enabled` | boolean | When true, notes are archived to R2 (`NOTES_BUCKET`); default false |
-| `mcp_token_hash` | text unique nullable | **Legacy, unread.** Copied into `mcp_tokens` by migration 0002; to be dropped |
 | `created_at` | integer | Unix ms |
 
 ### `user_emails`
@@ -68,7 +67,7 @@ All access goes through a typed repository in `src/kv/repositories/` — one mod
 | `notion_token:<userId>` | AES-GCM encrypted OAuth token (base64), pending DB selection | 1 hr | `notion` |
 | `notion_dbs:<userId>` | JSON `Array<{id, title}>` | 1 hr | `notion` |
 | `notion_schema_error:<userId>` | schema validation message shown on the database picker | 1 hr | `notion` |
-| `mcp_token:<userId>` | AES-GCM encrypted MCP token (base64), pending until Done | 1 hr | `mcp-tokens` |
+| `mcp_token:<userId>` | JSON `{name, encrypted}` — token label + AES-GCM encrypted MCP token (base64), pending until Done | 1 hr | `mcp-tokens` |
 | `email_add:<userId>` | pending email address (string), awaiting PIN verification | 10 min | `email-adds` |
 
 **`pin` payload** varies by type:
@@ -80,7 +79,7 @@ All access goes through a typed repository in `src/kv/repositories/` — one mod
 
 **`notion_dbs`** is written during OAuth callback and deleted after DB selection (or expires after 1 hr if the user never completes setup). **`notion_schema_error`** is written when the chosen database fails schema validation and deleted with the other pending Notion keys once selection succeeds.
 
-**`mcp_token`** is written when the user generates a token and deleted when they click Done. Clicking Done inserts a `mcp_tokens` row — the hash is not written to the database until that point.
+**`mcp_token`** is written by `POST /api/mcp/tokens` and deleted by `POST /api/mcp/tokens/done` or `/cancel`. Its presence is the pending state, so a user stages one new token at a time. Done inserts the `mcp_tokens` row — the hash is not written to the database until that point. The name is checked for uniqueness and the per-user cap both when staging and again on Done.
 
 ---
 

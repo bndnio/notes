@@ -163,9 +163,11 @@ Check:
 
 This worker exposes a Remote MCP server at `/api/mcp` so AI agents (Claude Code, etc.) can save notes directly without email. Requests to the legacy `/mcp` path are permanently redirected there.
 
-Register at `/profile` → **MCP Server** → **Setup**. Save the token when shown — it won't be displayed again.
+Go to `/profile` → **MCP Server** → **Manage**, name a token (one per machine works well, e.g. "Work laptop"), and click **Create**. Save the token when shown — it won't be displayed again after you click **Done**.
 
-Add the token to your shell as `NOTES_MCP_TOKEN` and register with Claude Code — see the setup modal on `/profile` for the exact command.
+Add the token to your shell as `NOTES_MCP_TOKEN` and register with Claude Code — the setup modal shows the exact commands.
+
+Each account can hold up to 10 tokens. From the same **Manage** modal you can rename a token, see when it was last used, and delete it; a deleted token stops working immediately.
 
 ---
 
