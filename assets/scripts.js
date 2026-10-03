@@ -52,9 +52,22 @@ function modalOverlay(name) {
   return document.getElementById(name + '-overlay');
 }
 
+// The control that opened each modal, so closing can hand focus back to it.
+// Tracked from clicks because Safari doesn't focus buttons when they're clicked.
+var modalOpeners = new Map();
+var lastClicked = null;
+document.addEventListener('click', function (e) {
+  lastClicked = e.target.closest ? e.target.closest('button, a') : null;
+}, true);
+
 function openModal(name) {
   var overlay = modalOverlay(name);
-  if (overlay) overlay.classList.add('modal-overlay--visible');
+  if (!overlay) return;
+  overlay.classList.add('modal-overlay--visible');
+  // If the clicked control was removed (e.g. by closing the modal it was in),
+  // fall back to whatever has focus now.
+  var opener = lastClicked && lastClicked.isConnected ? lastClicked : document.activeElement;
+  modalOpeners.set(overlay, opener);
 }
 
 function closeModal(name) {
@@ -62,6 +75,9 @@ function closeModal(name) {
   if (overlay) {
     overlay.classList.remove('modal-overlay--visible');
     resetModal(overlay);
+    var opener = modalOpeners.get(overlay);
+    if (opener && opener.isConnected) opener.focus();
+    modalOpeners.delete(overlay);
   }
   var url = new URL(window.location);
   url.searchParams.delete('modal');
@@ -80,6 +96,12 @@ document.addEventListener('click', function (e) {
   if (overlay.classList && overlay.classList.contains('modal-overlay')) {
     closeModal(overlay.id.replace(/-overlay$/, ''));
   }
+});
+
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  var open = document.querySelectorAll('.modal-overlay--visible');
+  if (open.length) closeModal(open[open.length - 1].id.replace(/-overlay$/, ''));
 });
 
 (function () {
