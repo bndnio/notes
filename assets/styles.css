@@ -958,7 +958,6 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 
 .note-body-text {
   margin: 0 0 12px;
-  font-family: inherit;
   font-size: 14px;
   line-height: 1.55;
   color: var(--text);
@@ -966,7 +965,15 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
   overflow-wrap: anywhere;
 }
 
-.page--wide .note-body .btn { margin-top: 0; }
+.note-body-actions {
+  display: flex;
+  gap: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+
+.note-body-actions a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+.note-body-actions a:hover { color: var(--text); }
 
 .notes-row-time,
 .notes-row-from {
