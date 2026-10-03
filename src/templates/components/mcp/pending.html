@@ -1,0 +1,15 @@
+<div class="pending-verify">
+  <h3 class="email-section-label">Awaiting setup</h3>
+  <div class="email-row">
+    <span class="email-pending-address">{{tokenName}}</span>
+    <span class="status-badge status-badge--pending">Pending</span>
+  </div>
+  <p class="email-pending-hint">This token isn't saved until you click Done in setup.</p>
+  <div class="email-row">
+    <button type="button" class="btn btn--sm" onclick="closeMcpModal('mcp-manage');openMcpModal('mcp-setup')">Continue setup →</button>
+    <form class="form-inline" method="POST" action="/api/mcp/tokens/cancel">
+      {{csrfField}}
+      <button type="submit" class="btn btn--ghost btn--sm">Discard</button>
+    </form>
+  </div>
+</div>

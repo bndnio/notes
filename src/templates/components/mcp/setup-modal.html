@@ -1,10 +1,13 @@
-<div class="modal-overlay" id="mcp-modal-overlay" onclick="if(event.target===this)closeMcpModal()">
+<div class="modal-overlay" id="mcp-setup-overlay" onclick="if(event.target===this)closeMcpModal('mcp-setup')">
   <div class="modal modal--wide">
     <div class="modal-header">
-      <h2>Setup MCP Server</h2>
-      <button class="modal-close" onclick="closeMcpModal()">✕</button>
+      <h2>Set up “{{tokenName}}”</h2>
+      <button class="modal-close" onclick="closeMcpModal('mcp-setup')">✕</button>
     </div>
-    {{tokenSection}}
+    <div>
+      <p class="warning">Save this token — it won't be shown after you click Done.</p>
+      <div class="token-box">{{mcpToken}}</div>
+    </div>
     <div class="steps">
 
         <div class="step">
@@ -53,7 +56,19 @@
 
     </div>
     <div class="modal-actions modal-actions--end">
-      {{actionSection}}
+      <form class="form-inline" method="POST" action="/api/mcp/tokens">
+        {{csrfField}}
+        <input type="hidden" name="regenerate" value="1">
+        <button type="submit" class="btn btn--ghost">Regenerate token</button>
+      </form>
+      <form class="form-inline" method="POST" action="/api/mcp/tokens/cancel">
+        {{csrfField}}
+        <button type="submit" class="btn btn--ghost">Discard</button>
+      </form>
+      <form class="form-inline" method="POST" action="/api/mcp/tokens/done">
+        {{csrfField}}
+        <button type="submit" class="btn">Done →</button>
+      </form>
     </div>
   </div>
 </div>

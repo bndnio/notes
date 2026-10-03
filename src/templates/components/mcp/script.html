@@ -1,23 +1,25 @@
 <script>
-  function confirmResetMcp() {
+  function confirmDeleteMcpToken(form) {
     return confirm(
-      "Reset your MCP token?\n\n" +
-      "Your current token will stop working immediately. Claude Code and any other MCP clients using it will lose access until you complete setup again.\n\n" +
-      "After resetting, you'll generate a new token and need to update NOTES_MCP_TOKEN in your shell."
+      'Delete the token "' + form.dataset.tokenName + '"?\n\n' +
+      "It stops working immediately. Claude Code and any other MCP clients using it will lose access."
     );
   }
 
-  function openMcpModal() {
-    document.getElementById('mcp-modal-overlay').classList.add('modal-overlay--visible');
+  function openMcpModal(name) {
+    var overlay = document.getElementById(name + '-overlay');
+    if (overlay) overlay.classList.add('modal-overlay--visible');
   }
-  function closeMcpModal() {
-    document.getElementById('mcp-modal-overlay').classList.remove('modal-overlay--visible');
+  function closeMcpModal(name) {
+    var overlay = document.getElementById(name + '-overlay');
+    if (overlay) overlay.classList.remove('modal-overlay--visible');
     const url = new URL(window.location);
     url.searchParams.delete('modal');
     history.replaceState(null, '', url);
   }
 
-  if (new URLSearchParams(window.location.search).get('modal') === 'mcp-setup') {
-    openMcpModal();
-  }
+  (function () {
+    var modal = new URLSearchParams(window.location.search).get('modal');
+    if (modal === 'mcp-manage' || modal === 'mcp-setup') openMcpModal(modal);
+  })();
 </script>

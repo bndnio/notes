@@ -31,7 +31,7 @@ export async function handleProfile(request: Request, env: Env): Promise<Respons
   ] = await Promise.all([
     buildNotionSection(profile, userId, env, csrfField),
     buildStorageSection(profile, userId, env, csrfField),
-    buildMcpSection(profile, userId, env, encryptionKey, csrfField),
+    buildMcpSection(userId, env, encryptionKey, csrfField),
     buildEmailSection(profile, userId, env, csrfField),
   ]);
 

@@ -881,3 +881,25 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 }
 
 .toast-dismiss:hover { opacity: 1; }
+
+/* ── MCP tokens (modal) ── */
+.mcp-token-list { margin-bottom: 18px; }
+
+.mcp-token {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.mcp-token:first-child { padding-top: 0; }
+
+.mcp-token .email-row { margin-bottom: 4px; }
+.mcp-token .email-row input[type=text] { flex: 1; min-width: 0; }
+
+.mcp-token-meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+
+.mcp-token-new .email-row input { flex: 1; min-width: 0; }

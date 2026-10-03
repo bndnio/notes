@@ -1,0 +1,16 @@
+<div class="mcp-token">
+  <div class="email-row">
+    <form class="form-inline" method="POST" action="/api/mcp/tokens/rename">
+      {{csrfField}}
+      <input type="hidden" name="id" value="{{id}}">
+      <input type="text" name="name" value="{{name}}" required maxlength="{{maxNameLength}}" aria-label="Token name">
+      <button type="submit" class="btn btn--ghost btn--sm">Rename</button>
+    </form>
+    <form class="form-inline" method="POST" action="/api/mcp/tokens/delete" data-token-name="{{name}}" onsubmit="return confirmDeleteMcpToken(this)">
+      {{csrfField}}
+      <input type="hidden" name="id" value="{{id}}">
+      <button type="submit" class="btn btn--ghost btn--sm">Delete</button>
+    </form>
+  </div>
+  <p class="mcp-token-meta">Created <time datetime="{{createdIso}}">{{createdDate}}</time> · Last used {{lastUsed}}</p>
+</div>

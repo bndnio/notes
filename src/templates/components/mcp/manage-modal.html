@@ -1,0 +1,27 @@
+<div class="modal-overlay" id="mcp-manage-overlay" onclick="if(event.target===this)closeMcpModal('mcp-manage')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>MCP tokens</h2>
+      <button class="modal-close" onclick="closeMcpModal('mcp-manage')">✕</button>
+    </div>
+    {{pendingSection}}
+    <div class="modal-body">
+      <h3 class="email-section-label">Your tokens · {{tokenCount}} of {{maxTokens}}</h3>
+      <div class="mcp-token-list">{{tokenList}}</div>
+      <p class="note-list-empty" {{emptyHidden}}>No tokens yet. Create one for each machine that runs Claude Code.</p>
+
+      <form class="mcp-token-new" method="POST" action="/api/mcp/tokens" {{createHidden}}>
+        {{csrfField}}
+        <h3 class="email-section-label">New token</h3>
+        <div class="email-row">
+          <input type="text" name="name" required maxlength="{{maxNameLength}}" placeholder="e.g. Work laptop" aria-label="Token name">
+          <button type="submit" class="btn btn--red btn--sm">Create →</button>
+        </div>
+      </form>
+      <p class="note-list-hint" {{limitHidden}}>You've reached the {{maxTokens}}-token limit. Delete one to create another.</p>
+    </div>
+    <div class="modal-actions modal-actions--end">
+      <button type="button" class="btn btn--ghost" onclick="closeMcpModal('mcp-manage')">Close</button>
+    </div>
+  </div>
+</div>
