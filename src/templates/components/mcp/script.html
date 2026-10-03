@@ -5,21 +5,4 @@
       "It stops working immediately. Claude Code and any other MCP clients using it will lose access."
     );
   }
-
-  function openMcpModal(name) {
-    var overlay = document.getElementById(name + '-overlay');
-    if (overlay) overlay.classList.add('modal-overlay--visible');
-  }
-  function closeMcpModal(name) {
-    var overlay = document.getElementById(name + '-overlay');
-    if (overlay) overlay.classList.remove('modal-overlay--visible');
-    const url = new URL(window.location);
-    url.searchParams.delete('modal');
-    history.replaceState(null, '', url);
-  }
-
-  (function () {
-    var modal = new URLSearchParams(window.location.search).get('modal');
-    if (modal === 'mcp-manage' || modal === 'mcp-setup') openMcpModal(modal);
-  })();
 </script>

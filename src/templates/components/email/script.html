@@ -37,18 +37,4 @@
 
     errorEl.textContent = '';
   });
-
-  function openEmailModal() {
-    document.getElementById('email-modal-overlay').classList.add('modal-overlay--visible');
-  }
-  function closeEmailModal() {
-    document.getElementById('email-modal-overlay').classList.remove('modal-overlay--visible');
-    const url = new URL(window.location);
-    url.searchParams.delete('modal');
-    history.replaceState(null, '', url);
-  }
-
-  if (new URLSearchParams(window.location.search).get('modal') === 'email-manage') {
-    openEmailModal();
-  }
 </script>

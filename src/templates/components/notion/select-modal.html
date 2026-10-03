@@ -1,8 +1,8 @@
-<div class="modal-overlay" id="notion-modal-overlay" onclick="if(event.target===this)closeNotionModal()">
+<div class="modal-overlay" id="notion-select-overlay">
   <div class="modal">
     <div class="modal-header">
       <h2>Choose a database</h2>
-      <button class="modal-close" onclick="closeNotionModal()">✕</button>
+      <button class="modal-close" onclick="closeModal('notion-select')">✕</button>
     </div>
     <form method="POST" action="/api/notion/select">
       {{csrfField}}
@@ -13,7 +13,7 @@
       </div>
       <div class="modal-actions">
         <button type="submit" class="btn btn--red">Save →</button>
-        <button type="button" class="btn btn--ghost" onclick="closeNotionModal()">Cancel</button>
+        <button type="button" class="btn btn--ghost" onclick="closeModal('notion-select')">Cancel</button>
       </div>
     </form>
   </div>

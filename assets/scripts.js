@@ -34,3 +34,35 @@ document.addEventListener('submit', function (e) {
   });
   sync();
 })();
+
+// Modals: each overlay is `#<name>-overlay`, where <name> is also its `?modal=`
+// value, so a server redirect to /profile?modal=<name> opens it on load.
+function modalOverlay(name) {
+  return document.getElementById(name + '-overlay');
+}
+
+function openModal(name) {
+  var overlay = modalOverlay(name);
+  if (overlay) overlay.classList.add('modal-overlay--visible');
+}
+
+function closeModal(name) {
+  var overlay = modalOverlay(name);
+  if (overlay) overlay.classList.remove('modal-overlay--visible');
+  var url = new URL(window.location);
+  url.searchParams.delete('modal');
+  history.replaceState(null, '', url);
+}
+
+// A click on the backdrop itself, not on the modal inside it, closes.
+document.addEventListener('click', function (e) {
+  var overlay = e.target;
+  if (overlay.classList && overlay.classList.contains('modal-overlay')) {
+    closeModal(overlay.id.replace(/-overlay$/, ''));
+  }
+});
+
+(function () {
+  var name = new URLSearchParams(window.location.search).get('modal');
+  if (name) openModal(name);
+})();

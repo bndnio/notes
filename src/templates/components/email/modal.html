@@ -1,8 +1,8 @@
-<div class="modal-overlay" id="email-modal-overlay" onclick="if(event.target===this)closeEmailModal()">
+<div class="modal-overlay" id="email-manage-overlay">
   <div class="modal">
     <div class="modal-header">
       <h2>Manage email</h2>
-      <button class="modal-close" onclick="closeEmailModal()">✕</button>
+      <button class="modal-close" onclick="closeModal('email-manage')">✕</button>
     </div>
     {{pendingSection}}
     <form id="email-settings-form" method="POST" action="/api/email">
@@ -19,7 +19,7 @@
       </div>
       <div class="modal-actions">
         <button type="submit" class="btn btn--red">Save →</button>
-        <button type="button" class="btn btn--ghost" onclick="closeEmailModal()">Cancel</button>
+        <button type="button" class="btn btn--ghost" onclick="closeModal('email-manage')">Cancel</button>
       </div>
     </form>
   </div>

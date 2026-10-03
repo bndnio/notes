@@ -6,7 +6,7 @@
   </div>
   <p class="email-pending-hint">This token isn't saved until you click Done in setup.</p>
   <div class="email-row">
-    <button type="button" class="btn btn--sm" onclick="closeMcpModal('mcp-manage');openMcpModal('mcp-setup')">Continue setup →</button>
+    <button type="button" class="btn btn--sm" onclick="closeModal('mcp-manage');openModal('mcp-setup')">Continue setup →</button>
     <form class="form-inline" method="POST" action="/api/mcp/tokens/cancel">
       {{csrfField}}
       <button type="submit" class="btn btn--ghost btn--sm">Discard</button>

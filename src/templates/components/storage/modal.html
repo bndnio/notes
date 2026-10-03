@@ -1,8 +1,8 @@
-<div class="modal-overlay" id="storage-modal-overlay" onclick="if(event.target===this)closeStorageModal()">
+<div class="modal-overlay" id="storage-manage-overlay">
   <div class="modal">
     <div class="modal-header">
       <h2>Platform storage</h2>
-      <button class="modal-close" onclick="closeStorageModal()">✕</button>
+      <button class="modal-close" onclick="closeModal('storage-manage')">✕</button>
     </div>
     <form id="storage-settings-form" method="POST" action="/api/storage">
       {{csrfField}}
@@ -20,7 +20,7 @@
       </div>
       <div class="modal-actions">
         <button type="submit" class="btn btn--red">Save →</button>
-        <button type="button" class="btn btn--ghost" onclick="closeStorageModal()">Cancel</button>
+        <button type="button" class="btn btn--ghost" onclick="closeModal('storage-manage')">Cancel</button>
       </div>
     </form>
   </div>

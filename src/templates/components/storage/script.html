@@ -1,15 +1,4 @@
 <script>
-  function openStorageModal() {
-    document.getElementById('storage-modal-overlay').classList.add('modal-overlay--visible');
-  }
-
-  function closeStorageModal() {
-    document.getElementById('storage-modal-overlay').classList.remove('modal-overlay--visible');
-    const url = new URL(window.location);
-    url.searchParams.delete('modal');
-    history.replaceState(null, '', url);
-  }
-
   (function () {
     var checkbox = document.getElementById('storage-enabled');
     var warning = document.getElementById('storage-disable-warning');
@@ -30,8 +19,4 @@
       }
     });
   })();
-
-  if (new URLSearchParams(window.location.search).get('modal') === 'storage-manage') {
-    openStorageModal();
-  }
 </script>

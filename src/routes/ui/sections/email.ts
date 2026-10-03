@@ -74,7 +74,7 @@ export async function buildEmailSection(
       badgeClass,
       badgeText,
       description,
-      action: `<button class="btn btn--ghost" onclick="openEmailModal()">Manage →</button>`,
+      action: `<button class="btn btn--ghost" onclick="openModal('email-manage')">Manage →</button>`,
     }),
     modal: buildEmailModal(emails, requireSenderMatch, pendingEmail, csrfField),
     script: emailScriptHtml,

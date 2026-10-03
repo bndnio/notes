@@ -1,8 +1,8 @@
-<div class="modal-overlay" id="mcp-manage-overlay" onclick="if(event.target===this)closeMcpModal('mcp-manage')">
+<div class="modal-overlay" id="mcp-manage-overlay">
   <div class="modal">
     <div class="modal-header">
       <h2>MCP tokens</h2>
-      <button class="modal-close" onclick="closeMcpModal('mcp-manage')">✕</button>
+      <button class="modal-close" onclick="closeModal('mcp-manage')">✕</button>
     </div>
     {{pendingSection}}
     <div class="modal-body">
@@ -21,7 +21,7 @@
       <p class="note-list-hint" {{limitHidden}}>You've reached the {{maxTokens}}-token limit. Delete one to create another.</p>
     </div>
     <div class="modal-actions modal-actions--end">
-      <button type="button" class="btn btn--ghost" onclick="closeMcpModal('mcp-manage')">Close</button>
+      <button type="button" class="btn btn--ghost" onclick="closeModal('mcp-manage')">Close</button>
     </div>
   </div>
 </div>

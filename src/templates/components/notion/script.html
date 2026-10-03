@@ -21,22 +21,13 @@
     }
   }
 
+  // The picker is only rendered while database choices are pending; otherwise
+  // the server fetches them and redirects back with ?modal=notion-select.
   function openNotionModal() {
-    var overlay = document.getElementById('notion-modal-overlay');
-    if (!overlay) {
+    if (!document.getElementById('notion-select-overlay')) {
       window.location.href = '/api/notion/select';
       return;
     }
-    overlay.classList.add('modal-overlay--visible');
-  }
-  function closeNotionModal() {
-    document.getElementById('notion-modal-overlay').classList.remove('modal-overlay--visible');
-    const url = new URL(window.location);
-    url.searchParams.delete('modal');
-    history.replaceState(null, '', url);
-  }
-
-  if (new URLSearchParams(window.location.search).get('modal') === 'notion-select') {
-    openNotionModal();
+    openModal('notion-select');
   }
 </script>

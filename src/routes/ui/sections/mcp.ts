@@ -90,7 +90,7 @@ export async function buildMcpSection(
     badgeClass,
     badgeText,
     description: "Connect Notes to Claude Code as an AI tool.",
-    action: `<button type="button" class="btn btn--ghost" onclick="openMcpModal('mcp-manage')">Manage →</button>`,
+    action: `<button type="button" class="btn btn--ghost" onclick="openModal('mcp-manage')">Manage →</button>`,
   });
 
   return {
