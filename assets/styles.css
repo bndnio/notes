@@ -1023,3 +1023,12 @@ input[readonly]:not([type="checkbox"]):not([type="radio"]) {
 
 .notes-empty p { font-size: 14px; margin: 0 0 6px; }
 .notes-empty-hint { color: var(--text-muted); }
+
+.storage-recent-label { margin-top: 18px; }
+.storage-recent-label + .note-list { margin-top: 0; }
+
+.storage-view-all {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 13px;
+}

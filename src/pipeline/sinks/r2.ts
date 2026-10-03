@@ -44,7 +44,6 @@ export const r2Sink: Sink = {
 
       const saveMd = ctx.env.NOTES_BUCKET.put(mdKey, toMarkdown(stored, rawEmail ? emlKey : undefined), {
         httpMetadata: { contentType: "text/markdown" },
-        customMetadata: { subject: stored.subject, from: stored.from },
       });
 
       const [emlResult, mdResult] = await Promise.allSettled([saveEml, saveMd]);

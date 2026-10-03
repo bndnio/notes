@@ -6,11 +6,12 @@ import notesEmptyHtml from "@/templates/components/notes/empty.html";
 import notesStorageOffHtml from "@/templates/components/notes/storage-off.html";
 import notesBodyHtml from "@/templates/components/notes/body.html";
 import notesScriptHtml from "@/templates/components/notes/script.html";
-import { assertSession, assertUser } from "@/lib/auth";
+import toastHtml from "@/templates/partials/toast.html";
+import { assertCsrf, assertSession, assertUser, getCsrfToken } from "@/lib/auth";
 import { escHtml } from "@/lib/html";
 import { pageVars } from "@/lib/page";
 import { html, renderTemplate } from "@/lib/responses";
-import { readStoredNote } from "@/lib/platform-storage";
+import { deleteStoredNote, readStoredNote } from "@/lib/platform-storage";
 import { createDb } from "@/db";
 import * as notesRepo from "@/db/repositories/notes";
 import type { Env, NoteSummary } from "@/lib/types";
@@ -30,7 +31,11 @@ const dayFormat = new Intl.DateTimeFormat("en-GB", {
   weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
 });
 
-function buildDayGroups(notes: NoteSummary[]): string {
+function notesUrl(toast: string | null): string {
+  return toast ? `/notes?${new URLSearchParams({ toast })}` : "/notes";
+}
+
+function buildDayGroups(notes: NoteSummary[], csrfField: string): string {
   const groups = new Map<string, NoteSummary[]>();
   for (const note of notes) {
     const day = new Date(note.createdAt).toISOString().slice(0, 10);
@@ -49,6 +54,8 @@ function buildDayGroups(notes: NoteSummary[]): string {
             time: iso.slice(11, 16),
             subject: escHtml(note.subject),
             from: escHtml(note.from),
+            emailHidden: note.emailKey ? "" : "hidden",
+            csrfField,
           });
         })
         .join("\n"),
@@ -58,7 +65,7 @@ function buildDayGroups(notes: NoteSummary[]): string {
 
 export async function handleNotes(request: Request, env: Env): Promise<Response> {
   const encryptionKey = env.SEC_ENCRYPTION_KEY;
-  const { userId } = await assertSession(request, env, encryptionKey);
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
   const user = await assertUser(db, userId, env.APP_URL);
@@ -69,8 +76,11 @@ export async function handleNotes(request: Request, env: Env): Promise<Response>
 
   const page = await notesRepo.findPage(db, userId, { before, after });
   if (page.notes.length === 0 && page.total > 0) {
-    return Response.redirect(`${env.APP_URL}/notes`, 302);
+    return Response.redirect(`${env.APP_URL}${notesUrl(params.get("toast"))}`, 302);
   }
+
+  const csrfToken = await getCsrfToken(sessionHash, encryptionKey);
+  const csrfField = `<input type="hidden" name="_csrf" value="${csrfToken}">`;
 
   const shown = page.notes.length;
   const hasNewer = page.newerCount > 0;
@@ -98,15 +108,18 @@ export async function handleNotes(request: Request, env: Env): Promise<Response>
     metaHidden: shown > 0 ? "" : "hidden",
     rangeStart: (page.newerCount + 1).toLocaleString("en-US"),
     rangeEnd: (page.newerCount + shown).toLocaleString("en-US"),
+    rangeEndValue: String(page.newerCount + shown),
     total: page.total.toLocaleString("en-US"),
+    totalValue: String(page.total),
+    toastTemplate: renderTemplate(toastHtml, { message: "" }),
     emptyState,
-    dayGroups: buildDayGroups(page.notes),
+    dayGroups: buildDayGroups(page.notes, csrfField),
     pagination,
     script: notesScriptHtml,
   })));
 }
 
-const NOTE_ROUTE_RE = /^\/notes\/([0-9a-f]{12})\/(body|md|eml)$/;
+const NOTE_ROUTE_RE = /^\/notes\/([0-9a-f]{12})\/(body|md|eml|delete)$/;
 
 const privateHeaders = {
   "Cache-Control": "private, no-store",
@@ -133,14 +146,22 @@ function download(object: R2ObjectBody, key: string, contentType: string): Respo
 
 export async function handleNoteRoutes(request: Request, env: Env): Promise<Response> {
   const encryptionKey = env.SEC_ENCRYPTION_KEY;
-  const { userId } = await assertSession(request, env, encryptionKey);
+  const { userId, sessionHash } = await assertSession(request, env, encryptionKey);
 
   const db = createDb(env.DB);
   await assertUser(db, userId, env.APP_URL);
 
   const match = NOTE_ROUTE_RE.exec(new URL(request.url).pathname);
-  if (!match || request.method !== "GET") return notFound();
+  if (!match) return notFound();
   const [, id, action] = match;
+
+  if (action === "delete") {
+    if (request.method !== "POST") return notFound();
+    const form = await request.formData();
+    await assertCsrf(form, sessionHash, encryptionKey);
+    return deleteNote(request, db, env, userId, id);
+  }
+  if (request.method !== "GET") return notFound();
 
   const note = await notesRepo.findById(db, userId, id);
   if (!note) return notFound();
@@ -157,7 +178,6 @@ export async function handleNoteRoutes(request: Request, env: Env): Promise<Resp
       to: escHtml(content.to),
       toHidden: content.to ? "" : "hidden",
       body: escHtml(content.body),
-      emailHidden: note.emailKey ? "" : "hidden",
     }), { headers: { ...privateHeaders, "Content-Type": "text/html; charset=utf-8" } });
   }
 
@@ -169,4 +189,31 @@ export async function handleNoteRoutes(request: Request, env: Env): Promise<Resp
     return notFound();
   }
   return download(object, key, action === "md" ? "text/markdown; charset=utf-8" : "message/rfc822");
+}
+
+// The page script deletes in place and asks for JSON; a plain form submit gets a redirect.
+function deleteResponse(request: Request, env: Env, ok: boolean, message: string): Response {
+  if (request.headers.get("Accept")?.includes("application/json")) {
+    return Response.json({ message }, { status: ok ? 200 : 404, headers: privateHeaders });
+  }
+  return Response.redirect(`${env.APP_URL}${notesUrl(message)}`, 302);
+}
+
+// R2 objects go first: if that fails, the row still points at them and a retry works.
+// The reverse order could leave objects behind with nothing listing them.
+async function deleteNote(
+  request: Request,
+  db: ReturnType<typeof createDb>,
+  env: Env,
+  userId: string,
+  id: string,
+): Promise<Response> {
+  const note = await notesRepo.findById(db, userId, id);
+  if (!note) return deleteResponse(request, env, false, "That note no longer exists.");
+
+  await deleteStoredNote(env.NOTES_BUCKET, { mdKey: note.r2Key, emailKey: note.emailKey });
+  await notesRepo.remove(db, userId, id);
+
+  console.log(`Deleted note ${id} for user ${userId}`);
+  return deleteResponse(request, env, true, "Note deleted");
 }

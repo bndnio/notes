@@ -39,7 +39,7 @@
   }
 
   // Deletes without a reload so the scroll position stays put. Without JS, the form
-  // submits normally and the server redirects back to the same page.
+  // submits normally and the server redirects to /notes.
   document.addEventListener('submit', function (e) {
     var form = e.target;
     if (!form.matches('form.note-delete')) return;

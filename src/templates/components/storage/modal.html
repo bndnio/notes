@@ -14,7 +14,11 @@
         <div class="warning storage-disable-warning" id="storage-disable-warning" hidden>
           Turning off storage will permanently delete all your saved notes when you save.
         </div>
-        <div class="note-list" {{noteListHidden}}>{{noteListItems}}</div>
+        <div {{noteListHidden}}>
+          <h3 class="email-section-label storage-recent-label">Most recent</h3>
+          <div class="note-list">{{noteListItems}}</div>
+          <a class="storage-view-all" href="/notes">View all notes →</a>
+        </div>
         <p class="note-list-empty" {{emptyListHidden}}>No notes saved yet.</p>
         <p class="note-list-hint" {{storageHintHidden}}>Enable storage to save notes on the platform.</p>
       </div>

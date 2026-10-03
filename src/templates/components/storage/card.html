@@ -9,6 +9,9 @@
     <p class="card-desc" {{disabledHidden}}>Notes are not archived on the platform.</p>
   </div>
   <div class="card-actions">
-    <button type="button" class="btn btn--ghost" onclick="openModal('storage-manage')">Manage →</button>
+    <div class="btn-row">
+      <a class="btn btn--ghost btn--sm" href="/notes" {{viewNotesHidden}}>View notes</a>
+      <button type="button" class="btn btn--ghost" onclick="openModal('storage-manage')">Manage →</button>
+    </div>
   </div>
 </div>

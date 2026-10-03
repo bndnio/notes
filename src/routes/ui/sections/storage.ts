@@ -3,8 +3,9 @@ import storageModalHtml from "@/templates/components/storage/modal.html";
 import storageNoteListItemHtml from "@/templates/components/storage/note-list-item.html";
 import storageScriptHtml from "@/templates/components/storage/script.html";
 import { escHtml } from "@/lib/html";
-import { listStoredNotes } from "@/lib/platform-storage";
 import { renderTemplate } from "@/lib/responses";
+import { createDb } from "@/db";
+import * as notesRepo from "@/db/repositories/notes";
 import type { Env, Profile, Section } from "@/lib/types";
 
 export async function buildStorageSection(
@@ -14,13 +15,13 @@ export async function buildStorageSection(
   csrfField: string,
 ): Promise<Section> {
   const enabled = profile.storageEnabled;
-  const notes = enabled ? await listStoredNotes(env.NOTES_BUCKET, userId) : [];
+  const notes = enabled ? await notesRepo.findRecent(createDb(env.DB), userId) : [];
   const hasNotes = notes.length > 0;
   const noteListItems = notes
     .map((note) =>
       renderTemplate(storageNoteListItemHtml, {
         subject: escHtml(note.subject),
-        date: escHtml(note.date),
+        date: new Date(note.createdAt).toISOString().slice(0, 10),
       }))
     .join("\n");
 
@@ -28,6 +29,7 @@ export async function buildStorageSection(
     card: renderTemplate(storageCardHtml, {
       enabledHidden: enabled ? "" : "hidden",
       disabledHidden: enabled ? "hidden" : "",
+      viewNotesHidden: hasNotes ? "" : "hidden",
     }),
     modal: renderTemplate(storageModalHtml, {
       csrfField,

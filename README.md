@@ -171,15 +171,20 @@ Each account can hold up to 10 tokens. From the same **Manage** modal you can re
 
 ---
 
+## Browsing notes
+
+With **Platform storage** on, `/notes` lists your saved notes newest first, 50 per page. Click a note to read it, download its `.md` or original email, or delete it. The storage card on `/profile` links there and shows the five most recent.
+
+---
+
 ## Retrieving notes for AI processing
 
-### Download all notes from R2
-```bash
-# List all notes
-bunx wrangler r2 object list bndnio-notes --prefix notes/
+Each user's notes live under their user id (`<userId>/`) in the bucket. Find yours in the D1 `users` table.
 
+### Download notes from R2
+```bash
 # Download a specific file
-bunx wrangler r2 object get bndnio-notes notes/2026-05-13/20h32-my-idea.md --file ./my-idea.md
+bunx wrangler r2 object get bndnio-notes/<userId>/2026-05-13/20h32-my-idea-3f9a1c2b7d4e.md --file ./my-idea.md
 ```
 
 ### Bulk download with a script
@@ -201,21 +206,26 @@ const client = new S3Client({
   },
 });
 
-const list = await client.send(new ListObjectsV2Command({
-  Bucket: "bndnio-notes",
-  Prefix: "notes/",
-}));
-
 mkdirSync("./downloaded-notes", { recursive: true });
 
-for (const obj of list.Contents ?? []) {
-  if (!obj.Key.endsWith(".md")) continue;
-  const res = await client.send(new GetObjectCommand({ Bucket: "bndnio-notes", Key: obj.Key }));
-  const text = await res.Body.transformToString();
-  const filename = obj.Key.replace(/\//g, "-");
-  writeFileSync(`./downloaded-notes/${filename}`, text);
-  console.log(`Downloaded: ${filename}`);
-}
+// Each list call returns at most 1,000 keys, so follow the continuation token.
+let ContinuationToken;
+do {
+  const list = await client.send(new ListObjectsV2Command({
+    Bucket: "bndnio-notes",
+    Prefix: "<userId>/",
+    ContinuationToken,
+  }));
+  for (const obj of list.Contents ?? []) {
+    if (!obj.Key.endsWith(".md")) continue;
+    const res = await client.send(new GetObjectCommand({ Bucket: "bndnio-notes", Key: obj.Key }));
+    const text = await res.Body.transformToString();
+    const filename = obj.Key.replace(/\//g, "-");
+    writeFileSync(`./downloaded-notes/${filename}`, text);
+    console.log(`Downloaded: ${filename}`);
+  }
+  ContinuationToken = list.NextContinuationToken;
+} while (ContinuationToken);
 ```
 
 ---
@@ -224,11 +234,13 @@ for (const obj of list.Contents ?? []) {
 
 ```
 bndnio-notes/
-└── notes/
+└── <userId>/
     └── 2026-05-13/
-        ├── 20h32-coffee-shop-idea.md    ← structured note (email or MCP)
-        └── 20h32-coffee-shop-idea.eml   ← raw email backup (email path only)
+        ├── 20h32-coffee-shop-idea-3f9a1c2b7d4e.md    ← structured note (email or MCP)
+        └── 20h32-coffee-shop-idea-3f9a1c2b7d4e.eml   ← raw email backup (email path only)
 ```
+
+The suffix is the note's id, so notes saved in the same minute with the same subject never overwrite each other. Each `.md` also has a row in the D1 `notes` table, which `/notes` reads from.
 
 Email note `.md`:
 ```markdown
@@ -237,7 +249,7 @@ timestamp: 2026-05-13T10:32:00.000Z
 from: you@youremail.com
 to: notes@bndn.io
 subject: Coffee shop idea
-emlKey: notes/2026-05-13/20h32-coffee-shop-idea.eml
+emlKey: <userId>/2026-05-13/20h32-coffee-shop-idea-3f9a1c2b7d4e.eml
 ---
 
 The full note body here...

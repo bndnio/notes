@@ -5,6 +5,7 @@ import { generateRandomHex } from "@/lib/crypto";
 import type { NoteSummary } from "@/lib/types";
 
 export const NOTES_PAGE_SIZE = 50;
+export const RECENT_NOTES_COUNT = 5;
 
 export interface NoteCursor {
   createdAt: number;
@@ -80,6 +81,13 @@ export async function findPage(
   ]);
 
   return { notes: page, total, newerCount: newer };
+}
+
+export function findRecent(db: Db, userId: string): Promise<NoteSummary[]> {
+  return db.select(summary).from(notes)
+    .where(eq(notes.userId, userId))
+    .orderBy(desc(notes.createdAt), desc(notes.id))
+    .limit(RECENT_NOTES_COUNT);
 }
 
 export function findById(db: Db, userId: string, id: string) {

@@ -109,9 +109,24 @@ document.addEventListener('keydown', function (e) {
   if (name) openModal(name);
 })();
 
+function armToast(toast) {
+  setTimeout(function () { toast.remove(); }, 5000);
+  toast.querySelector('.toast-dismiss').addEventListener('click', function () { toast.remove(); });
+}
+
+// Pages that update in place include a #toast-template to show messages without a reload.
+function showToast(message) {
+  var template = document.getElementById('toast-template');
+  if (!template) return;
+  var existing = document.getElementById('toast');
+  if (existing) existing.remove();
+  var toast = template.content.firstElementChild.cloneNode(true);
+  toast.insertBefore(document.createTextNode(message), toast.firstChild);
+  document.body.appendChild(toast);
+  armToast(toast);
+}
+
 (function () {
   var toast = document.getElementById('toast');
-  if (!toast) return;
-  setTimeout(function () { toast.remove(); }, 5000);
-  document.getElementById('toast-dismiss').addEventListener('click', function () { toast.remove(); });
+  if (toast) armToast(toast);
 })();
